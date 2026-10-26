@@ -37,14 +37,16 @@ android {
     }
 
     // Release signing comes only from the environment (CI secrets); without it release builds stay unsigned.
-    def releaseKeystore = System.getenv('NGA_KEYSTORE_FILE')
+    // Values pasted into CI secrets often carry a trailing newline, so whitespace is trimmed.
+    def signingEnv = { String name -> System.getenv(name)?.trim() }
+    def releaseKeystore = signingEnv('NGA_KEYSTORE_FILE')
     signingConfigs {
         if (releaseKeystore) {
             release {
                 storeFile = file(releaseKeystore)
-                storePassword = System.getenv('NGA_KEYSTORE_PASSWORD')
-                keyAlias = System.getenv('NGA_KEY_ALIAS')
-                keyPassword = System.getenv('NGA_KEY_PASSWORD')
+                storePassword = signingEnv('NGA_KEYSTORE_PASSWORD')
+                keyAlias = signingEnv('NGA_KEY_ALIAS')
+                keyPassword = signingEnv('NGA_KEY_PASSWORD')
             }
         }
     }
