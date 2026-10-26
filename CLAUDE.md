@@ -26,7 +26,7 @@ Toolchain: JDK 17, AGP 9.4.1 (built-in Kotlin, no `kotlin-android` plugin), Kotl
 ./gradlew :nga_phone_base_3.0:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=<fqcn>
 ```
 
-Reports: `nga_phone_base_3.0/build/reports/tests/testDebugUnitTest/`, `.../reports/lint-results-debug.html`, `.../reports/androidTests/connected/debug/`. SARIF lint export is intentionally disabled (AGP 9.4.1 reporter crashes). Release signing is not in the repo.
+Reports: `nga_phone_base_3.0/build/reports/tests/testDebugUnitTest/`, `.../reports/lint-results-debug.html`, `.../reports/androidTests/connected/debug/`. SARIF lint export is intentionally disabled (AGP 9.4.1 reporter crashes). Release signing is not in the repo: `assembleRelease` signs only when the `NGA_KEYSTORE_*`/`NGA_KEY_*` env vars are set. Pushing a `vX.Y.Z` tag that matches `appVersionName` runs `.github/workflows/release.yml`, which builds a signed APK from repository secrets and publishes a GitHub Release (the in-app update check reads that release).
 
 Tests live almost entirely in the app module (`nga_phone_base_3.0/src/test` and `src/androidTest`), including tests for `lib_core` code. Tests use synthetic/offline data only — never commit real account data or tests that post to the live forum.
 

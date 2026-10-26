@@ -82,6 +82,30 @@ nga_phone_base_3.0/build/outputs/apk/debug/
 
 发布签名需由本地发布环境或持续集成环境单独配置。仓库不包含发布证书、签名密码或固定的证书文件路径。未经发布签名的构建产物不得视为可分发的正式安装包。
 
+发布构建通过环境变量 `NGA_KEYSTORE_FILE`、`NGA_KEYSTORE_PASSWORD`、`NGA_KEY_ALIAS` 与 `NGA_KEY_PASSWORD` 读取签名配置；未设置时生成未签名的 `nga_phone_base_3.0-release-unsigned.apk`。
+
+### 自动发布
+
+推送 `v4.0.0` 格式的版本标签后，[发布工作流](.github/workflows/release.yml)会执行单元测试、构建签名发布包，并创建对应的 GitHub Release。发布附件包括 `NGA-<版本号>.apk` 与 `SHA256SUMS.txt`，发布说明取自 `VersionUpgradeTips` 中当前版本代码的更新说明；未找到时使用 GitHub 自动生成的说明。标签带有 `-` 后缀（如 `v4.1.0-beta.1`）时创建预发布，预发布不会出现在应用的检查更新结果中。
+
+首次使用前，需在仓库 Settings → Secrets and variables → Actions 中添加以下 Secrets：
+
+| Secret | 内容 |
+| --- | --- |
+| `NGA_KEYSTORE_BASE64` | 发布证书文件的 Base64 编码 |
+| `NGA_KEYSTORE_PASSWORD` | 证书库密码 |
+| `NGA_KEY_ALIAS` | 密钥别名 |
+| `NGA_KEY_PASSWORD` | 密钥密码 |
+
+证书文件可用 `base64 -i release.jks | pbcopy`（macOS）或 `base64 -w0 release.jks`（Linux）转换。同一应用的后续版本必须使用同一证书签名，否则无法覆盖安装，证书应妥善备份。
+
+发布步骤：
+
+1. 在根目录 `build.gradle` 中更新 `appVersionName` 与 `appVersionCode`，并添加对应的 `TIPS_<版本代码>` 更新说明。
+2. 提交并推送后，创建与 `appVersionName` 一致的标签并推送：`git tag v4.0.0 && git push origin v4.0.0`。
+
+标签与 `appVersionName` 不一致或缺少签名 Secrets 时，工作流会直接失败，不创建发布。
+
 应用“关于 → 检查更新”读取本仓库 GitHub 的最新正式发布（不含草稿与预发布），按数字比较发布标签与 `appVersionName`。发布标签应采用 `v4.0.0` 或 `4.0.0` 格式，发布说明会显示在更新提示中。版本号与版本代码定义于根目录 `build.gradle`，版本代码按 `主版本×1000 + 次版本×100 + 修订号` 递增，并需在 `VersionUpgradeTips` 中添加对应的 `TIPS_<版本代码>` 更新说明。
 
 ## 测试与静态检查

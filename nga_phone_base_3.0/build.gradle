@@ -36,8 +36,22 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Release signing comes only from the environment (CI secrets); without it release builds stay unsigned.
+    def releaseKeystore = System.getenv('NGA_KEYSTORE_FILE')
+    signingConfigs {
+        if (releaseKeystore) {
+            release {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv('NGA_KEYSTORE_PASSWORD')
+                keyAlias = System.getenv('NGA_KEY_ALIAS')
+                keyPassword = System.getenv('NGA_KEY_PASSWORD')
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (releaseKeystore) signingConfig = signingConfigs.release
             debuggable = false
             jniDebuggable = false
             pseudoLocalesEnabled = false
