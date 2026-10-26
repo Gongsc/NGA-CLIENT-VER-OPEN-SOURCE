@@ -2,8 +2,6 @@ package gov.anzong.androidnga.ui.compose
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -13,9 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import sp.phone.http.favorites.ForumFavoritesSnapshot
@@ -23,8 +18,8 @@ import sp.phone.http.favorites.ForumFavoritesSnapshot
 class HomeState {
     var categories by mutableStateOf(emptyList<HomeCategory>())
     var selected by mutableStateOf(0)
-    var userName by mutableStateOf("未登录")
-    var userCount by mutableStateOf(0)
+    var account by mutableStateOf<HomeAccount?>(null)
+    var otherAccounts by mutableStateOf(emptyList<HomeAccount>())
     var replyCount by mutableStateOf(0)
 }
 data class HomeCategory(val name: String, val bookmark: Boolean, val sections: List<BoardSection>)
@@ -47,29 +42,10 @@ fun HomeScreen(
     BackHandler(drawer.isOpen) { scope.launch { drawer.close() } }
     ModalNavigationDrawer(drawerState = drawer, drawerContent = {
         ModalDrawerSheet {
-            LazyColumn(Modifier.widthIn(max = 360.dp).testTag("home_navigation")) {
-                item {
-                    Column(Modifier.padding(24.dp)) {
-                        Text("NGA", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-                        TextButton(onClick = onProfile) { Text(state.userName) }
-                        if (state.userCount > 1) TextButton(onClick = onSwitchUser) { Text("切换账号（${state.userCount}）") }
-                        if (state.replyCount > 0) Text("新回复：${state.replyCount}")
-                    }
-                    HorizontalDivider()
-                }
-                homeNavigationGroups(actions).forEach { group ->
-                    item("heading_${group.title}") {
-                        Text(group.title, modifier = Modifier.padding(start = 28.dp, top = 20.dp, bottom = 8.dp).semantics { heading() },
-                            style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    items(group.actions, key = { it.id }) { action ->
-                        NavigationDrawerItem(label = { Text(action.label) }, selected = false,
-                            onClick = { if(action.enabled) {scope.launch { drawer.close() }; onAction(action.id)} },
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp))
-                    }
-                }
-                item { Spacer(Modifier.height(16.dp)) }
-            }
+            HomeDrawerContent(state, actions,
+                onAction = { id -> scope.launch { drawer.close() }; onAction(id) },
+                onProfile = { scope.launch { drawer.close() }; onProfile() },
+                onSwitchUser = onSwitchUser)
         }
     }) {
         Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {

@@ -65,13 +65,30 @@ class SettingsScreenTest {
 
     @Test fun drawerGroupsActionsAndAppEntriesAppearOnlyOnce() {
         val actions=listOf(gov.anzong.androidnga.R.id.menu_post to "我的主题",gov.anzong.androidnga.R.id.menu_msg to "短消息",gov.anzong.androidnga.R.id.menu_appearance to "外观与布局",gov.anzong.androidnga.R.id.menu_setting to "设置",gov.anzong.androidnga.R.id.menu_about to "关于").map{HomeAction(it.first,it.second)}
-        compose.setContent {NgaTheme{HomeScreen(HomeState(),actions,{},{},{},{},{},onRemove={})}}
+        val state=HomeState().apply{account=HomeAccount("42","测试账号")}
+        compose.setContent {NgaTheme{HomeScreen(state,actions,{},{},{},{},{},onRemove={})}}
         compose.onNodeWithContentDescription("打开导航").performClick()
-        compose.onNodeWithText("账号与消息").assertIsDisplayed()
+        compose.onNodeWithText("测试账号").assertIsDisplayed()
+        compose.onNodeWithText("UID 42").assertIsDisplayed()
+        compose.onNodeWithText("账号").assertIsDisplayed()
+        compose.onNodeWithText("消息").assertIsDisplayed()
         compose.onNodeWithTag("home_navigation").performScrollToNode(hasText("关于"))
         compose.onNodeWithText("应用").assertIsDisplayed()
         compose.onAllNodesWithText("外观与布局").assertCountEquals(1)
         compose.onAllNodesWithText("设置").assertCountEquals(1)
         compose.onAllNodesWithText("关于").assertCountEquals(1)
+    }
+
+    @Test fun loggedOutDrawerFoldsAccountEntriesIntoLogin() {
+        val actions=listOf(gov.anzong.androidnga.R.id.menu_post to "我的主题",gov.anzong.androidnga.R.id.menu_msg to "短消息",gov.anzong.androidnga.R.id.menu_download to "我的缓存").map{HomeAction(it.first,it.second)}
+        val clicked=mutableListOf<Int>()
+        compose.setContent {NgaTheme{HomeScreen(HomeState(),actions,{clicked+=it},{},{},{},{},onRemove={})}}
+        compose.onNodeWithContentDescription("打开导航").performClick()
+        compose.onNodeWithText("未登录").assertIsDisplayed()
+        compose.onNodeWithText("我的缓存").assertIsDisplayed()
+        compose.onAllNodesWithText("我的主题").assertCountEquals(0)
+        compose.onAllNodesWithText("短消息").assertCountEquals(0)
+        compose.onNodeWithText("登录 NGA 账号").performClick()
+        compose.runOnIdle {assertEquals(listOf(gov.anzong.androidnga.R.id.menu_login),clicked)}
     }
 }

@@ -15,7 +15,9 @@ import gov.anzong.androidnga.activity.ForumListActivity
 import gov.anzong.androidnga.activity.MainActivity
 import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.ui.compose.*
+import sp.phone.common.User
 import sp.phone.common.UserManagerImpl
+import sp.phone.util.FunctionUtils
 import sp.phone.mvp.contract.BoardContract
 import sp.phone.mvp.model.entity.Board
 import sp.phone.mvp.presenter.BoardPresenter
@@ -123,9 +125,11 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
     override fun getCurrentItem() = state.selected
     override fun updateHeaderView() {
         val users = UserManagerImpl.getInstance()
-        state.userName = users.activeUser?.nickName ?: "未登录，点击登录"
-        state.userCount = users.userSize
+        val active = users.activeUser
+        state.account = active?.toHomeAccount()
+        state.otherAccounts = users.userList.orEmpty().filter { it.userId != active?.userId }.map { it.toHomeAccount() }
     }
+    private fun User.toHomeAccount() = HomeAccount(userId, nickName.orEmpty(), FunctionUtils.parseAvatarUrl(avatarUrl))
     override fun jumpToLogin() = mPresenter.startLogin()
     override fun switchToNextUser(): Int {
         val users = UserManagerImpl.getInstance()
