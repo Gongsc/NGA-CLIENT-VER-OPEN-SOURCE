@@ -80,7 +80,8 @@ public class RetrofitHelper {
             }
             Request request = original.newBuilder()
                     .header("Cookie", cookie)
-                    .header("User-Agent", "Nga_Official/80023")
+                    .header("User-Agent", original.header("User-Agent") != null
+                            ? original.header("User-Agent") : "Nga_Official/80023")
                     .method(original.method(), original.body())
                     .build();
             return chain.proceed(request);

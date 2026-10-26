@@ -39,7 +39,6 @@ public class PreferenceKey {
 
     public static final String HARDWARE_ACCELERATED = "hardware_accelerated";
 
-    public static final String BOOKMARK_BOARD = "bookmark_board";
 
     public static final String USER_ACTIVE_INDEX = "user_active_index";
 
@@ -95,7 +94,6 @@ public class PreferenceKey {
 
     public static final String KEY_WEBVIEW_TEXT_ZOOM = "key_webview_zoom_size";
 
-    public static final String KEY_PRELOAD_BOARD_VERSION = "key_preload_board_version";
 
     public static final String KEY_LOAD_AVATAR_STRATEGY = "pref_load_avatar_strategy";
 

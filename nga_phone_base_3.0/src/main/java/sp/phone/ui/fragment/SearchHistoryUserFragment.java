@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
-import com.alibaba.android.arouter.launcher.ARouter;
+import gov.anzong.androidnga.arouter.AppNavigator;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
@@ -57,7 +57,7 @@ public class SearchHistoryUserFragment extends SearchHistoryBoardFragment {
         } else if (!mKeyList.contains(query)) {
             addHistory(query);
         }
-        ARouter.getInstance()
+        AppNavigator.getInstance()
                 .build(ARouterConstants.ACTIVITY_PROFILE)
                 .withString("mode", mode)
                 .withString(mode, query)

@@ -3,6 +3,7 @@ package gov.anzong.androidnga.activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.appcompat.app.ActionBar;
 
 import sp.phone.ui.fragment.BaseFragment;
@@ -36,11 +37,17 @@ public class LauncherSubActivity extends BaseActivity {
                 mBaseFragment = (BaseFragment) fragment;
                 Bundle bundle = getIntent().getExtras();
                 mBaseFragment.setArguments(bundle);
-                getSupportFragmentManager().beginTransaction().replace(android.R.id.content, mBaseFragment).commit();
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(android.R.id.content, mBaseFragment)
+                        .commit();
             } else {
                 Bundle bundle = getIntent().getExtras();
                 ((Fragment) fragment).setArguments(bundle);
-                getFragmentManager().beginTransaction().replace(android.R.id.content, (Fragment) fragment).commit();
+                getFragmentManager()
+                        .beginTransaction()
+                        .replace(android.R.id.content, (Fragment) fragment)
+                        .commit();
             }
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -48,9 +55,7 @@ public class LauncherSubActivity extends BaseActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        if (mBaseFragment == null || !mBaseFragment.onBackPressed()) {
-            super.onBackPressed();
+    protected boolean handleBackNavigation() {
+        return mBaseFragment != null && mBaseFragment.onBackPressed();
         }
     }
-}

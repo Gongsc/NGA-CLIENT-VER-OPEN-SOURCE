@@ -1,26 +1,27 @@
 package sp.phone.ui.adapter;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.List;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
+
 import sp.phone.common.PhoneConfiguration;
-import sp.phone.param.TopicTitleHelper;
 import sp.phone.mvp.model.entity.ThreadPageInfo;
+import sp.phone.param.TopicTitleHelper;
 import sp.phone.rxjava.RxUtils;
 import sp.phone.theme.ThemeManager;
 
-public class TopicListAdapter extends BaseAppendableAdapter<ThreadPageInfo, TopicListAdapter.TopicViewHolder> {
+import java.util.List;
+
+public class TopicListAdapter
+        extends BaseAppendableAdapter<ThreadPageInfo, TopicListAdapter.TopicViewHolder> {
 
     public TopicListAdapter(Context context) {
         super(context);
@@ -28,8 +29,11 @@ public class TopicListAdapter extends BaseAppendableAdapter<ThreadPageInfo, Topi
 
     @Override
     public TopicViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        TopicViewHolder viewHolder = new TopicViewHolder(LayoutInflater.from(mContext).inflate(R.layout.list_topic, parent, false));
-        viewHolder.title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, PhoneConfiguration.getInstance().getTopicTitleSize());
+        TopicViewHolder viewHolder =
+                new TopicViewHolder(
+                        LayoutInflater.from(mContext).inflate(R.layout.list_topic, parent, false));
+        viewHolder.title.setTextSize(
+                TypedValue.COMPLEX_UNIT_DIP, PhoneConfiguration.getInstance().getTopicTitleSize());
         RxUtils.clicks(viewHolder.itemView, mOnClickListener);
         viewHolder.itemView.setOnLongClickListener(mOnLongClickListener);
         return viewHolder;
@@ -53,7 +57,8 @@ public class TopicListAdapter extends BaseAppendableAdapter<ThreadPageInfo, Topi
 
         handleJsonList(holder, info);
         if (!PhoneConfiguration.getInstance().useSolidColorBackground()) {
-            holder.itemView.setBackgroundResource(ThemeManager.getInstance().getBackgroundColor(position));
+            holder.itemView.setBackgroundResource(
+                    ThemeManager.getInstance().getBackgroundColor(position));
         }
     }
 
@@ -69,22 +74,21 @@ public class TopicListAdapter extends BaseAppendableAdapter<ThreadPageInfo, Topi
     }
 
     public class TopicViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.num)
         public TextView num;
-
-        @BindView(R.id.title)
         public TextView title;
-
-        @BindView(R.id.author)
         public TextView author;
-
-        @BindView(R.id.last_reply)
         public TextView lastReply;
 
         public TopicViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            num = root.findViewById(R.id.num);
+            title = root.findViewById(R.id.title);
+            author = root.findViewById(R.id.author);
+            lastReply = root.findViewById(R.id.last_reply);
         }
     }
 }

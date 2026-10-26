@@ -1,23 +1,24 @@
 package sp.phone.ui.adapter;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.util.List;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
+
 import sp.phone.common.FilterKeyword;
 import sp.phone.view.RecyclerViewEx;
 
-public class FilterKeywordsAdapter extends RecyclerViewEx.Adapter<FilterKeywordsAdapter.FilterKeywordsViewHodler> {
+import java.util.List;
+
+public class FilterKeywordsAdapter
+        extends RecyclerViewEx.Adapter<FilterKeywordsAdapter.FilterKeywordsViewHodler> {
   private Context mContext;
 
   private View.OnClickListener mOnClickListener;
@@ -32,8 +33,11 @@ public class FilterKeywordsAdapter extends RecyclerViewEx.Adapter<FilterKeywords
   @NonNull
   @Override
   public FilterKeywordsViewHodler onCreateViewHolder(@NonNull ViewGroup viewGroup, int position) {
-    View convertView = LayoutInflater.from(mContext).inflate(R.layout.list_filter_keywords_item, viewGroup, false);
-    FilterKeywordsAdapter.FilterKeywordsViewHodler viewHolder = new FilterKeywordsAdapter.FilterKeywordsViewHodler(convertView);
+        View convertView =
+                LayoutInflater.from(mContext)
+                        .inflate(R.layout.list_filter_keywords_item, viewGroup, false);
+        FilterKeywordsAdapter.FilterKeywordsViewHodler viewHolder =
+                new FilterKeywordsAdapter.FilterKeywordsViewHodler(convertView);
 
     viewHolder.itemView.setOnClickListener(mOnClickListener);
     viewHolder.checkView.setOnClickListener(mOnClickListener);
@@ -60,16 +64,17 @@ public class FilterKeywordsAdapter extends RecyclerViewEx.Adapter<FilterKeywords
   }
 
   public static class FilterKeywordsViewHodler extends RecyclerView.ViewHolder {
-
-    @BindView(R.id.filter_keyword)
     TextView filterKeywordView;
-
-    @BindView(R.id.check)
     Switch checkView;
 
     public FilterKeywordsViewHodler(@NonNull View itemView) {
       super(itemView);
-      ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            filterKeywordView = root.findViewById(R.id.filter_keyword);
+            checkView = root.findViewById(R.id.check);
     }
   }
 }

@@ -1,22 +1,19 @@
 package sp.phone.mvp.contract;
 
-import java.util.List;
-
 import sp.phone.common.User;
 import sp.phone.mvp.model.entity.Board;
 import sp.phone.mvp.model.entity.BoardCategory;
 
-/**
- * Created by Justwen on 2017/6/29.
- */
+import java.util.List;
 
+/** Created by Justwen on 2017/6/29. */
 public interface BoardContract {
 
     interface Presenter {
 
         void loadBoardInfo();
 
-        boolean addBoard(String fid, String name, String stid);
+        boolean addBoard(String fid, String stid);
 
         void toggleUser(List<User> userList);
 
@@ -24,21 +21,13 @@ public interface BoardContract {
 
         void notifyDataSetChanged();
 
-        void clearRecentBoards();
-
         void startUserProfile(String uid);
 
         void startLogin();
 
-
-
         BoardCategory getBookmarkCategory();
 
         List<BoardCategory> getBoardCategories();
-
-        void clearAllBookmarkBoards();
-
-        void swapBookmarkBoard(int from, int to);
 
         void addBookmarkBoard(int fid, int stid, String name);
 
@@ -49,7 +38,6 @@ public interface BoardContract {
         void showTopicList(String url);
 
         void showTopicContent(String url);
-
     }
 
     interface View {
@@ -75,11 +63,7 @@ public interface BoardContract {
 
         void removeBookmark(int fid, int stid);
 
-        void removeAllBookmarks();
-
         boolean isBookmark(int fid, int stid);
-
-        void swapBookmark(int from, int to);
 
         int getCategorySize();
 

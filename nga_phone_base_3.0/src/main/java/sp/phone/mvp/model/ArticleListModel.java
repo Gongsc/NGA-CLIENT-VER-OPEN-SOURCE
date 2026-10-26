@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.HashMap;
 
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.base.util.ThreadUtils;
@@ -17,7 +18,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Function;
+import sp.phone.http.article.ArticlePageLoader;
 import io.reactivex.schedulers.Schedulers;
 import sp.phone.common.UserManagerImpl;
 import gov.anzong.androidnga.http.OnHttpCallBack;
@@ -29,7 +30,6 @@ import sp.phone.mvp.model.convert.ArticleConvertFactory;
 import sp.phone.mvp.model.convert.ErrorConvertFactory;
 import sp.phone.param.ArticleListParam;
 import sp.phone.rxjava.BaseSubscriber;
-import sp.phone.util.NLog;
 
 /**
  * 加载帖子内容
@@ -37,8 +37,6 @@ import sp.phone.util.NLog;
  */
 
 public class ArticleListModel extends BaseModel implements ArticleListContract.Model {
-
-    private static final String TAG = ArticleListModel.class.getSimpleName();
 
     private RetrofitService mService;
 
@@ -51,7 +49,7 @@ public class ArticleListModel extends BaseModel implements ArticleListContract.M
         int tid = param.tid;
         int pid = param.pid;
         int authorId = param.authorId;
-        String url = getAvailableDomain() + "/read.php?" + "&page=" + page + "&__output=8&noprefix&v2";
+        String url = getAvailableDomain() + "/read.php?" + "page=" + Math.max(1, page);
         if (tid != 0) {
             url = url + "&tid=" + tid;
         }
@@ -75,28 +73,14 @@ public class ArticleListModel extends BaseModel implements ArticleListContract.M
     @Override
     public void loadPage(ArticleListParam param, Map<String, String> header, OnHttpCallBack<ThreadData> callBack) {
         String url = getUrl(param);
-        mService.get(url, header)
+        Map<String, String> requestHeaders = new HashMap<>();
+        if (header != null) requestHeaders.putAll(header);
+        if (!requestHeaders.containsKey("Cookie")) {
+            requestHeaders.put("Cookie", UserManagerImpl.getInstance().getCookie());
+        }
+        new ArticlePageLoader<ThreadData>(mService::getArticleResponse, ArticleConvertFactory::getArticleInfo)
+                .load(url, requestHeaders)
                 .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.newThread())
-                .compose(getLifecycleProvider().<String>bindUntilEvent(FragmentEvent.DETACH))
-                .map(new Function<String, ThreadData>() {
-                    @Override
-                    public ThreadData apply(@NonNull String s) throws Exception {
-                        long time = System.currentTimeMillis();
-                        ThreadData data = ArticleConvertFactory.getArticleInfo(s);
-                        NLog.e(TAG, "time = " + (System.currentTimeMillis() - time));
-                        if (data == null) {
-                            String errorMsg = ErrorConvertFactory.getErrorMessage(s);
-                            if (errorMsg != null) {
-                                throw new Exception(errorMsg);
-                            } else {
-                                throw new ServerException("NGA后台抽风了，请尝试右上角菜单中的使用内置浏览器打开");
-                            }
-                        } else {
-                            return data;
-                        }
-                    }
-                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(getLifecycleProvider().<ThreadData>bindUntilEvent(FragmentEvent.DETACH))
                 .subscribe(new BaseSubscriber<ThreadData>() {
@@ -162,13 +146,6 @@ public class ArticleListModel extends BaseModel implements ArticleListContract.M
                         callBack.onError("读取缓存失败！");
                     }
                 });
-    }
-
-    public static class ServerException extends Exception {
-
-        public ServerException(String message) {
-            super(message);
-        }
     }
 
 }

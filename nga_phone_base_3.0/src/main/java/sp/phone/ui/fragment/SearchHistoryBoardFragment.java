@@ -11,7 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.alibaba.android.arouter.launcher.ARouter;
+import gov.anzong.androidnga.arouter.AppNavigator;
 import com.alibaba.fastjson.JSON;
 
 import java.util.ArrayList;
@@ -93,7 +93,7 @@ public class SearchHistoryBoardFragment extends BaseRxFragment {
             if (data == null) {
                 showToast("没有找到符合条件的版面或者网络错误");
             } else {
-                ARouter.getInstance()
+                AppNavigator.getInstance()
                         .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                         .withInt(ParamKey.KEY_FID, data.getFid())
                         .withString(ParamKey.BOARD_HEAD, data.getBoardHead())

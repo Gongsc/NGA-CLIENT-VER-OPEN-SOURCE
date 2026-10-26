@@ -1,13 +1,11 @@
 package gov.anzong.androidnga.activity;
 
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
@@ -18,18 +16,14 @@ import androidx.appcompat.widget.Toolbar;
 import com.justwen.androidnga.cloud.CloudServerManager;
 
 import gov.anzong.androidnga.R;
-import gov.anzong.androidnga.base.common.SwipeBackHelper;
-import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.base.util.PreferenceUtils;
 import gov.anzong.androidnga.common.PreferenceKey;
+
 import sp.phone.common.NotificationController;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.theme.ThemeManager;
-import sp.phone.util.NLog;
 
-/**
- * Created by liuboyu on 16/6/28.
- */
+/** Created by liuboyu on 16/6/28. */
 public abstract class BaseActivity extends AppCompatActivity {
 
     protected PhoneConfiguration mConfig;
@@ -38,64 +32,50 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private boolean mHardwareAcceleratedEnabled = true;
 
-    private SwipeBackHelper mSwipeBackHelper;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         mConfig = PhoneConfiguration.getInstance();
         updateWindowFlag();
         updateThemeUi();
-        setSwipeBackEnable(getSharedPreferences(PreferenceKey.PREFERENCE_SETTINGS, Context.MODE_PRIVATE).getBoolean(PreferenceKey.KEY_SWIPE_BACK, false));
         onCreateBeforeSuper(savedInstanceState);
         super.onCreate(savedInstanceState);
+        gov.anzong.androidnga.ui.compose.ModernWindowKt.configureModernWindow(this);
         onCreateAfterSuper(savedInstanceState);
+        getOnBackPressedDispatcher()
+                .addCallback(
+                        this,
+                        new androidx.activity.OnBackPressedCallback(true) {
+                            @Override
+                            public void handleOnBackPressed() {
+                                if (!handleBackNavigation()) {
+                                    setEnabled(false);
+                                    getOnBackPressedDispatcher().onBackPressed();
+                                    setEnabled(true);
+                                }
+                            }
+                        });
         ThemeManager.getInstance().initializeWebTheme(this);
-
-        if (mSwipeBackHelper != null) {
-            mSwipeBackHelper.onCreate(this);
         }
 
-        try {
-            if (ThemeManager.getInstance().isNightMode()) {
-                getWindow().setNavigationBarColor(ContextUtils.getColor(R.color.background_color));
-            }
-        } catch (Exception e) {
-            NLog.e("set navigation bar color exception occur: " + e);
-        }
+    protected boolean handleBackNavigation() {
+        return false;
     }
 
-    protected void setSwipeBackEnable(boolean enable) {
-        if (!enable) {
-            mSwipeBackHelper = null;
-        } else if (mSwipeBackHelper == null) {
-            mSwipeBackHelper = new SwipeBackHelper();
-        }
+    protected boolean usesComposeContent() {
+        return false;
     }
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        if (mSwipeBackHelper != null) {
-            mSwipeBackHelper.onPostCreate();
+        if (!usesComposeContent()) {
+            gov.anzong.androidnga.ui.compose.ModernWindowKt.applyLegacyWindowInsets(this);
         }
     }
 
-    @Override
-    public <T extends View> T findViewById(int id) {
-        T t = super.findViewById(id);
-        if (t == null && mSwipeBackHelper != null) {
-            t = mSwipeBackHelper.findViewById(id);
-        }
-        return t;
-    }
+    protected void onCreateBeforeSuper(@Nullable Bundle savedInstanceState) {}
 
-    protected void onCreateBeforeSuper(@Nullable Bundle savedInstanceState) {
-
-    }
-
-    protected void onCreateAfterSuper(@Nullable Bundle savedInstanceState) {
-
-    }
+    protected void onCreateAfterSuper(@Nullable Bundle savedInstanceState) {}
 
     protected void setToolbarEnabled(boolean enabled) {
         mToolbarEnabled = enabled;
@@ -160,16 +140,13 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
+        int selectedResourceId = item.getItemId();
+        if (selectedResourceId == android.R.id.home) {
                 finish();
-                break;
-            default:
+        } else {
                 return super.onOptionsItemSelected(item);
-
         }
         return true;
-
     }
 
     @Override
@@ -204,7 +181,8 @@ public abstract class BaseActivity extends AppCompatActivity {
             long time = PreferenceUtils.getData(PreferenceKey.KEY_CHECK_UPGRADE_TIME, 0L);
             if (System.currentTimeMillis() - time > 1000 * 60 * 60 * 24) {
                 CloudServerManager.checkUpgrade();
-                PreferenceUtils.putData(PreferenceKey.KEY_CHECK_UPGRADE_TIME, System.currentTimeMillis());
+                PreferenceUtils.putData(
+                        PreferenceKey.KEY_CHECK_UPGRADE_TIME, System.currentTimeMillis());
             }
         }
     }

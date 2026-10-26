@@ -1,38 +1,32 @@
 package sp.phone.ui.fragment;
 
-import android.app.Activity;
-import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.alibaba.android.arouter.launcher.ARouter;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import gov.anzong.androidnga.arouter.AppNavigator;
 import com.alibaba.fastjson.JSON;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.activity.BaseActivity;
 import gov.anzong.androidnga.arouter.ARouterConstants;
 import gov.anzong.androidnga.base.util.ContextUtils;
-import gov.anzong.androidnga.base.util.DeviceUtils;
 import gov.anzong.androidnga.base.widget.DividerItemDecorationEx;
+
 import sp.phone.common.ApiConstants;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.TopicHistoryManager;
-import sp.phone.mvp.contract.TopicListContract;
 import sp.phone.mvp.model.entity.ThreadPageInfo;
 import sp.phone.mvp.model.entity.TopicListInfo;
 import sp.phone.mvp.presenter.TopicListPresenter;
@@ -58,14 +52,8 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
     protected BaseAppendableAdapter mAdapter;
 
     protected TopicListInfo mTopicListInfo;
-
-    @BindView(R.id.swipe_refresh)
     public SwipeRefreshLayout mSwipeRefreshLayout;
-
-    @BindView(R.id.list)
     public RecyclerViewEx mListView;
-
-    @BindView(R.id.loading_view)
     public View mLoadingView;
 
     protected TopicListPresenter mPresenter;
@@ -119,21 +107,22 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
         }
     }
 
-
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            @NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         int layoutId = R.layout.fragment_topic_list;
         return inflater.inflate(layoutId, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        ButterKnife.bind(this, view);
+        bindViews(view);
         ((BaseActivity) getActivity()).setupToolbar();
 
         if (mRequestParam.searchPost > 0) {
             mAdapter = new ReplyListAdapter(getContext());
-            mListView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+            mListView.addItemDecoration(
+                    new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
         } else {
 
@@ -143,7 +132,8 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
         mAdapter.setOnClickListener(this);
 
         mListView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mListView.setOnNextPageLoadListener(new RecyclerViewEx.OnNextPageLoadListener() {
+        mListView.setOnNextPageLoadListener(
+                new RecyclerViewEx.OnNextPageLoadListener() {
             @Override
             public void loadNextPage() {
                 if (!isRefreshing()) {
@@ -154,12 +144,18 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
         mListView.setEmptyView(view.findViewById(R.id.empty_view));
         mListView.setAdapter(mAdapter);
         if (PhoneConfiguration.getInstance().useSolidColorBackground()) {
-            int padding = PhoneConfiguration.getInstance().useSolidColorBackground() ? ContextUtils.getDimension(R.dimen.topic_list_item_padding) : 0;
-            mListView.addItemDecoration(new DividerItemDecorationEx(view.getContext(), padding, DividerItemDecoration.VERTICAL));
+            int padding =
+                    PhoneConfiguration.getInstance().useSolidColorBackground()
+                            ? ContextUtils.getDimension(R.dimen.topic_list_item_padding)
+                            : 0;
+            mListView.addItemDecoration(
+                    new DividerItemDecorationEx(
+                            view.getContext(), padding, DividerItemDecoration.VERTICAL));
         }
 
         mSwipeRefreshLayout.setVisibility(View.GONE);
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 mPresenter.loadPage(1, mRequestParam);
@@ -171,7 +167,10 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
 
         super.onViewCreated(view, savedInstanceState);
 
-        mPresenter.getFirstTopicList().observe(this, topicListInfo -> {
+        mPresenter
+                .getFirstTopicList()
+                .observe(getViewLifecycleOwner(),
+                        topicListInfo -> {
             scrollTo(0);
             clearData();
             if (topicListInfo != null) {
@@ -179,22 +178,26 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
             }
         });
 
-        mPresenter.getNextTopicList().observe(this, this::setData);
+        mPresenter.getNextTopicList().observe(getViewLifecycleOwner(), this::setData);
 
-        mPresenter.getErrorMsg().observe(this, res -> {
+        mPresenter
+                .getErrorMsg()
+                .observe(getViewLifecycleOwner(),
+                        res -> {
             showToast(res);
             setNextPageEnabled(false);
         });
 
-        mPresenter.isRefreshing().observe(this, aBoolean -> {
+        mPresenter
+                .isRefreshing()
+                .observe(getViewLifecycleOwner(),
+                        aBoolean -> {
             setRefreshing(aBoolean);
             if (!aBoolean) {
                 hideLoadingView();
             }
         });
     }
-
-
 
     public void scrollTo(int position) {
         mListView.scrollToPosition(position);
@@ -204,13 +207,9 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
         mAdapter.setNextPageEnabled(enabled);
     }
 
-    public void removeTopic(int position) {
+    public void removeTopic(int position) {}
 
-    }
-
-    public void removeTopic(ThreadPageInfo pageInfo) {
-
-    }
+    public void removeTopic(ThreadPageInfo pageInfo) {}
 
     public void hideLoadingView() {
         if (mLoadingView.getVisibility() == View.VISIBLE) {
@@ -226,7 +225,9 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
     }
 
     public boolean isRefreshing() {
-        return mSwipeRefreshLayout.isShown() ? mSwipeRefreshLayout.isRefreshing() : mLoadingView.isShown();
+        return mSwipeRefreshLayout.isShown()
+                ? mSwipeRefreshLayout.isRefreshing()
+                : mLoadingView.isShown();
     }
 
     public void setData(TopicListInfo result) {
@@ -244,18 +245,21 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
         handleClickEvent(view.getContext(), info, mRequestParam);
     }
 
-    public static void handleClickEvent(Context context, ThreadPageInfo info, TopicListParam requestParam) {
+    public static void handleClickEvent(
+            Context context, ThreadPageInfo info, TopicListParam requestParam) {
 
         if (info.isMirrorBoard()) {
             ARouterUtils.build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                     .withInt(ParamKey.KEY_FID, info.getFid())
                     .withString(ParamKey.KEY_TITLE, info.getSubject())
                     .navigation(context);
-        } else if ((info.getType() & ApiConstants.MASK_TYPE_ASSEMBLE) == ApiConstants.MASK_TYPE_ASSEMBLE) {
+        } else if ((info.getType() & ApiConstants.MASK_TYPE_ASSEMBLE)
+                == ApiConstants.MASK_TYPE_ASSEMBLE) {
             TopicListParam param = new TopicListParam();
             param.title = info.getSubject();
             param.stid = info.getTid();
-            ARouter.getInstance().build(ARouterConstants.ACTIVITY_TOPIC_LIST)
+            AppNavigator.getInstance()
+                    .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                     .withParcelable(ParamKey.KEY_PARAM, param)
                     .navigation();
 
@@ -282,5 +286,9 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
         }
     }
 
-
+    protected void bindViews(android.view.View root) {
+        mSwipeRefreshLayout = root.findViewById(R.id.swipe_refresh);
+        mListView = root.findViewById(R.id.list);
+        mLoadingView = root.findViewById(R.id.loading_view);
+}
 }

@@ -15,36 +15,26 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-import com.alibaba.android.arouter.launcher.ARouter;
-import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import gov.anzong.androidnga.arouter.AppNavigator;
+import gov.anzong.androidnga.ui.compose.ExpandableActionMenu;
 import com.google.android.material.appbar.AppBarLayout;
 
-import butterknife.BindView;
-import butterknife.OnClick;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.activity.LauncherSubActivity;
 import gov.anzong.androidnga.arouter.ARouterConstants;
 import gov.anzong.androidnga.base.util.ToastUtils;
+
 import sp.phone.mvp.model.entity.Board;
 import sp.phone.mvp.model.entity.TopicListInfo;
 import sp.phone.param.ParamKey;
 import sp.phone.util.ActivityUtils;
 
-/**
- * Created by Justwen on 2017/11/19.
- */
-
+/** Created by Justwen on 2017/11/19. */
 public class TopicListFragment extends TopicSearchFragment {
 
     private Menu mOptionMenu;
-
-    @BindView(R.id.fab_menu)
-    public FloatingActionsMenu mFam;
-
-    @BindView(R.id.appbar)
+    public ExpandableActionMenu mFam;
     public AppBarLayout mAppBarLayout;
-
-    @BindView(R.id.toolbar)
     public Toolbar mToolbar;
 
     @Override
@@ -64,7 +54,8 @@ public class TopicListFragment extends TopicSearchFragment {
     }
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            @NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         int layoutId = R.layout.fragment_topic_list_board;
         return inflater.inflate(layoutId, container, false);
     }
@@ -77,9 +68,11 @@ public class TopicListFragment extends TopicSearchFragment {
 
     private void updateFloatingMenu() {
         if (mConfig.isLeftHandMode()) {
-            CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) mFam.getLayoutParams();
+            CoordinatorLayout.LayoutParams lp =
+                    (CoordinatorLayout.LayoutParams) mFam.getLayoutParams();
             lp.gravity = Gravity.START | Gravity.BOTTOM;
-            mFam.setExpandDirection(FloatingActionsMenu.EXPAND_UP, FloatingActionsMenu.LABELS_ON_RIGHT_SIDE);
+            mFam.setExpandDirection(
+                    ExpandableActionMenu.EXPAND_UP, ExpandableActionMenu.LABELS_ON_RIGHT_SIDE);
             mFam.setLayoutParams(lp);
         }
     }
@@ -87,7 +80,9 @@ public class TopicListFragment extends TopicSearchFragment {
     @Override
     public void hideLoadingView() {
         AppBarLayout.LayoutParams lp = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
-        lp.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
+        lp.setScrollFlags(
+                AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
+                        | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
         super.hideLoadingView();
     }
 
@@ -105,18 +100,18 @@ public class TopicListFragment extends TopicSearchFragment {
         super.onResume();
     }
 
-    @OnClick(R.id.fab_refresh)
     public void refresh() {
         mFam.collapse();
         mPresenter.loadPage(1, mRequestParam);
     }
 
-    @OnClick(R.id.fab_post)
     public void startPostActivity() {
-        ARouter.getInstance()
+        AppNavigator.getInstance()
                 .build(ARouterConstants.ACTIVITY_POST)
                 .withInt(ParamKey.KEY_FID, mRequestParam.fid)
-                .withString(ParamKey.KEY_STID, mRequestParam.stid != 0 ? String.valueOf(mRequestParam.stid) : null)
+                .withString(
+                        ParamKey.KEY_STID,
+                        mRequestParam.stid != 0 ? String.valueOf(mRequestParam.stid) : null)
                 .withString(ParamKey.KEY_ACTION, "new")
                 .navigation();
     }
@@ -132,7 +127,8 @@ public class TopicListFragment extends TopicSearchFragment {
         }
 
         if (mTopicListInfo != null) {
-            menu.findItem(R.id.menu_sub_board).setVisible(!mTopicListInfo.getSubBoardList().isEmpty());
+            menu.findItem(R.id.menu_sub_board)
+                    .setVisible(!mTopicListInfo.getSubBoardList().isEmpty());
         } else {
             menu.findItem(R.id.menu_sub_board).setVisible(false);
         }
@@ -156,28 +152,20 @@ public class TopicListFragment extends TopicSearchFragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_add_bookmark:
+        int selectedResourceId = item.getItemId();
+        if (selectedResourceId == R.id.menu_add_bookmark) {
                 Board board = new Board(mRequestParam.fid,mRequestParam.stid,mRequestParam.title);
                 board.setBoardHead(mRequestParam.boardHead);
                 mPresenter.addBookmarkBoard(board);
                 item.setVisible(false);
-                mOptionMenu.findItem(R.id.menu_remove_bookmark).setVisible(true);
-                ToastUtils.showToast(R.string.toast_add_bookmark_board);
-                break;
-            case R.id.menu_remove_bookmark:
+        } else if (selectedResourceId == R.id.menu_remove_bookmark) {
                 mPresenter.removeBookmarkBoard(mRequestParam.fid, mRequestParam.stid);
                 item.setVisible(false);
-                mOptionMenu.findItem(R.id.menu_add_bookmark).setVisible(true);
-                ToastUtils.showToast(R.string.toast_remove_bookmark_board);
-                break;
-            case R.id.menu_sub_board:
+        } else if (selectedResourceId == R.id.menu_sub_board) {
                 showSubBoardList();
-                break;
-            case R.id.menu_board_head:
+        } else if (selectedResourceId == R.id.menu_board_head) {
                 mPresenter.startArticleActivity(mRequestParam.boardHead, mRequestParam.title + " - 版头");
-                break;
-            default:
+        } else {
                 return super.onOptionsItemSelected(item);
         }
         return true;
@@ -195,9 +183,19 @@ public class TopicListFragment extends TopicSearchFragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == ActivityUtils.REQUEST_CODE_SUB_BOARD && resultCode == Activity.RESULT_OK) {
+        if (requestCode == ActivityUtils.REQUEST_CODE_SUB_BOARD
+                && resultCode == Activity.RESULT_OK) {
             mPresenter.loadPage(1, mRequestParam);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
+
+    protected void bindViews(android.view.View root) {
+        super.bindViews(root);
+        mFam = root.findViewById(R.id.fab_menu);
+        mAppBarLayout = root.findViewById(R.id.appbar);
+        mToolbar = root.findViewById(R.id.toolbar);
+        root.findViewById(R.id.fab_refresh).setOnClickListener(v -> refresh());
+        root.findViewById(R.id.fab_post).setOnClickListener(v -> startPostActivity());
+}
 }

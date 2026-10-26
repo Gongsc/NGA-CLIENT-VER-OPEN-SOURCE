@@ -1,33 +1,31 @@
 package sp.phone.ui.adapter;
 
 import android.content.Context;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.recyclerview.widget.RecyclerView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
+import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.base.util.ToastUtils;
+
+import sp.phone.common.PhoneConfiguration;
 import sp.phone.http.bean.MessageListInfo;
 import sp.phone.http.bean.MessageThreadPageInfo;
-import sp.phone.common.PhoneConfiguration;
 import sp.phone.theme.ThemeManager;
-import gov.anzong.androidnga.base.util.ContextUtils;;
 import sp.phone.util.StringUtils;
 import sp.phone.view.RecyclerViewEx;
 
-/**
- * Created by Justwen on 2017/10/1.
- */
+import java.util.ArrayList;
+import java.util.List;
 
-public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.MessageViewHolder> implements RecyclerViewEx.IAppendableAdapter {
+/** Created by Justwen on 2017/10/1. */
+public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.MessageViewHolder>
+        implements RecyclerViewEx.IAppendableAdapter {
 
     private List<MessageListInfo> mInfoList = new ArrayList<>();
 
@@ -47,7 +45,8 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
 
     protected MessageThreadPageInfo getEntry(int position) {
         for (int i = 0; i < mInfoList.size(); i++) {
-            if (position < (mInfoList.get(i).get__currentPage() * mInfoList.get(i).get__rowsPerPage())) {
+            if (position
+                    < (mInfoList.get(i).get__currentPage() * mInfoList.get(i).get__rowsPerPage())) {
                 return mInfoList.get(i).getMessageEntryList().get(position);
             }
             position -= mInfoList.get(i).get__rowsPerPage();
@@ -67,7 +66,8 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
 
     @Override
     public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new MessageViewHolder(LayoutInflater.from(mContext).inflate(R.layout.list_message, parent, false));
+        return new MessageViewHolder(
+                LayoutInflater.from(mContext).inflate(R.layout.list_message, parent, false));
     }
 
     @Override
@@ -78,9 +78,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
         }
         holder.itemView.setTag(getMidString(position));
 
-        if (position + 1 == getItemCount()
-                && !hasNextPage()
-                && !mPrompted) {
+        if (position + 1 == getItemCount() && !hasNextPage() && !mPrompted) {
             ToastUtils.showShortToast(R.string.last_page_prompt_message);
             mPrompted = true;
         }
@@ -92,7 +90,6 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
             return null;
         }
         return "mid=" + entry.getMid();
-
     }
 
     private void handleJsonList(MessageViewHolder holder, int position) {
@@ -123,8 +120,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
             holder.title.setText(StringUtils.unEscapeHtml(title));
 
         } else {
-            holder.title.setText(StringUtils.removeBrTag(StringUtils
-                    .unEscapeHtml(title)));
+            holder.title.setText(StringUtils.removeBrTag(StringUtils.unEscapeHtml(title)));
         }
 
         holder.title.setTextSize(size);
@@ -133,7 +129,6 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
 
         int colorId = theme.getBackgroundColor(position);
         holder.itemView.setBackgroundResource(colorId);
-
     }
 
     public void setOnClickListener(View.OnClickListener listener) {
@@ -162,32 +157,28 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
         mTotalCount += result.getMessageEntryList().size();
         mEndOfList = result.get__nextPage() <= 0;
         notifyDataSetChanged();
-
     }
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.num)
         TextView num;
-
-        @BindView(R.id.title)
         TextView title;
-
-        @BindView(R.id.author)
         TextView author;
-
-        @BindView(R.id.last_reply)
         TextView lastReply;
-
-        @BindView(R.id.time)
         TextView time;
-
-        @BindView(R.id.lasttime)
         TextView lastTime;
 
         public MessageViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            num = root.findViewById(R.id.num);
+            title = root.findViewById(R.id.title);
+            author = root.findViewById(R.id.author);
+            lastReply = root.findViewById(R.id.last_reply);
+            time = root.findViewById(R.id.time);
+            lastTime = root.findViewById(R.id.lasttime);
         }
     }
 }

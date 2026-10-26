@@ -1,8 +1,8 @@
 package sp.phone.util;
 
-
 import android.graphics.Bitmap;
-import android.os.Build;
+
+import gov.anzong.androidnga.common.util.AppEnvironment;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -17,11 +17,9 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 
-import gov.anzong.androidnga.common.util.AppEnvironment;
-
 public class HttpUtil {
 
-    public static final String NGA_ATTACHMENT_HOST = "img.nga.178.com"; //img.ngacn.cc";
+    public static final String NGA_ATTACHMENT_HOST = "img.nga.cn"; //img.ngacn.cc";
     public static final String Servlet_phone = "/servlet/PhoneServlet";
     public static final String Servlet_timer = "/servlet/TimerServlet";
     private static final String[] servers = {"https://nga.178.com", "https://bbs.ngacn.cc"};
@@ -40,8 +38,12 @@ public class HttpUtil {
     public static String MODEL = android.os.Build.MODEL.toUpperCase(Locale.US);
     public static String MANUFACTURER = android.os.Build.MANUFACTURER.toUpperCase(Locale.US);
 
-    //	public static final String USER_AGENT = new StringBuilder().append("Nga_Official/").append(NgaClientApp.version).append("([Xiaomi MI 2S];Android").append(android.os.Build.VERSION.RELEASE).append(")").toString();
-    //	public static final String USER_AGENT = new StringBuilder().append("Mozilla/5.0 (Linux; U; Android 2.3.3; zh-cn; SH12C Build/S4040) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1").toString();
+    //	public static final String USER_AGENT = new
+    // StringBuilder().append("Nga_Official/").append(NgaClientApp.version).append("([Xiaomi MI
+    // 2S];Android").append(android.os.Build.VERSION.RELEASE).append(")").toString();
+    //	public static final String USER_AGENT = new StringBuilder().append("Mozilla/5.0 (Linux; U;
+    // Android 2.3.3; zh-cn; SH12C Build/S4040) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0
+    // Mobile Safari/533.1").toString();
     @SuppressWarnings("unused")
     public static void selectServer2() {
         for (String host : host_arr) {
@@ -63,15 +65,13 @@ public class HttpUtil {
                     conn = null;
                 }
             }
-
         }
     }
 
     public static void switchServer() {
         int i = 0;
         for (; i < servers.length; ++i) {
-            if (Server.equals(servers[i]))
-                break;
+            if (Server.equals(servers[i])) break;
         }
         i = (i + 1) % servers.length;
         Server = servers[i];
@@ -131,27 +131,29 @@ public class HttpUtil {
         if (machine.length() < 19) {
             machine = "[" + machine + "]";
         }
-        final String USER_AGENT = new StringBuilder().append("Nga_Official/").append(573).append("(").append(machine).append(";Android").append(android.os.Build.VERSION.RELEASE).append(")").toString();
+        final String USER_AGENT =
+                new StringBuilder()
+                        .append("Nga_Official/")
+                        .append(573)
+                        .append("(")
+                        .append(machine)
+                        .append(";Android")
+                        .append(android.os.Build.VERSION.RELEASE)
+                        .append(")")
+                        .toString();
         try {
             URL url = new URL(uri);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            if (!StringUtils.isEmpty(cookie))
-                conn.setRequestProperty("Cookie", cookie);
+            if (!StringUtils.isEmpty(cookie)) conn.setRequestProperty("Cookie", cookie);
             conn.setRequestProperty("User-Agent", USER_AGENT);
             conn.setRequestProperty("Accept-Charset", "GBK");
-            if (Integer.parseInt(Build.VERSION.SDK) < Build.VERSION_CODES.FROYO) {
-                System.setProperty("http.keepAlive", "false");
-            } else {
                 conn.setRequestProperty("Connection", "close");
-            }
             conn.setRequestProperty("Accept-Encoding", "gzip,deflate");
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(10000);
             conn.connect();
-            if (conn.getResponseCode() == 200)
-                is = conn.getInputStream();
-            else
-                is = conn.getErrorStream();
+            if (conn.getResponseCode() == 200) is = conn.getInputStream();
+            else is = conn.getErrorStream();
             if ("gzip".equals(conn.getHeaderField("Content-Encoding")))
                 is = new GZIPInputStream(is);
             String encoding = getCharset(conn, "GBK");
@@ -167,20 +169,16 @@ public class HttpUtil {
     }
 
     public static String getCharset(HttpURLConnection conn, String defaultValue) {
-        if (conn == null)
-            return defaultValue;
+        if (conn == null) return defaultValue;
         String contentType = conn.getHeaderField("Content-Type");
-        if (StringUtils.isEmpty(contentType))
-            return defaultValue;
+        if (StringUtils.isEmpty(contentType)) return defaultValue;
         String startTag = "charset=";
         String endTag = " ";
         int start = contentType.indexOf(startTag);
-        if (-1 == start)
-            return defaultValue;
+        if (-1 == start) return defaultValue;
         start += startTag.length();
         int end = contentType.indexOf(endTag, start);
-        if (-1 == end)
-            end = contentType.length();
+        if (-1 == end) end = contentType.length();
         if (contentType.substring(start, end).equals("no")) {
             return "utf-8";
         }

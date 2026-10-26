@@ -1,0 +1,147 @@
+package sp.phone.ui.fragment
+
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import android.view.*
+import android.widget.PopupMenu
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.ViewModelProvider
+import sp.phone.mvp.viewmodel.ForumFavoritesViewModel
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import gov.anzong.androidnga.R
+import gov.anzong.androidnga.activity.ForumListActivity
+import gov.anzong.androidnga.activity.MainActivity
+import gov.anzong.androidnga.common.PreferenceKey
+import gov.anzong.androidnga.ui.compose.*
+import sp.phone.common.UserManagerImpl
+import sp.phone.mvp.contract.BoardContract
+import sp.phone.mvp.model.entity.Board
+import sp.phone.mvp.presenter.BoardPresenter
+import sp.phone.rxjava.RxEvent
+import sp.phone.ui.fragment.dialog.AddBoardDialogFragment
+import sp.phone.util.ActivityUtils
+
+/** Compose owns the UI; the existing presenter continues to own forum/account actions. */
+class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContract.View {
+    private val state = HomeState()
+    private lateinit var favorites: ForumFavoritesViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        registerRxBus()
+        favorites = ViewModelProvider(this)[ForumFavoritesViewModel::class.java]
+        state.selected = savedInstanceState?.getInt("selected_category")
+            ?: if (mPresenter.bookmarkCategory.size() == 0 && !UserManagerImpl.getInstance().hasValidUser()) 1 else 0
+        refreshState()
+    }
+
+    override fun onCreatePresenter() = BoardPresenter()
+
+    override fun accept(event: RxEvent) {
+        if (event.what == RxEvent.EVENT_SHOW_TOPIC_LIST) mPresenter.showTopicList(event.obj as Board)
+        else super.accept(event)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return ComposeView(requireContext()).apply {
+            id = R.id.compose_home
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            val actions = navigationActions()
+            setContent {
+                NgaTheme {
+                    HomeScreen(state, actions, ::handleAction,
+                        onBoard = { mPresenter.showTopicList(it.toBoard()) },
+                        onSearch = { (requireActivity() as MainActivity).handleNavigation(R.id.menu_search) },
+                        onProfile = {
+                            val user = UserManagerImpl.getInstance().activeUser
+                            if (user == null) jumpToLogin() else mPresenter.startUserProfile(user.userId)
+                        },
+                        onSwitchUser = { mPresenter.toggleUser(UserManagerImpl.getInstance().userList) },
+                        onSyncFavorites = {
+                            if (UserManagerImpl.getInstance().hasValidUser()) favorites.refresh(force = true) else jumpToLogin()
+                        },
+                        onRemove = { board ->
+                            AlertDialog.Builder(requireContext()).setMessage("是否取消论坛收藏“${board.name}”？")
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .setPositiveButton(android.R.string.ok) { _, _ -> favorites.change(
+                                    sp.phone.http.favorites.ForumFavoriteBoard(board.fid, board.stid, board.name, board.head), false)
+                                }.show()
+                        },
+                        favorites = favorites.snapshot)
+                }
+            }
+        }
+    }
+
+    private fun navigationActions(): List<HomeAction> {
+        val menu = PopupMenu(requireContext(), View(requireContext())).menu
+        requireActivity().menuInflater.inflate(R.menu.main_navigation_menu, menu)
+        requireActivity().menuInflater.inflate(R.menu.main_option_menu, menu)
+        fun flatten(source: Menu): List<HomeAction> = (0 until source.size()).flatMap { index ->
+            val item = source.getItem(index)
+            if (item.hasSubMenu()) flatten(item.subMenu!!) else listOf(HomeAction(item.itemId, item.title.toString()))
+        }
+        return flatten(menu).distinctBy { it.id }
+    }
+
+    private fun handleAction(id: Int) {
+        when (id) {
+            R.id.menu_add -> startActivity(Intent(requireContext(), ForumListActivity::class.java))
+            R.id.menu_add_id -> AddBoardDialogFragment()
+                .setOnAddBookmarkListener { fid, stid -> mPresenter.addBoard(fid, stid) }
+                .show(childFragmentManager)
+            R.id.menu_login -> jumpToLogin()
+            else -> (requireActivity() as MainActivity).handleNavigation(id)
+        }
+    }
+
+    private fun refreshState() {
+        state.categories = mPresenter.boardCategories.map { category ->
+            val sections = category.subCategoryList?.map { BoardSection(it.name.orEmpty(), it.boardList.map(Board::toTile)) }
+                ?: listOf(BoardSection("", category.boardList.map(Board::toTile)))
+            HomeCategory(category.name.orEmpty(), category.isBookmarkCategory, sections)
+        }
+        state.selected = state.selected.coerceIn(0, (state.categories.size - 1).coerceAtLeast(0))
+        updateHeaderView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshState()
+        favorites.refresh()
+        state.replyCount = requireContext().getSharedPreferences(requireContext().packageName + "_preferences", android.content.Context.MODE_PRIVATE).getInt(PreferenceKey.KEY_REPLY_COUNT, 0)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("selected_category", state.selected)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun notifyDataSetChanged() = refreshState()
+    override fun getCurrentItem() = state.selected
+    override fun updateHeaderView() {
+        val users = UserManagerImpl.getInstance()
+        state.userName = users.activeUser?.nickName ?: "未登录，点击登录"
+        state.userCount = users.userSize
+    }
+    override fun jumpToLogin() = mPresenter.startLogin()
+    override fun switchToNextUser(): Int {
+        val users = UserManagerImpl.getInstance()
+        val next = (users.activeUserIndex + 1) % users.userSize.coerceAtLeast(1)
+        users.setActiveUser(next)
+        updateHeaderView()
+        favorites.refresh()
+        return next
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == ActivityUtils.REQUEST_CODE_LOGIN && resultCode == Activity.RESULT_OK) {
+            state.selected = 0
+            refreshState()
+            favorites.refresh(force = true)
+        } else if (requestCode == ActivityUtils.REQUEST_CODE_SETTING) refreshState()
+    }
+}

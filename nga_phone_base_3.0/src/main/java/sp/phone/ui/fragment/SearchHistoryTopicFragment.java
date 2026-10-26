@@ -10,8 +10,8 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
-import com.alibaba.android.arouter.facade.Postcard;
-import com.alibaba.android.arouter.launcher.ARouter;
+import gov.anzong.androidnga.arouter.NavigationRequest;
+import gov.anzong.androidnga.arouter.AppNavigator;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
@@ -57,7 +57,7 @@ public class SearchHistoryTopicFragment extends SearchHistoryBoardFragment {
             addHistory(query);
         }
 
-        Postcard postcard = ARouter.getInstance()
+        NavigationRequest postcard = AppNavigator.getInstance()
                 .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                 .withInt("content", mWithContent ? 1 : 0)
                 .withString("key", query);

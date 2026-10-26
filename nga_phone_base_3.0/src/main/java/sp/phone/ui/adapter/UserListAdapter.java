@@ -1,7 +1,6 @@
 package sp.phone.ui.adapter;
 
 import android.content.Context;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,18 +8,18 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
-import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.util.GlideApp;
+
 import sp.phone.common.User;
 import sp.phone.common.UserManager;
 import sp.phone.common.UserManagerImpl;
 
+import java.util.List;
 
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserViewHolder> {
 
@@ -33,19 +32,19 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
     private UserManager mUserManager;
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.user_name)
         TextView userNameView;
-
-        @BindView(R.id.avatar)
         ImageView avatarView;
-
-        @BindView(R.id.check)
         Switch checkView;
 
         public UserViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            userNameView = root.findViewById(R.id.user_name);
+            avatarView = root.findViewById(R.id.avatar);
+            checkView = root.findViewById(R.id.check);
         }
     }
 
@@ -61,7 +60,9 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
 
     @Override
     public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View convertView = LayoutInflater.from(mContext).inflate(R.layout.list_user_manager_item, parent, false);
+        View convertView =
+                LayoutInflater.from(mContext)
+                        .inflate(R.layout.list_user_manager_item, parent, false);
         UserViewHolder holder = new UserViewHolder(convertView);
         holder.itemView.setOnClickListener(mOnClickListener);
         holder.checkView.setOnClickListener(mOnClickListener);
@@ -87,6 +88,4 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
     public int getItemCount() {
         return mUserList.size();
     }
-
-
 }

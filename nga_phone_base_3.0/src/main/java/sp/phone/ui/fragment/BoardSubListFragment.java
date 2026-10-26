@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Checkable;
 
-import com.alibaba.android.arouter.launcher.ARouter;
+import gov.anzong.androidnga.arouter.AppNavigator;
 
 import java.util.List;
 
@@ -80,7 +80,7 @@ public class BoardSubListFragment extends BaseRxFragment implements View.OnClick
                 mSubscribeTask.subscribe(board, callBack);
             }
         } else {
-            ARouter.getInstance()
+            AppNavigator.getInstance()
                     .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                     .withString(ParamKey.KEY_TITLE, board.getName())
                     .withInt(ParamKey.KEY_FID, board.getFid())

@@ -5,10 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import androidx.annotation.Nullable;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,22 +12,29 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import gov.anzong.androidnga.R;
-import gov.anzong.androidnga.http.OnHttpCallBack;
-import sp.phone.mvp.model.entity.RecentReplyInfo;
-import sp.phone.ui.adapter.RecentNotificationAdapter;
-import sp.phone.common.PhoneConfiguration;
 import gov.anzong.androidnga.common.PreferenceKey;
+import gov.anzong.androidnga.http.OnHttpCallBack;
+
+import sp.phone.common.PhoneConfiguration;
+import sp.phone.mvp.model.entity.RecentReplyInfo;
 import sp.phone.param.ParamKey;
 import sp.phone.task.ForumNotificationTask;
+import sp.phone.ui.adapter.RecentNotificationAdapter;
 import sp.phone.view.EmptyLayout;
 import sp.phone.view.LoadingLayout;
 import sp.phone.view.RecyclerViewEx;
 
-public class RecentNotificationFragment extends BaseRxFragment implements OnHttpCallBack<List<RecentReplyInfo>>, View.OnClickListener {
+import java.util.ArrayList;
+import java.util.List;
+
+public class RecentNotificationFragment extends BaseRxFragment
+        implements OnHttpCallBack<List<RecentReplyInfo>>, View.OnClickListener {
 
     private RecentNotificationAdapter mNotificationAdapter;
 
@@ -51,24 +54,29 @@ public class RecentNotificationFragment extends BaseRxFragment implements OnHttp
         mNotificationAdapter.setClickListener(this);
         Bundle bundle = getArguments();
         if (bundle != null) {
-            ArrayList<RecentReplyInfo> unreadRecentReplyList = bundle.getParcelableArrayList("unread");
+            ArrayList<RecentReplyInfo> unreadRecentReplyList =
+                    bundle.getParcelableArrayList("unread");
             mNotificationAdapter.setUnreadRecentReplyList(unreadRecentReplyList);
         }
 
         PreferenceManager.getDefaultSharedPreferences(getContext())
-                .edit().putInt(PreferenceKey.KEY_REPLY_COUNT, 0).apply();
+                .edit()
+                .putInt(PreferenceKey.KEY_REPLY_COUNT, 0)
+                .apply();
         super.onCreate(savedInstanceState);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_recent_reply, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         mRefreshLayout = view.findViewById(R.id.swipe_refresh);
-        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 mNotificationTask.queryRecentReply(RecentNotificationFragment.this);
@@ -83,19 +91,21 @@ public class RecentNotificationFragment extends BaseRxFragment implements OnHttp
         listView.setLayoutManager(new LinearLayoutManager(getContext()));
         listView.setAdapter(mNotificationAdapter);
         listView.setEmptyView(mEmptyLayout);
-        listView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        listView.addItemDecoration(
+                new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
         mNotificationTask.queryRecentReply(this);
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.delete_all:
+        int selectedResourceId = item.getItemId();
+        if (selectedResourceId == R.id.delete_all) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setMessage(this.getString(R.string.delete_recentreply_confirm_text))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    .setPositiveButton(
+                            android.R.string.ok,
+                            new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 mNotificationTask.clearAllNotification();
@@ -104,8 +114,7 @@ public class RecentNotificationFragment extends BaseRxFragment implements OnHttp
                         })
                         .setNegativeButton(android.R.string.cancel, null);
                 builder.create().show();
-                break;
-            default:
+        } else {
                 return super.onOptionsItemSelected(item);
         }
         return true;
@@ -148,14 +157,14 @@ public class RecentNotificationFragment extends BaseRxFragment implements OnHttp
                 mRefreshLayout.setVisibility(View.VISIBLE);
             }
         }
-
     }
 
     @Override
     public void onClick(View v) {
         RecentReplyInfo info = (RecentReplyInfo) v.getTag();
 
-        Intent intent = new Intent(getContext(), PhoneConfiguration.getInstance().articleActivityClass);
+        Intent intent =
+                new Intent(getContext(), PhoneConfiguration.getInstance().articleActivityClass);
         intent.putExtra(ParamKey.KEY_TID, Integer.parseInt(info.getTidStr()));
         intent.putExtra(ParamKey.KEY_PID, Integer.parseInt(info.getPidStr()));
         intent.putExtra(ParamKey.KEY_TITLE, info.getTitle());

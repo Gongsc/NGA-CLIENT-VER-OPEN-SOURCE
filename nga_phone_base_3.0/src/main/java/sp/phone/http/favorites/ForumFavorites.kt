@@ -1,0 +1,166 @@
+package sp.phone.http.favorites
+
+import com.alibaba.fastjson.JSON
+import com.alibaba.fastjson.JSONArray
+import com.alibaba.fastjson.JSONObject
+import com.alibaba.fastjson.parser.Feature
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
+import sp.phone.http.article.ArticleResponse
+
+/** 论坛端版块收藏及其按账号保存的离线缓存。 */
+data class ForumFavoriteBoard(val fid: Int, val stid: Int, val name: String, val head: String? = null) {
+    val serverId get() = (if (stid != 0) stid else fid).also { require(it != 0) { "版块编号无效。" } }.toString()
+    val key get() = if (stid != 0) "stid:$stid" else "fid:$fid"
+}
+
+object ForumFavoritesParser {
+    fun parseResponse(source: String): List<ForumFavoriteBoard> {
+        val root = JSON.parseObject(source.trim().removePrefix("/*\$js\$*/"), Feature.OrderedField)
+            ?: throw IllegalArgumentException("论坛收藏响应为空，请稍后重试。")
+        ArticleResponse.businessError(root)?.let { throw IllegalArgumentException(it) }
+        val data = root["data"] ?: throw IllegalArgumentException("无法读取论坛收藏，请稍后重试。")
+        if (data is JSONObject) ArticleResponse.businessError(data)?.let { throw IllegalArgumentException(it) }
+        val rows = when (data) {
+            is JSONObject -> data["0"]
+            is JSONArray -> data.firstOrNull()
+            else -> null
+        } ?: throw IllegalArgumentException("论坛收藏数据格式不兼容，请稍后重试。")
+        return parseRows(rows)
+    }
+
+    fun mutationFields(board: ForumFavoriteBoard, add: Boolean): Map<String, String> =
+        mapOf("action" to if (add) "add" else "del", "fid" to board.serverId)
+
+    fun parseMutationResponse(source: String) {
+        val root = JSON.parseObject(source.trim().removePrefix("/*\$js\$*/"))
+            ?: throw IllegalArgumentException("收藏操作响应为空，请重试。")
+        ArticleResponse.businessError(root)?.let { throw IllegalArgumentException(it) }
+        val data = root["data"] ?: throw IllegalArgumentException("未收到论坛收藏操作结果，请重试。")
+        if (data is JSONObject) ArticleResponse.businessError(data)?.let { message ->
+            val normalized = message.trim().trimEnd('!', '！', '。')
+            if (normalized !in setOf("操作成功", "收藏成功", "添加成功", "删除成功", "取消收藏成功"))
+                throw IllegalArgumentException(message)
+        }
+    }
+
+    fun parseCache(source: String): List<ForumFavoriteBoard> = parseRows(JSON.parseArray(source))
+
+    fun serialize(boards: List<ForumFavoriteBoard>): String = JSON.toJSONString(boards.map {
+        linkedMapOf("fid" to it.fid, "stid" to it.stid, "name" to it.name, "topped_topic" to it.head)
+    })
+
+    private fun parseRows(rows: Any?): List<ForumFavoriteBoard> {
+        val values = when (rows) {
+            is JSONObject -> rows.values.toList()
+            is JSONArray -> rows.toList()
+            else -> throw IllegalArgumentException("论坛收藏数据格式不兼容，请稍后重试。")
+        }
+        return values.map { entry ->
+            val board = entry as? JSONObject ?: throw IllegalArgumentException("论坛收藏条目格式不兼容，请稍后重试。")
+            val fid = board.getString("fid")?.toIntOrNull() ?: 0
+            val stid = board.getString("stid")?.toIntOrNull() ?: 0
+            val name = board.getString("name")?.trim().orEmpty()
+            require((fid != 0 || stid != 0) && name.isNotEmpty()) { "论坛收藏条目不完整，请稍后重试。" }
+            ForumFavoriteBoard(fid, stid, name, board.getString("topped_topic")?.takeIf { it.isNotBlank() })
+        }.distinctBy { it.key }
+    }
+}
+
+interface ForumFavoritesCache {
+    fun read(uid: String): List<ForumFavoriteBoard>
+    fun write(uid: String, boards: List<ForumFavoriteBoard>)
+}
+
+data class ForumFavoritesSnapshot(
+    val accountId: String = "",
+    val boards: List<ForumFavoriteBoard> = emptyList(),
+    val loading: Boolean = false,
+    val error: String? = null,
+    val mutating: Boolean = false
+)
+
+/** 账号切换会立即取消旧请求，失败时保留该账号的上次同步结果。 */
+class ForumFavoriteSync(
+    private val fetch: (String) -> Observable<List<ForumFavoriteBoard>>,
+    private val cache: ForumFavoritesCache,
+    private val onState: (ForumFavoritesSnapshot) -> Unit,
+    private val clock: () -> Long = System::currentTimeMillis,
+    private val write: (String, ForumFavoriteBoard, Boolean) -> Observable<Unit> = { _, _, _ ->
+        Observable.error(IllegalStateException("收藏写入不可用。"))
+    }
+) {
+    var state = ForumFavoritesSnapshot()
+        private set
+    private var cookie = ""
+    private var request: Disposable? = null
+    private var mutation: Disposable? = null
+    private var generation = 0
+    private var lastSuccess = 0L
+
+    fun refresh(uid: String, currentCookie: String, force: Boolean = false) {
+        if (uid != state.accountId || currentCookie != cookie) {
+            generation++
+            request?.dispose()
+            request = null
+            mutation?.dispose()
+            mutation = null
+            cookie = currentCookie
+            lastSuccess = 0
+            publish(ForumFavoritesSnapshot(uid, if (uid.isEmpty()) emptyList() else cache.read(uid)))
+        }
+        if (uid.isEmpty() || state.mutating) return
+        if (!force && (state.loading || (lastSuccess != 0L && clock() - lastSuccess < 60_000))) return
+        val ticket = ++generation
+        request?.dispose()
+        publish(state.copy(loading = true, error = null))
+        request = Observable.defer { fetch(currentCookie) }.subscribe({ boards ->
+            if (ticket == generation && state.accountId == uid) {
+                cache.write(uid, boards)
+                lastSuccess = clock()
+                publish(state.copy(boards = boards, loading = false, error = null))
+            }
+        }, { failure ->
+            if (ticket == generation && state.accountId == uid) {
+                publish(state.copy(loading = false, error = failure.message ?: "论坛收藏同步失败，请稍后重试。"))
+            }
+        })
+    }
+
+    fun change(uid: String, currentCookie: String, board: ForumFavoriteBoard, add: Boolean,
+               onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (uid.isEmpty() || currentCookie.isBlank()) { onError("请先登录后再操作论坛收藏。"); return }
+        runCatching { board.serverId }.onFailure { onError(it.message ?: "版块编号无效。"); return }
+        if (uid != state.accountId || currentCookie != cookie) {
+            generation++
+            request?.dispose()
+            mutation?.dispose()
+            cookie = currentCookie
+            lastSuccess = 0
+            publish(ForumFavoritesSnapshot(uid, cache.read(uid)))
+        }
+        if (state.mutating) { onError("收藏操作正在处理中，请稍候。"); return }
+        val ticket = ++generation
+        request?.dispose()
+        lastSuccess = 0
+        publish(state.copy(loading = false, error = null, mutating = true))
+        mutation = Observable.defer { write(currentCookie, board, add) }.subscribe({
+            if (ticket == generation && state.accountId == uid) {
+                val boards = if (add) (state.boards + board).distinctBy { it.key }
+                    else state.boards.filterNot { it.key == board.key }
+                cache.write(uid, boards)
+                publish(state.copy(boards = boards, mutating = false, error = null))
+                onSuccess()
+            }
+        }, { failure ->
+            if (ticket == generation && state.accountId == uid) {
+                val message = failure.message ?: "论坛收藏操作失败，请重试。"
+                publish(state.copy(mutating = false, error = message))
+                onError(message)
+            }
+        })
+    }
+
+    fun close() { generation++; request?.dispose(); mutation?.dispose() }
+    private fun publish(value: ForumFavoritesSnapshot) { state = value; onState(value) }
+}

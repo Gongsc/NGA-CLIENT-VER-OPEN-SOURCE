@@ -22,7 +22,6 @@ public class AddBoardDialogFragment extends BaseDialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_board, null);
-        final EditText addFidNameView = view.findViewById(R.id.addfid_name);
         final EditText addFidIdView = view.findViewById(R.id.addfid_id);
         final EditText stidEditText = view.findViewById(R.id.add_stid);
 
@@ -30,11 +29,10 @@ public class AddBoardDialogFragment extends BaseDialogFragment {
         builder.setView(view)
                 .setTitle(R.string.addfid_title_hint)
                 .setPositiveButton("添加", (dialog, which) -> {
-                    String name = addFidNameView.getText().toString();
                     String fid = addFidIdView.getText().toString();
                     String stid = stidEditText.getText().toString();
                     if (onAddBookmarkListener != null) {
-                        this.onAddBookmarkListener.onClick(name, fid, stid);
+                        this.onAddBookmarkListener.onClick(fid, stid);
                     }
                 }).setNegativeButton("取消", null);
         return builder.create();
@@ -46,6 +44,6 @@ public class AddBoardDialogFragment extends BaseDialogFragment {
     }
 
     public interface OnAddBookmarkListener {
-        void onClick(String name, String fid, String stid);
+        void onClick(String fid, String stid);
     }
 }

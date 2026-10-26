@@ -4,32 +4,27 @@ import android.text.TextUtils;
 
 import com.alibaba.fastjson.JSON;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import gov.anzong.androidnga.base.util.PreferenceUtils;
-import gov.anzong.androidnga.common.PreferenceKey;
 import sp.phone.http.bean.CategoryBean;
+import sp.phone.http.favorites.ForumFavoriteBoard;
+import sp.phone.http.favorites.ForumFavoritesRepository;
 import sp.phone.mvp.contract.BoardContract;
 import sp.phone.mvp.model.entity.Board;
 import sp.phone.mvp.model.entity.BoardCategory;
-import sp.phone.util.NLog;
 import sp.phone.util.StringUtils;
 
-/**
- * Created by Justwen on 2019/6/23.
- */
-public class BoardModel extends BaseModel implements BoardContract.Model {
+import java.util.ArrayList;
+import java.util.List;
 
-    private static final int PRELOAD_BOARD_VERSION = 1;
+/** Created by Justwen on 2019/6/23. */
+public class BoardModel extends BaseModel implements BoardContract.Model {
 
     private List<BoardCategory> mBoardCategoryList = new ArrayList<>();
 
     private BoardCategory mBookmarkCategory;
 
     private BoardModel() {
-        mBookmarkCategory = loadBookmarkBoards();
+        mBookmarkCategory = new BoardCategory("我的收藏");
+        mBookmarkCategory.setBookmarkCategory(true);
         mBoardCategoryList.add(mBookmarkCategory);
         mBoardCategoryList.addAll(loadPreloadBoards());
     }
@@ -65,104 +60,38 @@ public class BoardModel extends BaseModel implements BoardContract.Model {
                     Board board = new Board(contentBean.getFid(), contentBean.getStid(), boardName);
                     board.setBoardHead(contentBean.getHead());
                     subCategory.addBoard(board);
-
                 }
                 category.addSubCategory(subCategory);
             }
             categories.add(category);
         }
-        upgradeBookmarkBoard(categories);
         return categories;
-    }
-
-    private void upgradeBookmarkBoard(List<BoardCategory> preloadCategory) {
-        int boardVersion = PreferenceUtils.getData(PreferenceKey.KEY_PRELOAD_BOARD_VERSION, 0);
-        if (boardVersion < PRELOAD_BOARD_VERSION) {
-            List<Board> bookmarkBoards = mBookmarkCategory.getBoardList();
-            for (int i = 0; i < bookmarkBoards.size(); i++) {
-                Board board = bookmarkBoards.get(i);
-                for (BoardCategory category : preloadCategory) {
-                    Board fixBoard = category.getBoard(board.getBoardKey());
-                    if (fixBoard != null) {
-                        bookmarkBoards.set(i, fixBoard);
-                        break;
-                    }
-                }
-
-            }
-            saveBookmark();
-            PreferenceUtils.putData(PreferenceKey.KEY_PRELOAD_BOARD_VERSION, PRELOAD_BOARD_VERSION);
-        }
-    }
-
-
-    private BoardCategory loadBookmarkBoards() {
-        BoardCategory category = new BoardCategory("我的收藏");
-        List<Board> bookmarkBoards = PreferenceUtils.getData(PreferenceKey.BOOKMARK_BOARD, Board.class);
-        for (Board board : bookmarkBoards) {
-            board.fixBoardKey();
-        }
-        category.addBoards(bookmarkBoards);
-        category.setBookmarkCategory(true);
-        return category;
     }
 
     @Override
     public void addBookmark(Board board) {
-        if (!mBookmarkCategory.contains(board)) {
-            mBookmarkCategory.addBoard(board);
-            saveBookmark();
-        }
+        ForumFavoritesRepository.getInstance()
+                .add(board.getFid(), board.getStid(), board.getName(), board.getBoardHead());
     }
 
     @Override
     public void addBookmark(int fid, int stid, String boardName) {
-        addBookmark(new Board.BoardKey(fid, stid), boardName);
+        ForumFavoritesRepository.getInstance().add(fid, stid, boardName, null);
     }
 
     @Override
     public void addBookmark(Board.BoardKey boardKey, String boardName) {
-        if (!mBookmarkCategory.contains(boardKey)) {
-            mBookmarkCategory.addBoard(new Board(boardKey, boardName));
-            saveBookmark();
-        }
+        addBookmark(new Board(boardKey, boardName));
     }
 
     @Override
     public void removeBookmark(int fid, int stid) {
-        if (mBookmarkCategory.removeBoard(new Board.BoardKey(fid, stid))) {
-            saveBookmark();
-        }
-    }
-
-    @Override
-    public void removeAllBookmarks() {
-        mBookmarkCategory.removeAllBoards();
-        saveBookmark();
+        ForumFavoritesRepository.getInstance().remove(fid, stid);
     }
 
     @Override
     public boolean isBookmark(int fid, int stid) {
-        return mBookmarkCategory.contains(new Board.BoardKey(fid, stid));
-    }
-
-    @Override
-    public void swapBookmark(int from, int to) {
-        List<Board> boards = mBookmarkCategory.getBoardList();
-        if (from < to) {
-            for (int i = from; i < to; i++) {
-                Collections.swap(boards, i, i + 1);
-            }
-        } else {
-            for (int i = from; i > to; i--) {
-                Collections.swap(boards, i, i - 1);
-            }
-        }
-        saveBookmark();
-    }
-
-    private void saveBookmark() {
-        PreferenceUtils.putData(PreferenceKey.BOOKMARK_BOARD, JSON.toJSONString(mBookmarkCategory.getBoardList()));
+        return ForumFavoritesRepository.getInstance().contains(fid, stid);
     }
 
     @Override
@@ -172,11 +101,13 @@ public class BoardModel extends BaseModel implements BoardContract.Model {
 
     @Override
     public BoardCategory getBoardCategory(int index) {
+        if (index == 0) getBookmarkCategory();
         return mBoardCategoryList.get(index);
     }
 
     @Override
     public List<BoardCategory> getBoardCategories() {
+        getBookmarkCategory();
         return mBoardCategoryList;
     }
 
@@ -198,6 +129,13 @@ public class BoardModel extends BaseModel implements BoardContract.Model {
 
     @Override
     public BoardCategory getBookmarkCategory() {
+        mBookmarkCategory.removeAllBoards();
+        for (ForumFavoriteBoard board :
+                ForumFavoritesRepository.getInstance().current().getBoards()) {
+            Board entry = new Board(board.getFid(), board.getStid(), board.getName());
+            entry.setBoardHead(board.getHead());
+            mBookmarkCategory.addBoard(entry);
+        }
         return mBookmarkCategory;
     }
 
@@ -208,5 +146,4 @@ public class BoardModel extends BaseModel implements BoardContract.Model {
     public static BoardModel getInstance() {
         return SingletonHolder.sInstance;
     }
-
 }

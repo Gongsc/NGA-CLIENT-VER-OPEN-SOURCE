@@ -2,21 +2,20 @@ package sp.phone.ui.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
+import androidx.recyclerview.widget.RecyclerView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
-import sp.phone.util.ImageUtils;
-import sp.phone.common.User;
 
+import sp.phone.common.User;
+import sp.phone.util.ImageUtils;
+
+import java.util.List;
 
 public class BlackListAdapter extends RecyclerView.Adapter<BlackListAdapter.UserViewHolder> {
 
@@ -29,16 +28,17 @@ public class BlackListAdapter extends RecyclerView.Adapter<BlackListAdapter.User
     private Bitmap mDefaultAvatar;
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.user_name)
         TextView userNameView;
-
-        @BindView(R.id.avatar)
         ImageView avatarView;
 
         public UserViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            userNameView = root.findViewById(R.id.user_name);
+            avatarView = root.findViewById(R.id.avatar);
         }
     }
 
@@ -54,7 +54,9 @@ public class BlackListAdapter extends RecyclerView.Adapter<BlackListAdapter.User
 
     @Override
     public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View convertView = LayoutInflater.from(mContext).inflate(R.layout.fragment_settings_black_list_item, parent, false);
+        View convertView =
+                LayoutInflater.from(mContext)
+                        .inflate(R.layout.fragment_settings_black_list_item, parent, false);
         UserViewHolder holder = new UserViewHolder(convertView);
         holder.itemView.setOnClickListener(mOnClickListener);
         holder.avatarView.setImageBitmap(mDefaultAvatar);
@@ -71,5 +73,4 @@ public class BlackListAdapter extends RecyclerView.Adapter<BlackListAdapter.User
     public int getItemCount() {
         return mUserList.size();
     }
-
 }

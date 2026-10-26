@@ -9,6 +9,26 @@ import androidx.lifecycle.ViewModel;
  */
 public class ArticleShareViewModel extends ViewModel {
 
+    private final MutableLiveData<Integer> mTopicId = new MutableLiveData<>();
+
+    public LiveData<Integer> getTopicId() {
+        return mTopicId;
+    }
+
+    public void setTopicId(int tid) {
+        mTopicId.setValue(tid);
+    }
+
+    private final MutableLiveData<String> mTitle = new MutableLiveData<>();
+
+    public LiveData<String> getTitle() {
+        return mTitle;
+    }
+
+    public void setTitle(String title) {
+        mTitle.setValue(title);
+    }
+
     private MutableLiveData<Integer> mReplyCount = new MutableLiveData<>();
 
     private MutableLiveData<Integer> mRefreshPage = new MutableLiveData<>();

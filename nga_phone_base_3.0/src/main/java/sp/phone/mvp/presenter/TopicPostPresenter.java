@@ -1,6 +1,5 @@
 package sp.phone.mvp.presenter;
 
-import android.Manifest;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,27 +10,22 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.ImageSpan;
-import android.util.DisplayMetrics;
+
+import gov.anzong.androidnga.R;
+import gov.anzong.androidnga.base.util.ToastUtils;
+import gov.anzong.androidnga.common.util.EmoticonUtils;
+import gov.anzong.androidnga.http.OnHttpCallBack;
+
+import sp.phone.mvp.contract.TopicPostContract;
+import sp.phone.mvp.model.TopicPostModel;
+import sp.phone.param.PostParam;
+import sp.phone.task.TopicPostTask;
+import sp.phone.ui.fragment.TopicPostFragment;
+import sp.phone.util.FunctionUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
-import gov.anzong.androidnga.R;
-import gov.anzong.androidnga.base.util.PermissionUtils;
-import gov.anzong.androidnga.base.util.ToastUtils;
-import gov.anzong.androidnga.common.util.EmoticonUtils;
-import gov.anzong.androidnga.base.util.ContextUtils;;
-import gov.anzong.androidnga.rxjava.BaseSubscriber;
-import sp.phone.param.PostParam;
-import sp.phone.ui.fragment.TopicPostFragment;
-import gov.anzong.androidnga.http.OnHttpCallBack;
-import sp.phone.mvp.contract.TopicPostContract;
-import sp.phone.mvp.model.TopicPostModel;
-import sp.phone.task.TopicPostTask;
-import sp.phone.util.ActivityUtils;
-import sp.phone.util.FunctionUtils;
-import sp.phone.util.StringUtils;
 
 public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPostModel>
         implements TopicPostContract.Presenter, TopicPostTask.CallBack {
@@ -46,17 +40,18 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
         if (urlTemp.contains("http")) {
             urlTemp = urlTemp.substring(5, urlTemp.length() - 6);
             String sourceFile = EmoticonUtils.getPathByURI(urlTemp);
-            try (InputStream is = mBaseView.getContext().getResources().getAssets().open(sourceFile)) {
+            try (InputStream is =
+                    mBaseView.getContext().getResources().getAssets().open(sourceFile)) {
                 if (is != null) {
                     Bitmap bitmap = BitmapFactory.decodeStream(is);
-                    Drawable drawable = new BitmapDrawable(mBaseView.getContext().getResources(), bitmap);
-                    drawable.setBounds(0, 0, drawable.getIntrinsicWidth(),
-                            drawable.getIntrinsicHeight());
+                    Drawable drawable =
+                            new BitmapDrawable(mBaseView.getContext().getResources(), bitmap);
+                    drawable.setBounds(
+                            0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
                     SpannableString spanString = new SpannableString(emotion);
-                    ImageSpan span = new ImageSpan(drawable,
-                            ImageSpan.ALIGN_BASELINE);
-                    spanString.setSpan(span, 0, emotion.length(),
-                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    ImageSpan span = new ImageSpan(drawable, ImageSpan.ALIGN_BASELINE);
+                    spanString.setSpan(
+                            span, 0, emotion.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     mBaseView.insertBodyText(spanString);
                 }
             } catch (IOException e) {
@@ -64,23 +59,27 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
             }
 
         } else {
-            int[] emotions = {1, 2, 3, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34,
-                    35, 36, 37, 38, 39, 4, 40, 41, 42, 43, 5, 6, 7, 8};
+            int[] emotions = {
+                1, 2, 3, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 4, 40, 41, 42,
+                43, 5, 6, 7, 8
+            };
             for (int i = 0; i < 27; i++) {
                 if (emotion.indexOf("[s:" + emotions[i] + "]") == 0) {
                     String sourceFile = "a" + emotions[i] + ".gif";
-                    try (InputStream is = mBaseView.getContext().getResources().getAssets().open(sourceFile)) {
+                    try (InputStream is =
+                            mBaseView.getContext().getResources().getAssets().open(sourceFile)) {
                         if (is != null) {
                             Bitmap bitmap = BitmapFactory.decodeStream(is);
                             Drawable drawable = new BitmapDrawable(bitmap);
-                            drawable.setBounds(0, 0, drawable.getIntrinsicWidth(),
+                            drawable.setBounds(
+                                    0,
+                                    0,
+                                    drawable.getIntrinsicWidth(),
                                     drawable.getIntrinsicHeight());
-                            SpannableString spanString = new SpannableString(
-                                    emotion);
-                            ImageSpan span = new ImageSpan(drawable,
-                                    ImageSpan.ALIGN_BASELINE);
-                            spanString.setSpan(span, 0, emotion.length(),
-                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            SpannableString spanString = new SpannableString(emotion);
+                            ImageSpan span = new ImageSpan(drawable, ImageSpan.ALIGN_BASELINE);
+                            spanString.setSpan(
+                                    span, 0, emotion.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                             mBaseView.insertBodyText(spanString);
                         } else {
                             mBaseView.insertBodyText(emotion);
@@ -92,24 +91,28 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
                 }
             }
         }
-    }//
+    } //
 
     @Override
     public void setPostParam(PostParam postParam) {
         mPostParam = postParam;
-        mBaseModel.getPostInfo(mPostParam, new OnHttpCallBack<PostParam>() {
-            @Override
-            public void onError(String text) {
-                if (mBaseView != null) {
-                    ActivityUtils.showToast(text);
-                }
-            }
+        mBaseModel.getPostInfo(
+                mPostParam,
+                new OnHttpCallBack<PostParam>() {
+                    @Override
+                    public void onError(String text) {
+                        if (mBaseView != null) {
+                            mBaseView.setAttachmentReady(false);
+                            mBaseView.setEditorError(text);
+                        }
+                    }
 
-            @Override
-            public void onSuccess(PostParam data) {
-                mPostParam = data;
-            }
-        });
+                    @Override
+                    public void onSuccess(PostParam data) {
+                        mPostParam = data;
+                        if (mBaseView != null) mBaseView.setAttachmentReady(true);
+                    }
+                });
     }
 
     @Override
@@ -129,50 +132,49 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
             mBaseView.showToast(R.string.avoidWindfury);
             return;
         }
+        if (body.trim().isEmpty()
+                || ("new".equals(mPostParam.getPostAction()) && title.trim().isEmpty())) {
+            mBaseView.setEditorError("请填写标题及正文后提交。");
+            return;
+        }
         mLoading = true;
+        mBaseView.setSubmitting(true);
+        mBaseView.setEditorError(null);
         mPostParam.setAnonymous(isAnony);
         mPostParam.setPostSubject(title);
-        if (!body.isEmpty()) {
-            mPostParam.setPostContent(FunctionUtils.ColorTxtCheck(body));
-            mBaseModel.post(mPostParam, this);
-        }
+        mPostParam.setPostContent(FunctionUtils.ColorTxtCheck(body));
+        mBaseModel.post(mPostParam, this);
     }
 
     @Override
     public void showFilePicker() {
-        PermissionUtils.request(mBaseView, new BaseSubscriber<Boolean>(){
-
-            @Override
-            public void onNext(Boolean aBoolean) {
-                if (aBoolean != null && aBoolean) {
-                    mBaseView.showFilePicker();
-                }
-
-            }
-        }, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        mBaseView.showFilePicker();
     }
 
     @Override
     public void startUploadTask(final Uri uri) {
         mBaseView.showUploadFileProgressBar();
-        mBaseModel.uploadFile(uri, mPostParam, new OnHttpCallBack<String>() {
-            @Override
-            public void onError(String text) {
-                if (mBaseView != null) {
-                    mBaseView.hideUploadFileProgressBar();
-                    ToastUtils.error(text);
-                }
-            }
+        mBaseModel.uploadFile(
+                uri,
+                mPostParam,
+                new OnHttpCallBack<String>() {
+                    @Override
+                    public void onError(String text) {
+                        if (mBaseView != null) {
+                            mBaseView.hideUploadFileProgressBar();
+                            mBaseView.setEditorError(text);
+                        }
+                    }
 
-            @Override
-            public void onSuccess(String data) {
-                if (mBaseView != null) {
-                    mBaseView.hideUploadFileProgressBar();
-                    ToastUtils.success("上传成功");
-                    finishUpload(data, uri);
-                }
-            }
-        });
+                    @Override
+                    public void onSuccess(String data) {
+                        if (mBaseView != null) {
+                            mBaseView.hideUploadFileProgressBar();
+                            ToastUtils.success("上传成功");
+                            finishUpload(data, uri);
+                        }
+                    }
+                });
     }
 
     @Override
@@ -237,11 +239,9 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
 
     @Override
     public void onArticlePostFinished(boolean isSuccess, String result) {
-        ActivityUtils.getInstance().dismiss();
         if (mBaseView != null) {
-            if (!StringUtils.isEmpty(result)) {
-                mBaseView.showToast(result);
-            }
+            mBaseView.setSubmitting(false);
+            if (!isSuccess) mBaseView.setEditorError(result == null ? "提交失败，请稍后重试。" : result);
             if (isSuccess) {
                 mBaseView.setResult(Activity.RESULT_OK);
                 mBaseView.finish();
@@ -251,38 +251,7 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
     }
 
     private void finishUpload(String picUrl, Uri uri) {
-        String selectedImagePath2 = FunctionUtils.getPath(mBaseView.getContext(), uri);
-        String spanStr = "[img]./" + picUrl + "[/img]";
-        if (!StringUtils.isEmpty(selectedImagePath2)) {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(selectedImagePath2, options);
-            DisplayMetrics dm = ContextUtils.getResources().getDisplayMetrics();
-
-            int screenWidth = (int) (dm.widthPixels * 0.75);
-            int screenHeight = (int) (dm.heightPixels * 0.75);
-            int width = options.outWidth;
-            int height = options.outHeight;
-            float scaleWidth = ((float) screenWidth) / width;
-            float scaleHeight = ((float) screenHeight) / height;
-            if (scaleWidth < scaleHeight && scaleWidth < 1f) {// 不能放大啊,然后主要是哪个小缩放到哪个就行了
-                options.inSampleSize = (int) (1 / scaleWidth);
-            } else if (scaleWidth >= scaleHeight && scaleHeight < 1f) {
-                options.inSampleSize = (int) (1 / scaleHeight);
-            } else {
-                options.inSampleSize = 1;
-            }
-            options.inJustDecodeBounds = false;
-            Bitmap bitmap = BitmapFactory.decodeFile(selectedImagePath2, options);
-            BitmapDrawable bd = new BitmapDrawable(bitmap);
-            bd.setBounds(0, 0, bd.getIntrinsicWidth(), bd.getIntrinsicHeight());
-            SpannableString spanStringS = new SpannableString(spanStr);
-            ImageSpan span = new ImageSpan(bd, ImageSpan.ALIGN_BASELINE);
-            spanStringS.setSpan(span, 0, spanStr.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            mBaseView.insertFile(selectedImagePath2, spanStringS);
-        } else {
-            mBaseView.insertFile(selectedImagePath2, picUrl);
-        }
+        mBaseView.insertFile(null, "[img]./" + picUrl + "[/img]");
     }
 
     @Override

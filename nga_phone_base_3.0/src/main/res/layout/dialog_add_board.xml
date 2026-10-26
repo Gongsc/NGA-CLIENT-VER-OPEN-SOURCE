@@ -8,24 +8,12 @@
     android:paddingStart="?android:attr/listPreferredItemPaddingStart">
 
     <EditText
-        android:id="@+id/addfid_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/addfid_dialog_hintA"
-        android:maxLines="6"
-        android:scrollbars="vertical"
-        android:selectAllOnFocus="true">
-
-        <requestFocus/>
-
-    </EditText>
-
-
-    <EditText
         android:id="@+id/addfid_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
+        android:inputType="numberSigned"
+        android:singleLine="true"
         android:hint="@string/addfid_dialog_hintB"
         android:maxLines="6"
         android:scrollbars="vertical"
@@ -36,6 +24,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
+        android:inputType="numberSigned"
+        android:singleLine="true"
         android:hint="@string/add_stid_dialog_hintB"
         android:maxLines="6"
         android:scrollbars="vertical"

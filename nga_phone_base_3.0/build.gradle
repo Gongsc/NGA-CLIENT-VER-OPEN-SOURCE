@@ -1,118 +1,97 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-
-def static getDate() {
-    def date = new Date()
-    def formattedDate = date.format('yyyyMMddHHmm')
-    return formattedDate
-
-}
-
-def isJenkins() {
-    return project.hasProperty('IS_JENKINS') && IS_JENKINS == 'true'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 android {
-    compileSdkVersion project.compileSdkVersion
+    namespace = "gov.anzong.androidnga"
+    buildFeatures { buildConfig = true }
+    compileSdk = rootProject.ext.compileSdkVersion
 
-    signingConfigs {
-        signingConfig {
-            if (isJenkins()) {
-                storeFile file('../../android19910914.keystore')
-            } else {
-                storeFile file('..\\keystore\\android19910914.keystore')
-            }
-            storePassword '19910914'
-            keyAlias 'android.keystore'
-            keyPassword '19910914'
+
+    buildFeatures { compose = true }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/LICENSE.txt', 'META-INF/NOTICE.txt', 'META-INF/MANIFEST.MF']
         }
-    }
-
-    packagingOptions {
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/MANIFEST.MF'
     }
 
     defaultConfig {
-        applicationId "gov.anzong.androidnga"
-        minSdkVersion project.minSdkVersion
-        targetSdkVersion project.targetSdkVersion
-        multiDexEnabled true
-        resConfigs "zh", "en"
+        applicationId = "gov.anzong.androidnga"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        resourceConfigurations += ['zh', 'en']
 
-        versionCode project.appVersionCode
-        versionName project.appVersionName
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments = [moduleName: project.getName()]
-            }
-        }
+        versionCode = rootProject.ext.appVersionCode
+        versionName = rootProject.ext.appVersionName
 
         ndk {
             abiFilters 'armeabi-v7a','arm64-v8a'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildTypes {
         release {
-            debuggable false
-            jniDebuggable false
-            renderscriptDebuggable false
-            pseudoLocalesEnabled false
-            minifyEnabled false
-            zipAlignEnabled true
-            signingConfig signingConfigs.signingConfig
+            debuggable = false
+            jniDebuggable = false
+            pseudoLocalesEnabled = false
+            minifyEnabled = false
         }
         debug {
-            debuggable true
-            minifyEnabled false
+            debuggable = true
+            minifyEnabled = false
         }
     }
 
-    dexOptions {
-        javaMaxHeapSize "2g"
+
+    lint {
+        abortOnError = true
+        sarifReport = false
+        disable += 'MissingTranslation'
     }
 
-    lintOptions {
-        abortOnError false
-        disable 'MissingTranslation'
-    }
-
-    android.applicationVariants.all { variant ->
-        variant.outputs.all {
-            if (outputFile != null && outputFileName.endsWith('.apk') && variant.buildType.name == "release") {
-                outputFileName = "nga_phone_${defaultConfig.versionName}_${getDate()}.apk"
-            }
-        }
-    }
 }
 
 dependencies {
-    implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation(name: 'floatingactionmenu', ext: 'aar')
+    implementation platform('androidx.compose:compose-bom:2026.09.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-core'
+    implementation 'androidx.activity:activity-compose:1.13.0'
+    implementation 'androidx.fragment:fragment-compose:1.9.0'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation platform('androidx.compose:compose-bom:2026.09.00')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
-    implementation "androidx.legacy:legacy-support-v4:1.0.0"
-    implementation "com.google.android.material:material:$androidxMaterial"
+    implementation fileTree(include: '*.jar', dir: 'libs')
+
+    implementation "androidx.viewpager:viewpager:1.1.0"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0"
+    implementation "com.google.android.material:material:${rootProject.ext.androidxMaterial}"
     implementation "androidx.cardview:cardview:1.0.0"
 
-    // lifecycle
-    implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${rootProject.ext.lifecycle_version}"
 
-    //butterKnife
-    implementation 'com.jakewharton:butterknife:10.2.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
+    // lifecycle
+    implementation "androidx.lifecycle:lifecycle-viewmodel:${rootProject.ext.lifecycle_version}"
+
 
     //glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
+    implementation 'org.jsoup:jsoup:1.23.2'
     implementation 'com.squareup.retrofit2:retrofit:2.3.0'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     implementation 'com.squareup.retrofit2:retrofit-converters:2.3.0'
@@ -122,26 +101,17 @@ dependencies {
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
     implementation 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
-    implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.1.0'
-    implementation 'com.alibaba:arouter-api:1.2.4'
-    annotationProcessor 'com.alibaba:arouter-compiler:1.1.4'
-    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
+    implementation 'com.trello.rxlifecycle2:rxlifecycle-android:2.1.0'
     implementation 'com.github.markzhai:blockcanary-no-op:1.5.0'
-    implementation'com.github.daniel-stoneuk:material-about-library:2.3.0'
     implementation project(':lib_common')
     implementation project(':lib_cloud')
     implementation project(':lib_core')
     implementation project(":lib_network")
 
     // database
-    implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-runtime:${rootProject.ext.room_version}"
+    annotationProcessor "androidx.room:room-compiler:${rootProject.ext.room_version}"
 
     // kotlin
-    implementation "androidx.core:core-ktx:1.3.0"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}
-
-repositories {
-    mavenCentral()
+    implementation "androidx.core:core-ktx:1.17.0"
 }

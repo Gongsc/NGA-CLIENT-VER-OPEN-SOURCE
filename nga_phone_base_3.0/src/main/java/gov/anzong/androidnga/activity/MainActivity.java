@@ -5,29 +5,30 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.alibaba.android.arouter.facade.Postcard;
-import com.alibaba.android.arouter.launcher.ARouter;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentManager;
+
+import gov.anzong.androidnga.arouter.NavigationRequest;
+import gov.anzong.androidnga.arouter.AppNavigator;
 
 import gov.anzong.androidnga.NgaClientApp;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
 import gov.anzong.androidnga.base.util.ThemeUtils;
+
 import sp.phone.common.User;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.param.ParamKey;
+import sp.phone.theme.ThemeManager;
 import sp.phone.ui.fragment.BaseFragment;
 import sp.phone.ui.fragment.NavigationDrawerFragment;
 import sp.phone.ui.fragment.dialog.UrlInputDialogFragment;
 import sp.phone.ui.fragment.dialog.VersionUpgradeDialogFragment;
-import sp.phone.theme.ThemeManager;
 import sp.phone.util.ARouterUtils;
 import sp.phone.util.ActivityUtils;
-import gov.anzong.androidnga.base.util.PermissionUtils;
 
 public class MainActivity extends BaseActivity {
 
@@ -38,7 +39,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setToolbarEnabled(true);
-        setSwipeBackEnable(false);
         super.onCreate(savedInstanceState);
         ThemeUtils.init(this);
         checkPermission();
@@ -56,12 +56,16 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    protected void onCreateAfterSuper(@Nullable Bundle savedInstanceState) {
-        setSwipeBackEnable(false);
-    }
+    protected void onCreateAfterSuper(@Nullable Bundle savedInstanceState) {}
 
     private void checkPermission() {
-        PermissionUtils.request(this, null, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && androidx.core.content.ContextCompat.checkSelfPermission(
+                                this, Manifest.permission.POST_NOTIFICATIONS)
+                        != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(
+                    this, new String[] {Manifest.permission.POST_NOTIFICATIONS}, 100);
+        }
     }
 
     private void checkNewVersion() {
@@ -84,69 +88,65 @@ public class MainActivity extends BaseActivity {
 
     private void initView() {
         FragmentManager fm = getSupportFragmentManager();
-        mBoardFragment = (BaseFragment) fm.findFragmentByTag(NavigationDrawerFragment.class.getSimpleName());
+        mBoardFragment =
+                (BaseFragment) fm.findFragmentByTag(NavigationDrawerFragment.class.getSimpleName());
         if (mBoardFragment== null) {
             mBoardFragment = new NavigationDrawerFragment();
-            fm.beginTransaction().replace(android.R.id.content, mBoardFragment, NavigationDrawerFragment.class.getSimpleName()).commit();
+            fm.beginTransaction()
+                    .replace(
+                            android.R.id.content,
+                            mBoardFragment,
+                            NavigationDrawerFragment.class.getSimpleName())
+                    .commit();
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_option_menu, menu);
-        return super.onCreateOptionsMenu(menu);
+        return false;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action buttons
-        switch (item.getItemId()) {
-            case R.id.menu_setting:
+        return handleNavigation(item.getItemId()) || super.onOptionsItemSelected(item);
+    }
+
+    public boolean handleNavigation(int itemId) {
+        int selectedResourceId = itemId;
+        if (selectedResourceId == R.id.menu_appearance) {
+                startActivity(new Intent(this, AppearanceActivity.class));
+        } else if (selectedResourceId == R.id.menu_setting) {
                 startSettingActivity();
-                break;
-            case R.id.menu_bookmark:
+        } else if (selectedResourceId == R.id.menu_bookmark) {
                 startFavoriteTopicActivity();
-                break;
-            case R.id.menu_msg:
+        } else if (selectedResourceId == R.id.menu_msg) {
                 startMessageActivity();
-                break;
-            case R.id.menu_post:
+        } else if (selectedResourceId == R.id.menu_post) {
                 startPostActivity(false);
-                break;
-            case R.id.menu_reply:
+        } else if (selectedResourceId == R.id.menu_reply) {
                 startPostActivity(true);
-                break;
-            case R.id.menu_about:
+        } else if (selectedResourceId == R.id.menu_about) {
                 aboutNgaClient();
-                break;
-            case R.id.menu_search:
+        } else if (selectedResourceId == R.id.menu_search) {
                 startSearchActivity();
-                break;
-            case R.id.menu_forward:
+        } else if (selectedResourceId == R.id.menu_forward) {
                 new UrlInputDialogFragment().show(getSupportFragmentManager());
-                break;
-            case R.id.menu_gun:
+        } else if (selectedResourceId == R.id.menu_gun) {
                 startNotificationActivity();
-                break;
-            case R.id.menu_download:
+        } else if (selectedResourceId == R.id.menu_download) {
                 startActivity(new Intent(this,TopicCacheActivity.class));
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
+        } else {
+            return false;
         }
         return true;
     }
 
     private void startSearchActivity() {
-        ARouter.getInstance()
-                .build(ARouterConstants.ACTIVITY_SEARCH)
-                .navigation(this);
+        AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_SEARCH).navigation(this);
     }
 
     private void startMessageActivity() {
-        ARouterUtils
-                .build(ARouterConstants.ACTIVITY_MESSAGE_LIST)
-                .navigation(this);
+        ARouterUtils.build(ARouterConstants.ACTIVITY_MESSAGE_LIST).navigation(this);
     }
 
     private void aboutNgaClient() {
@@ -162,17 +162,14 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ActivityUtils.REQUEST_CODE_SETTING && resultCode == Activity.RESULT_OK) {
             recreate();
-        } else {
-            mBoardFragment.onActivityResult(requestCode, resultCode, data);
         }
     }
 
     private void startNotificationActivity() {
-        ARouterUtils
-                .build(ARouterConstants.ACTIVITY_NOTIFICATION)
-                .navigation(this);
+        ARouterUtils.build(ARouterConstants.ACTIVITY_NOTIFICATION).navigation(this);
     }
 
     // NPE问题
@@ -180,8 +177,8 @@ public class MainActivity extends BaseActivity {
         User user = UserManagerImpl.getInstance().getActiveUser();
         String userName = user != null ? user.getNickName() : "";
         int uid = user != null ? Integer.parseInt(user.getUserId()) : 0;
-        Postcard postcard = ARouterUtils
-                .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
+        NavigationRequest postcard =
+                ARouterUtils.build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                 .withInt(ParamKey.KEY_AUTHOR_ID, uid)
                 .withString(ParamKey.KEY_AUTHOR, userName);
         if (isReply) {
@@ -191,11 +188,13 @@ public class MainActivity extends BaseActivity {
     }
 
     private void startFavoriteTopicActivity() {
-        ARouterUtils
-                .build(ARouterConstants.ACTIVITY_TOPIC_LIST)
+        ARouterUtils.build(ARouterConstants.ACTIVITY_TOPIC_LIST)
                 .withInt(ParamKey.KEY_FAVOR, 1)
                 .navigation(this);
     }
 
-
+    @Override
+    protected boolean usesComposeContent() {
+        return true;
+}
 }

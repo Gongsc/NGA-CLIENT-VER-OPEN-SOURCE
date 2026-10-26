@@ -1,67 +1,28 @@
 package gov.anzong.androidnga.base.widget;
 
 import android.content.Context;
-import androidx.viewpager.widget.ViewPager;
 import android.util.AttributeSet;
+import androidx.viewpager.widget.ViewPager;
+import com.google.android.material.tabs.TabLayout;
 
-import com.nshmura.recyclertablayout.RecyclerTabLayout;
+/** Material tabs for the remaining ViewPager-based article reader. */
+public class TabLayoutEx extends TabLayout {
+    private ViewPager pager;
 
-public class TabLayoutEx extends RecyclerTabLayout {
+    public TabLayoutEx(Context context) { super(context); }
+    public TabLayoutEx(Context context, AttributeSet attrs) { super(context, attrs); }
+    public TabLayoutEx(Context context, AttributeSet attrs, int style) { super(context, attrs, style); }
 
-    public TabLayoutEx(Context context) {
-        super(context);
-    }
-
-    public TabLayoutEx(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public TabLayoutEx(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
-
-    @Override
     public void setUpWithViewPager(ViewPager viewPager) {
-        DefaultAdapter adapter = new TabAdapter(viewPager);
-        adapter.setTabPadding(mTabPaddingStart, mTabPaddingTop, mTabPaddingEnd, mTabPaddingBottom);
-        adapter.setTabTextAppearance(mTabTextAppearance);
-        adapter.setTabSelectedTextColor(mTabSelectedTextColorSet, mTabSelectedTextColor);
-        adapter.setTabMaxWidth(mTabMaxWidth);
-        adapter.setTabMinWidth(mTabMinWidth);
-        adapter.setTabBackgroundResId(mTabBackgroundResId);
-        adapter.setTabOnScreenLimit(mTabOnScreenLimit);
-        setUpWithAdapter(adapter);
+        pager = viewPager;
+        setupWithViewPager(viewPager);
     }
 
     public void notifyDataSetChanged() {
-        mAdapter.notifyDataSetChanged();
+        if (pager != null) setupWithViewPager(pager);
     }
 
-    public void setTabOnScreenLimit(int tabLimit) {
-        mTabOnScreenLimit = tabLimit;
+    public void setTabOnScreenLimit(int limit) {
+        setTabMode(limit > 0 && limit <= 5 ? MODE_FIXED : MODE_SCROLLABLE);
     }
-
-    private class TabAdapter extends DefaultAdapter {
-
-        public TabAdapter(ViewPager viewPager) {
-            super(viewPager);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            super.onBindViewHolder(holder, position);
-            TabTextView tabTextView = (TabTextView) holder.itemView;
-            if (mTabOnScreenLimit > 0) {
-                int width = getMeasuredWidth() / mTabOnScreenLimit;
-                tabTextView.setMaxWidth(width);
-                tabTextView.setMinWidth(width);
-            } else {
-                if (mTabMaxWidth > 0) {
-                    tabTextView.setMaxWidth(mTabMaxWidth);
-                }
-                tabTextView.setMinWidth(mTabMinWidth);
-            }
-        }
-    }
-
 }

@@ -5,24 +5,20 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.IdRes;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+
 import gov.anzong.androidnga.R;
+
 import sp.phone.util.ActivityUtils;
 
 public class GotoDialogFragment extends NoframeDialogFragment {
-
-    @BindView(R.id.numberPicker)
     public NumberPicker mNumberPicker;
-
-    @BindView(R.id.radioGroup)
     public RadioGroup mRadioGroup;
 
     private int mMaxFloor;
@@ -43,7 +39,9 @@ public class GotoDialogFragment extends NoframeDialogFragment {
         return new AlertDialog.Builder(getContext())
                 .setTitle(R.string.goto_floor_description)
                 .setView(getDialogView())
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                .setPositiveButton(
+                        android.R.string.ok,
+                        new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mNumberPicker.clearFocus();
@@ -54,7 +52,11 @@ public class GotoDialogFragment extends NoframeDialogFragment {
                         } else {
                             intent.putExtra("floor", mNumberPicker.getValue());
                         }
-                        getTargetFragment().onActivityResult(ActivityUtils.REQUEST_CODE_JUMP_PAGE, Activity.RESULT_OK, intent);
+                                getTargetFragment()
+                                        .onActivityResult(
+                                                ActivityUtils.REQUEST_CODE_JUMP_PAGE,
+                                                Activity.RESULT_OK,
+                                                intent);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null)
@@ -62,9 +64,11 @@ public class GotoDialogFragment extends NoframeDialogFragment {
     }
 
     private View getDialogView() {
-        View view = getActivity().getLayoutInflater().inflate(R.layout.dialog_page_picker, null, false);
-        ButterKnife.bind(this, view);
-        mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        View view =
+                getActivity().getLayoutInflater().inflate(R.layout.dialog_page_picker, null, false);
+        bindViews(view);
+        mRadioGroup.setOnCheckedChangeListener(
+                new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
                 if (checkedId == R.id.page) {
@@ -90,4 +94,8 @@ public class GotoDialogFragment extends NoframeDialogFragment {
         mNumberPicker.setValue(mMaxFloor - 1);
     }
 
+    protected void bindViews(android.view.View root) {
+        mNumberPicker = root.findViewById(R.id.numberPicker);
+        mRadioGroup = root.findViewById(R.id.radioGroup);
+}
 }

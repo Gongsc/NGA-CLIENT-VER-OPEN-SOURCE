@@ -50,7 +50,7 @@ public class ThemeManager implements SharedPreferences.OnSharedPreferenceChangeL
         } else if (key.equals(PreferenceKey.MATERIAL_THEME)) {
             mThemeIndex = Integer.parseInt(sp.getString(key, "0"));
         } else if (key.equals(PreferenceKey.KEY_NIGHT_MODE_FOLLOW_SYSTEM)) {
-            mNightModeFollowSystem = sp.getBoolean(key, false);
+            mNightModeFollowSystem = sp.getBoolean(key, !sp.contains(PreferenceKey.NIGHT_MODE));
             applyDayNight();
         }
         mWebViewTheme = null;
@@ -67,7 +67,7 @@ public class ThemeManager implements SharedPreferences.OnSharedPreferenceChangeL
         sp.registerOnSharedPreferenceChangeListener(this);
         mNightMode = sp.getBoolean(PreferenceKey.NIGHT_MODE, false);
         mThemeIndex = Integer.parseInt(sp.getString(PreferenceKey.MATERIAL_THEME, "1"));
-        mNightModeFollowSystem = sp.getBoolean(PreferenceKey.KEY_NIGHT_MODE_FOLLOW_SYSTEM, false);
+        mNightModeFollowSystem = sp.getBoolean(PreferenceKey.KEY_NIGHT_MODE_FOLLOW_SYSTEM, !sp.contains(PreferenceKey.NIGHT_MODE));
         applyDayNightDelay(0);
     }
 
@@ -135,14 +135,23 @@ public class ThemeManager implements SharedPreferences.OnSharedPreferenceChangeL
     }
 
 
+    private WebViewTheme webTheme() {
+        WebViewTheme theme = mWebViewTheme;
+        if (theme == null) {
+            theme = new WebViewTheme(mContext);
+            mWebViewTheme = theme;
+        }
+        return theme;
+    }
+
     @ColorInt
     public int getWebTextColor() {
-        return mWebViewTheme.getWebTextColor();
+        return webTheme().getWebTextColor();
     }
 
     @ColorInt
     public int getWebQuoteBackgroundColor() {
-        return mWebViewTheme.getQuoteBackgroundColor();
+        return webTheme().getQuoteBackgroundColor();
     }
 
     @StyleRes
@@ -151,10 +160,6 @@ public class ThemeManager implements SharedPreferences.OnSharedPreferenceChangeL
         return toolbarEnabled ? mAppThemes[index] : mAppThemesActionBar[index];
     }
 
-    public void applyAboutTheme(AppCompatActivity activity) {
-        activity.setTheme(ThemeConstants.THEME_ACTIVITY_ABOUT[isNightMode() ? 0 : mThemeIndex]);
-        activity.getDelegate().setLocalNightMode(isNightMode() ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-    }
 
     public void applyTheme(Activity activity) {
 

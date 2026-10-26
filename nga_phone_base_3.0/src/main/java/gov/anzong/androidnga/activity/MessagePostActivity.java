@@ -5,14 +5,12 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.ActionBar;
 
-import com.alibaba.android.arouter.facade.annotation.Route;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
 import sp.phone.param.MessagePostParam;
 import sp.phone.ui.fragment.MessagePostFragment;
 
-@Route(path = ARouterConstants.ACTIVITY_MESSAGE_POST)
 public class MessagePostActivity extends BaseActivity {
 
     @Override

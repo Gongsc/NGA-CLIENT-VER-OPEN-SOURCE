@@ -12,13 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.util.GlideApp;
+
 import sp.phone.common.ApiConstants;
 import sp.phone.mvp.model.entity.Board;
 import sp.phone.mvp.model.entity.BoardCategory;
@@ -26,10 +22,12 @@ import sp.phone.rxjava.RxBus;
 import sp.phone.rxjava.RxEvent;
 import sp.phone.rxjava.RxUtils;
 
-/**
- * 版块Grid Adapter
- */
-public class BoardCategoryAdapter extends RecyclerView.Adapter<BoardCategoryAdapter.BoardViewHolder> {
+import java.util.ArrayList;
+import java.util.List;
+
+/** 版块Grid Adapter */
+public class BoardCategoryAdapter
+        extends RecyclerView.Adapter<BoardCategoryAdapter.BoardViewHolder> {
 
     public static final int BOARD_ITEM = 1;
 
@@ -44,14 +42,17 @@ public class BoardCategoryAdapter extends RecyclerView.Adapter<BoardCategoryAdap
     private int mTotalCount;
 
     class BoardViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.icon_board_img)
         public ImageView icon;
-        @BindView(R.id.text_board_name)
         public TextView name;
 
         BoardViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            icon = root.findViewById(R.id.icon_board_img);
+            name = root.findViewById(R.id.text_board_name);
         }
     }
 
@@ -73,7 +74,10 @@ public class BoardCategoryAdapter extends RecyclerView.Adapter<BoardCategoryAdap
 
     @Override
     public BoardViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        int layoutId = viewType == BOARD_ITEM ? R.layout.list_board_item : R.layout.list_board_category_item;
+        int layoutId =
+                viewType == BOARD_ITEM
+                        ? R.layout.list_board_item
+                        : R.layout.list_board_category_item;
         View view = getLayoutInflater().inflate(layoutId, parent, false);
         return new BoardViewHolder(view);
     }
@@ -85,7 +89,9 @@ public class BoardCategoryAdapter extends RecyclerView.Adapter<BoardCategoryAdap
             if (mTitlePositions != null) {
                 int subCategoryIndex;
                 int realPosition = 0;
-                for (subCategoryIndex = 0; subCategoryIndex < mTitlePositions.size(); subCategoryIndex++) {
+                for (subCategoryIndex = 0;
+                        subCategoryIndex < mTitlePositions.size();
+                        subCategoryIndex++) {
                     if (mTitlePositions.get(subCategoryIndex) > position) {
                         break;
                     }
@@ -116,7 +122,11 @@ public class BoardCategoryAdapter extends RecyclerView.Adapter<BoardCategoryAdap
             }
             holder.itemView.setTag(board);
             holder.name.setText(board.getName());
-            RxUtils.clicks(holder.itemView, v -> RxBus.getInstance().post(new RxEvent(RxEvent.EVENT_SHOW_TOPIC_LIST, board)));
+            RxUtils.clicks(
+                    holder.itemView,
+                    v ->
+                            RxBus.getInstance()
+                                    .post(new RxEvent(RxEvent.EVENT_SHOW_TOPIC_LIST, board)));
         } else {
             int subCategoryIndex = mTitlePositions.indexOf(position);
             BoardCategory subCategory = mCategory.getSubCategory(subCategoryIndex);
@@ -144,7 +154,9 @@ public class BoardCategoryAdapter extends RecyclerView.Adapter<BoardCategoryAdap
         }
         int fid = board.getFid();
         String resName = fid > 0 ? "p" + fid : "p_" + Math.abs(fid);
-        return mActivity.getResources().getIdentifier(resName, "drawable", mActivity.getPackageName());
+        return mActivity
+                .getResources()
+                .getIdentifier(resName, "drawable", mActivity.getPackageName());
     }
 
     private Drawable getDrawable(Board board) {

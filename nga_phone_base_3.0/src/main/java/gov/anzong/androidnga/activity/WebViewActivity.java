@@ -3,10 +3,7 @@ package gov.anzong.androidnga.activity;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import androidx.activity.OnBackPressedCallback;
-import androidx.activity.OnBackPressedDispatcherOwner;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 import gov.anzong.androidnga.activity.fragment.WebViewFragment;
 import gov.anzong.androidnga.ui.fragment.BaseFragment;
@@ -24,7 +21,10 @@ public class WebViewActivity extends BaseActivity {
         setupActionBar();
         initTitle();
         mFragment = createFragment();
-        getSupportFragmentManager().beginTransaction().replace(android.R.id.content, mFragment).commit();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(android.R.id.content, mFragment)
+                .commit();
     }
 
     private void initTitle() {
@@ -43,9 +43,7 @@ public class WebViewActivity extends BaseActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        if (!mFragment.onBackPressed()) {
-            super.onBackPressed();
+    protected boolean handleBackNavigation() {
+        return mFragment != null && mFragment.onBackPressed();
         }
     }
-}

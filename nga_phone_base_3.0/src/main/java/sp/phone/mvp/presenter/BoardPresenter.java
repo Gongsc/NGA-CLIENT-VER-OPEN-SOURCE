@@ -5,14 +5,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import gov.anzong.androidnga.activity.ArticleListActivity;
 import gov.anzong.androidnga.activity.TopicListActivity;
 import gov.anzong.androidnga.arouter.ARouterConstants;
 import gov.anzong.androidnga.base.util.ToastUtils;
+
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.User;
 import sp.phone.common.UserManager;
@@ -29,12 +26,11 @@ import sp.phone.util.HttpUtil;
 import sp.phone.util.NLog;
 import sp.phone.util.StringUtils;
 
-/**
- * 版块管理
- * Created by Justwen on 2017/6/29.
- */
+import java.util.List;
 
-public class BoardPresenter extends BasePresenter<NavigationDrawerFragment, BoardModel> implements BoardContract.Presenter {
+/** 版块管理 Created by Justwen on 2017/6/29. */
+public class BoardPresenter extends BasePresenter<NavigationDrawerFragment, BoardModel>
+        implements BoardContract.Presenter {
 
     private UserManager mUserManager;
 
@@ -43,36 +39,25 @@ public class BoardPresenter extends BasePresenter<NavigationDrawerFragment, Boar
         mUserManager = UserManagerImpl.getInstance();
     }
 
+    @Override
+    public void loadBoardInfo() {}
 
     @Override
-    public void loadBoardInfo() {
-
-    }
-
-    @Override
-    public boolean addBoard(String fidStr, String name, String stidStr) {
-        if (name.equals("")) {
-            ToastUtils.showToast("请输入版面名称");
-            return false;
-        } else {
-            int fid = 0;
-            int stid = 0;
-            try {
-                if (!TextUtils.isEmpty(fidStr)) {
-                    fid = Integer.parseInt(fidStr);
-                }
-
-                if (!TextUtils.isEmpty(stidStr)) {
-                    stid = Integer.parseInt(stidStr);
-                }
-
-                addBookmarkBoard(fid, stid, name);
-                return true;
-            } catch (NumberFormatException e) {
-                ToastUtils.showToast("请输入正确的版面ID或者合集ID");
+    public boolean addBoard(String fidStr, String stidStr) {
+        try {
+            int fid = TextUtils.isEmpty(fidStr.trim()) ? 0 : Integer.parseInt(fidStr.trim());
+            int stid = TextUtils.isEmpty(stidStr.trim()) ? 0 : Integer.parseInt(stidStr.trim());
+            if (fid == 0 && stid == 0) {
+                ToastUtils.error("请输入版块编号或合集编号");
                 return false;
             }
-
+            String name = mBaseModel.getBoardName(fid, stid);
+            if (TextUtils.isEmpty(name)) name = stid != 0 ? "合集 " + stid : "版块 " + fid;
+            addBookmarkBoard(fid, stid, name);
+            return true;
+        } catch (NumberFormatException e) {
+            ToastUtils.error("版块编号或合集编号格式不正确");
+            return false;
         }
     }
 
@@ -138,12 +123,6 @@ public class BoardPresenter extends BasePresenter<NavigationDrawerFragment, Boar
     }
 
     @Override
-    public void clearRecentBoards() {
-        mBaseModel.removeAllBookmarks();
-        mBaseView.notifyDataSetChanged();
-    }
-
-    @Override
     public void startUserProfile(String uid) {
         ARouterUtils.build(ARouterConstants.ACTIVITY_PROFILE)
                 .withString("mode", "uid")
@@ -153,7 +132,8 @@ public class BoardPresenter extends BasePresenter<NavigationDrawerFragment, Boar
 
     @Override
     public void startLogin() {
-        ARouterUtils.build(ARouterConstants.ACTIVITY_LOGIN).navigation((Activity) mBaseView.getContext(), ActivityUtils.REQUEST_CODE_LOGIN);
+        ARouterUtils.build(ARouterConstants.ACTIVITY_LOGIN)
+                .navigation((Activity) mBaseView.getContext(), ActivityUtils.REQUEST_CODE_LOGIN);
     }
 
     @Override
@@ -167,24 +147,16 @@ public class BoardPresenter extends BasePresenter<NavigationDrawerFragment, Boar
     }
 
     @Override
-    public void clearAllBookmarkBoards() {
-        mBaseModel.removeAllBookmarks();
-        mBaseView.notifyDataSetChanged();
-    }
-
-    @Override
-    public void swapBookmarkBoard(int from, int to) {
-        mBaseModel.swapBookmark(from, to);
-    }
-
-    @Override
     public void addBookmarkBoard(int fid, int stid, String name) {
+        if (!mUserManager.hasValidUser()) {
+            startLogin();
+            return;
+        }
         if (mBaseModel.isBookmark(fid, stid)) {
             ToastUtils.showToast("该版面已存在");
         } else {
             mBaseModel.addBookmark(fid, stid, name);
             mBaseView.notifyDataSetChanged();
-            ToastUtils.success("添加成功");
         }
     }
 

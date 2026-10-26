@@ -36,20 +36,19 @@ open class TopicListBaseFragment : BaseFragment(R.layout.fragment_topic_list_bas
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mRequestParam = arguments!!.getParcelable(ParamKey.KEY_PARAM)
+        mRequestParam = requireArguments().getParcelable(ParamKey.KEY_PARAM)
         mPresenter = onCreatePresenter()
         lifecycle.addObserver(mPresenter)
-        initState()
     }
 
     private fun initState() {
-        mPresenter.isRefreshing.observe(this, Observer {
+        mPresenter.isRefreshing.observe(viewLifecycleOwner, Observer {
             mRefreshLayout.isRefreshing = it
         })
-        mPresenter.errorMsg.observe(this, Observer {
+        mPresenter.errorMsg.observe(viewLifecycleOwner, Observer {
             ToastUtils.error(it)
         })
-        mPresenter.firstTopicList.observe(this, Observer {
+        mPresenter.firstTopicList.observe(viewLifecycleOwner, Observer {
             if (it == null) {
                 setData(null, false)
             } else{
@@ -58,7 +57,7 @@ open class TopicListBaseFragment : BaseFragment(R.layout.fragment_topic_list_bas
             }
         })
 
-        mPresenter.nextTopicList.observe(this, Observer {
+        mPresenter.nextTopicList.observe(viewLifecycleOwner, Observer {
             it?.let { setData(it.threadPageList, true) }
         })
     }
@@ -90,6 +89,7 @@ open class TopicListBaseFragment : BaseFragment(R.layout.fragment_topic_list_bas
         mListView.adapter = mAdapter
         val padding = resources.getDimension(R.dimen.topic_list_item_padding)
         mListView.addItemDecoration(DividerItemDecorationEx(view.context, padding.toInt(), DividerItemDecoration.VERTICAL))
+        initState()
         mListView.setOnNextPageLoadListener {
             if (!mRefreshLayout.isRefreshing) {
                 mPresenter.loadNextPage(mAdapter.nextPage, mRequestParam)

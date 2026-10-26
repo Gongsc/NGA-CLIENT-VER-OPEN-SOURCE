@@ -5,12 +5,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.ActionBar;
 
-import com.alibaba.android.arouter.facade.annotation.Route;
 
 import gov.anzong.androidnga.arouter.ARouterConstants;
 import sp.phone.ui.fragment.RecentNotificationFragment;
 
-@Route(path = ARouterConstants.ACTIVITY_NOTIFICATION)
 public class RecentNotificationActivity extends BaseActivity {
 
     @Override

@@ -11,11 +11,11 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.activity.ArticleCacheActivity;
 import gov.anzong.androidnga.base.util.ToastUtils;
+
 import sp.phone.mvp.model.entity.ThreadPageInfo;
 import sp.phone.mvp.model.entity.TopicListInfo;
 import sp.phone.param.ArticleListParam;
@@ -32,7 +32,7 @@ public class TopicCacheFragment extends TopicSearchFragment implements View.OnLo
         super.onViewCreated(view, savedInstanceState);
         ToastUtils.success("长按可删除缓存的帖子");
         mAdapter.setOnLongClickListener(this);
-        mPresenter.getRemovedTopic().observe(this, this::removeTopic);
+        mPresenter.getRemovedTopic().observe(getViewLifecycleOwner(), this::removeTopic);
     }
 
     @Override
@@ -56,7 +56,9 @@ public class TopicCacheFragment extends TopicSearchFragment implements View.OnLo
     public boolean onLongClick(final View view) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setMessage(this.getString(R.string.delete_favo_confirm_text))
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                .setPositiveButton(
+                        android.R.string.ok,
+                        (dialog, which) -> {
                     ThreadPageInfo info = (ThreadPageInfo) view.getTag();
                     mPresenter.removeCacheTopic(info);
                 })
@@ -74,14 +76,12 @@ public class TopicCacheFragment extends TopicSearchFragment implements View.OnLo
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_cache_export:
+        int selectedResourceId = item.getItemId();
+        if (selectedResourceId == R.id.menu_cache_export) {
                 mPresenter.exportCacheTopic(this);
-                break;
-            case R.id.menu_cache_import:
+        } else if (selectedResourceId == R.id.menu_cache_import) {
                 mPresenter.showFileChooser(this);
-                break;
-            default:
+        } else {
                 return super.onOptionsItemSelected(item);
         }
         return true;
@@ -113,5 +113,4 @@ public class TopicCacheFragment extends TopicSearchFragment implements View.OnLo
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
-
 }

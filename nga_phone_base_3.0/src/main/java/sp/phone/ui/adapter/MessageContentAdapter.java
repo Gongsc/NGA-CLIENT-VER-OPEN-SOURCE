@@ -2,32 +2,31 @@ package sp.phone.ui.adapter;
 
 import android.content.Context;
 import android.content.res.Resources;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.recyclerview.widget.RecyclerView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.base.util.ToastUtils;
-import sp.phone.ui.adapter.beta.BaseAppendableAdapterEx;
+
 import sp.phone.http.bean.MessageArticlePageInfo;
 import sp.phone.http.bean.MessageDetailInfo;
 import sp.phone.theme.ThemeManager;
+import sp.phone.ui.adapter.beta.BaseAppendableAdapterEx;
 import sp.phone.util.FunctionUtils;
 import sp.phone.view.RecyclerViewEx;
 
-/**
- * Created by Justwen on 2017/10/15.
- */
+import java.util.ArrayList;
+import java.util.List;
 
-public class MessageContentAdapter extends BaseAppendableAdapterEx<MessageDetailInfo, MessageContentAdapter.MessageViewHolder> implements RecyclerViewEx.IAppendableAdapter {
+/** Created by Justwen on 2017/10/15. */
+public class MessageContentAdapter
+        extends BaseAppendableAdapterEx<MessageDetailInfo, MessageContentAdapter.MessageViewHolder>
+        implements RecyclerViewEx.IAppendableAdapter {
 
     private List<MessageDetailInfo> mInfoList = new ArrayList<>();
 
@@ -36,22 +35,21 @@ public class MessageContentAdapter extends BaseAppendableAdapterEx<MessageDetail
     private int mTotalCount;
 
     static class MessageViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.nickName)
         public TextView nickName;
-
-        @BindView(R.id.floor)
         public TextView floor;
-
-        @BindView(R.id.postTime)
         public TextView postTime;
-
-        @BindView(R.id.content)
         public WebView content;
 
         public MessageViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            nickName = root.findViewById(R.id.nickName);
+            floor = root.findViewById(R.id.floor);
+            postTime = root.findViewById(R.id.postTime);
+            content = root.findViewById(R.id.content);
         }
     }
 
@@ -62,9 +60,7 @@ public class MessageContentAdapter extends BaseAppendableAdapterEx<MessageDetail
     @Override
     protected void onBindItemViewHolder(MessageViewHolder holder, int position) {
         handleJsonList(holder, position);
-        if (position + 1 == getItemCount()
-                && !hasNextPage()
-                && !mPrompted) {
+        if (position + 1 == getItemCount() && !hasNextPage() && !mPrompted) {
             ToastUtils.showToast(R.string.last_page_prompt_message_detail);
             mPrompted = true;
         }
@@ -72,7 +68,8 @@ public class MessageContentAdapter extends BaseAppendableAdapterEx<MessageDetail
 
     @Override
     protected MessageViewHolder onCreateItemViewHolder(ViewGroup parent, LayoutInflater inflater) {
-        return new MessageViewHolder(inflater.inflate(R.layout.list_message_content, parent, false));
+        return new MessageViewHolder(
+                inflater.inflate(R.layout.list_message_content, parent, false));
     }
 
     private MessageArticlePageInfo getEntry(int position) {
@@ -117,8 +114,8 @@ public class MessageContentAdapter extends BaseAppendableAdapterEx<MessageDetail
         holder.postTime.setTextColor(res.getColor(theme.getForegroundColor()));
         holder.floor.setTextColor(res.getColor(theme.getForegroundColor()));
 
-
-        FunctionUtils.handleNickName(entry, res.getColor(theme.getForegroundColor()), holder.nickName, mContext);
+        FunctionUtils.handleNickName(
+                entry, res.getColor(theme.getForegroundColor()), holder.nickName, mContext);
 
         int colorId = theme.getBackgroundColor(position + 1);
         final int bgColor = res.getColor(colorId);
@@ -126,12 +123,10 @@ public class MessageContentAdapter extends BaseAppendableAdapterEx<MessageDetail
         final int fgColor = res.getColor(fgColorId);
         holder.itemView.setBackgroundResource(colorId);
         FunctionUtils.handleContentTV(holder.content, entry, bgColor, fgColor, mContext);
-
     }
 
     @Override
     protected int getItemViewCount() {
         return mTotalCount;
     }
-
 }

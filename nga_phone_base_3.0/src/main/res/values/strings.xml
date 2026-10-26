@@ -342,8 +342,6 @@
     <string name="setting_title_left_hand">左手模式</string>
     <string name="setting_title_hardware_accelerated">硬件加速</string>
     <string name="setting_summary_hardware_accelerated">主题详情页面闪退可尝试关闭此项</string>
-    <string name="summary_show_with_webview">加载出错时默认使用内置浏览器打开</string>
-    <string name="title_show_with_webview">使用内置浏览器打开</string>
     <string name="setting_title_sort_by_post">按发帖顺序排序</string>
     <string name="setting_title_user">用户管理</string>
     <string name="setting_title_black_list">黑名单</string>
@@ -360,8 +358,8 @@
 
     <string name="filter_keywords">关键字屏蔽</string>
     <string name="twenty_four">24小时热帖</string>
-    <string name="menu_add_bookmark_board">添加至我的收藏</string>
-    <string name="menu_remove_bookmark_board">取消收藏</string>
+    <string name="menu_add_bookmark_board">收藏到论坛</string>
+    <string name="menu_remove_bookmark_board">取消论坛收藏</string>
     <string name="menu_search">搜索</string>
     <string name="menu_recommend">精华区</string>
     <string name="menu_sub_board">子板块</string>
@@ -377,8 +375,6 @@
     <string name="menu_oppose">反对</string>
     <string name="menu_support">支持</string>
 
-    <string name="toast_add_bookmark_board">添加至我的收藏</string>
-    <string name="toast_remove_bookmark_board">取消收藏</string>
 
     <string name="dislike">踩</string>
     <string name="player_plugin_hint">播放器现已插件化,请到关于中下载或PLAY商店搜索BambooPlayer安装</string>

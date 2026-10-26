@@ -1,38 +1,34 @@
 package gov.anzong.androidnga.gallery;
 
-import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.core.content.FileProvider;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.justwen.androidnga.cloud.CloudServerManager;
-import com.tbruyelle.rxpermissions2.RxPermissions;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.FileProvider;
+import androidx.viewpager.widget.ViewPager;
 
-import java.io.File;
-import java.util.Arrays;
+import com.justwen.androidnga.cloud.CloudServerManager;
 
 import gov.anzong.androidnga.BuildConfig;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.activity.BaseActivity;
 import gov.anzong.androidnga.base.util.ToastUtils;
-import sp.phone.http.OnSimpleHttpCallBack;
-import gov.anzong.androidnga.base.util.DeviceUtils;
 
-/**
- * 显示图片
- * Created by Elrond on 2015/11/18.
- */
+import sp.phone.http.OnSimpleHttpCallBack;
+
+import java.io.File;
+import java.util.Arrays;
+
+/** 显示图片 Created by Elrond on 2015/11/18. */
 public class ImageZoomActivity extends BaseActivity {
 
     public static final String KEY_GALLERY_URLS = "keyGalleryUrl";
@@ -65,7 +61,6 @@ public class ImageZoomActivity extends BaseActivity {
         initBottomView();
         initGallery();
         initActionBar();
-
     }
 
     private void initActionBar() {
@@ -81,12 +76,14 @@ public class ImageZoomActivity extends BaseActivity {
         GalleryAdapter adapter = new GalleryAdapter(this, mGalleryUrls);
         mViewPager.setAdapter(adapter);
         mViewPager.setCurrentItem(mPageIndex);
-        mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        mViewPager.addOnPageChangeListener(
+                new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
                 mPageIndex = position;
                 setTitle((position + 1) + " / " + mGalleryUrls.length);
-                //  mTxtView.setText(String.valueOf(position + 1) + " / " + String.valueOf(mGalleryUrls.length));
+                        //  mTxtView.setText(String.valueOf(position + 1) + " / " +
+                        // String.valueOf(mGalleryUrls.length));
             }
         });
     }
@@ -109,38 +106,36 @@ public class ImageZoomActivity extends BaseActivity {
     private void initBottomView() {
 //        mTxtView = (TextView) findViewById(R.id.reader_image_desc);
 //        mTxtView.setMovementMethod(new ScrollingMovementMethod());11
-//        mTxtView.setText(String.valueOf(mPageIndex + 1) + " / " + String.valueOf(mGalleryUrls.length));
+        //        mTxtView.setText(String.valueOf(mPageIndex + 1) + " / " +
+        // String.valueOf(mGalleryUrls.length));
 //        ImageView download = (ImageView) findViewById(R.id.reader_image_download);
-//        download.setOnClickListener(v -> saveBitmap(mGalleryUrls[mPageIndex >= 0 ? mPageIndex : 0]));
+        //        download.setOnClickListener(v -> saveBitmap(mGalleryUrls[mPageIndex >= 0 ?
+        // mPageIndex
+        // : 0]));
         mProgressBar = (ProgressBar) findViewById(R.id.progress);
         mProgressBar.setVisibility(View.VISIBLE);
         setTitle((mPageIndex + 1) + " / " + mGalleryUrls.length);
     }
 
-    private void saveBitmap(OnSimpleHttpCallBack<SaveImageTask.DownloadResult> callBack, String... urls) {
-        new RxPermissions(this)
-                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe(granted -> {
-                    if (granted) { // Always true pre-M
-                        if (mSaveImageTask == null) {
-                            mSaveImageTask = new SaveImageTask();
-                        }
-                        mSaveImageTask.execute(callBack, urls);
-                    } else {
-                        // Oups permission denied
-                    }
-                });
+    private void saveBitmap(
+            OnSimpleHttpCallBack<SaveImageTask.DownloadResult> callBack, String... urls) {
+        if (mSaveImageTask == null) {
+            mSaveImageTask = new SaveImageTask();
+        }
+        mSaveImageTask.execute(callBack, urls);
     }
 
     private void saveBitmap(String... urls) {
-        saveBitmap(data -> {
+        saveBitmap(
+                data -> {
             for (int i = 0; i < mGalleryUrls.length; i++) {
                 if (mGalleryUrls[i].equals(data.url)) {
                     mDownloadResults[i] = data;
                     break;
                 }
             }
-        }, urls);
+                },
+                urls);
     }
 
     @Override
@@ -151,22 +146,13 @@ public class ImageZoomActivity extends BaseActivity {
 
     private void share(File file) {
         try {
-            if (DeviceUtils.isGreaterEqual_7_0()) {
-                Uri contentUri = FileProvider.getUriForFile(this,
-                        BuildConfig.APPLICATION_ID, file);
+            Uri contentUri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID, file);
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.putExtra(Intent.EXTRA_STREAM, contentUri);
                 intent.setType("image/jpeg");
                 String text = getResources().getString(R.string.share);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 startActivity(Intent.createChooser(intent, text));
-            } else {
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
-                intent.setType("image/jpeg");
-                String text = getResources().getString(R.string.share);
-                startActivity(Intent.createChooser(intent, text));
-            }
         } catch (ActivityNotFoundException e) {
             ToastUtils.error("分享失败");
         }
@@ -174,15 +160,16 @@ public class ImageZoomActivity extends BaseActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_share:
+        int selectedResourceId = item.getItemId();
+        if (selectedResourceId == R.id.menu_share) {
                 if (mDownloadResults.length == 0) {
                     CloudServerManager.putCrashData(this, "mCurrentUrl", mCurrentUrl);
                 }
                 if (mDownloadResults[mPageIndex] != null) {
                     share(mDownloadResults[mPageIndex].file);
                 } else {
-                    saveBitmap(data -> {
+                saveBitmap(
+                        data -> {
                         for (int i = 0; i < mGalleryUrls.length; i++) {
                             if (mGalleryUrls[i].equals(data.url)) {
                                 mDownloadResults[i] = data;
@@ -190,16 +177,14 @@ public class ImageZoomActivity extends BaseActivity {
                             }
                         }
                         share(data.file);
-                    }, mGalleryUrls[mPageIndex]);
+                        },
+                        mGalleryUrls[mPageIndex]);
                 }
-                break;
-            case R.id.menu_download_all:
+        } else if (selectedResourceId == R.id.menu_download_all) {
                 showDownloadAllDialog();
-                break;
-            case R.id.menu_download:
+        } else if (selectedResourceId == R.id.menu_download) {
                 saveBitmap(mGalleryUrls[mPageIndex]);
-                break;
-            default:
+        } else {
                 return super.onOptionsItemSelected(item);
         }
         return true;
@@ -208,13 +193,17 @@ public class ImageZoomActivity extends BaseActivity {
     private void showDownloadAllDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("是否要下载全部图片 ？")
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                .setPositiveButton(
+                        android.R.string.ok,
+                        new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         saveBitmap(mGalleryUrls);
-
                     }
-                }).setNegativeButton(android.R.string.cancel, null).create().show();
+                        })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create()
+                .show();
     }
 
     public void hideLoading() {

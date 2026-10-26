@@ -2,30 +2,26 @@ package sp.phone.ui.adapter;
 
 import android.content.Context;
 import android.content.Intent;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
+import androidx.recyclerview.widget.RecyclerView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.util.GlideApp;
+
 import sp.phone.common.ApiConstants;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.mvp.model.ForumsListModel;
 import sp.phone.theme.ThemeManager;
 
-/**
- * 版块列表
- * Created by elrond on 2017/9/29.
- */
+import java.util.List;
 
+/** 版块列表 Created by elrond on 2017/9/29. */
 public class ForumListAdapter extends RecyclerView.Adapter<ForumListAdapter.ViewHolder> {
     private Context mContext;
     private LayoutInflater mLayoutInflater;
@@ -64,24 +60,30 @@ public class ForumListAdapter extends RecyclerView.Adapter<ForumListAdapter.View
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.icon_board_img)
         public ImageView icon;
-        @BindView(R.id.text_board_name)
         public TextView name;
         public String fid;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
             name.setTextColor(mColor);
+        }
+
+        protected void bindViews(android.view.View root) {
+            icon = root.findViewById(R.id.icon_board_img);
+            name = root.findViewById(R.id.text_board_name);
         }
     }
 
-    private View.OnClickListener mListener = new View.OnClickListener() {
+    private View.OnClickListener mListener =
+            new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             ForumsListModel.Forum forum = (ForumsListModel.Forum) v.getTag();
-            Intent intent = new Intent(mContext, PhoneConfiguration.getInstance().topicActivityClass);
+                    Intent intent =
+                            new Intent(
+                                    mContext, PhoneConfiguration.getInstance().topicActivityClass);
             intent.putExtra("tab", "1");
             intent.putExtra("fid", forum.getId());
             intent.putExtra("board_name", forum.getName());

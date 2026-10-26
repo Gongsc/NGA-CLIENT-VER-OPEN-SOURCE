@@ -1,30 +1,28 @@
 package sp.phone.ui.fragment;
 
-
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.alibaba.android.arouter.launcher.ARouter;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import gov.anzong.androidnga.arouter.AppNavigator;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
-import sp.phone.ui.adapter.MessageContentAdapter;
+
 import sp.phone.http.bean.MessageDetailInfo;
 import sp.phone.mvp.contract.MessageDetailContract;
 import sp.phone.mvp.presenter.MessageDetailPresenter;
+import sp.phone.ui.adapter.MessageContentAdapter;
 import sp.phone.view.RecyclerViewEx;
 
-public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresenter> implements MessageDetailContract.IMessageView {
-
-    @BindView(R.id.swipe_refresh)
+public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresenter>
+        implements MessageDetailContract.IMessageView {
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     private int mMid;
@@ -35,7 +33,8 @@ public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresente
 
     private MessageContentAdapter mAdapter;
 
-    private RecyclerViewEx.OnNextPageLoadListener mNextPageLoadListener = new RecyclerViewEx.OnNextPageLoadListener() {
+    private RecyclerViewEx.OnNextPageLoadListener mNextPageLoadListener =
+            new RecyclerViewEx.OnNextPageLoadListener() {
         @Override
         public void loadNextPage() {
             if (!isRefreshing()) {
@@ -57,9 +56,12 @@ public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresente
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_message_detail, container, false);
-        ButterKnife.bind(this, view);
+        bindViews(view);
 
         mAdapter = new MessageContentAdapter(getContext());
 
@@ -69,7 +71,8 @@ public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresente
         listView.setItemViewCacheSize(20);
         listView.setOnNextPageLoadListener(mNextPageLoadListener);
 
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 mPresenter.loadPage(1, mMid);
@@ -77,7 +80,8 @@ public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresente
         });
 
         FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(
+                new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startMessagePost();
@@ -101,7 +105,6 @@ public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresente
         mSwipeRefreshLayout.setEnabled(true);
     }
 
-
     @Override
     public void setData(MessageDetailInfo listInfo) {
         mTitle = listInfo.get_Title();
@@ -122,7 +125,8 @@ public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresente
     }
 
     private void startMessagePost() {
-        ARouter.getInstance().build(ARouterConstants.ACTIVITY_MESSAGE_POST)
+        AppNavigator.getInstance()
+                .build(ARouterConstants.ACTIVITY_MESSAGE_POST)
                 .withInt("mid", mMid)
                 .withString("action", "reply")
                 .withString("to", mRecipient)
@@ -130,4 +134,7 @@ public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresente
                 .navigation(getContext());
     }
 
+    protected void bindViews(android.view.View root) {
+        mSwipeRefreshLayout = root.findViewById(R.id.swipe_refresh);
+}
 }

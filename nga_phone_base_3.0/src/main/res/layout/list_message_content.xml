@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:descendantFocusability="blocksDescendants"
@@ -16,12 +17,14 @@
         android:textStyle="bold" >
     </TextView>
 
+    <!-- Message rows expand to the HTML document height inside the scrolling conversation. -->
     <WebView
+        tools:ignore="WebViewLayout"
         android:id="@+id/content"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/nickName" />
-    
+
     <!-- 由于wrap_content不支持margin bottom，用一个place_holder把整个撑大，避免快速回复按钮和文字重叠 -->
 
     <TextView

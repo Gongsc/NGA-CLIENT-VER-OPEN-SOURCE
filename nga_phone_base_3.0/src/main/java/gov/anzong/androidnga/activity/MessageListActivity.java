@@ -8,8 +8,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
-import com.alibaba.android.arouter.facade.annotation.Route;
-import com.alibaba.android.arouter.launcher.ARouter;
+import gov.anzong.androidnga.arouter.AppNavigator;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
@@ -20,7 +19,6 @@ import sp.phone.common.UserManagerImpl;
 import sp.phone.ui.fragment.MessageListFragment;
 import sp.phone.util.StringUtils;
 
-@Route(path = ARouterConstants.ACTIVITY_MESSAGE_LIST)
 public class MessageListActivity extends BaseActivity
         implements View.OnClickListener {
 
@@ -73,7 +71,7 @@ public class MessageListActivity extends BaseActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ARouter.getInstance().build(ARouterConstants.ACTIVITY_MESSAGE_POST)
+                AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_MESSAGE_POST)
                         .withString("action", "new")
                         .navigation(MessageListActivity.this);
             }

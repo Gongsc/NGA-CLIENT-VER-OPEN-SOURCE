@@ -6,22 +6,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.Iterator;
-import java.util.List;
-
 import androidx.recyclerview.widget.RecyclerView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
 import gov.anzong.androidnga.R;
+
 import sp.phone.mvp.model.entity.ThreadPageInfo;
 import sp.phone.theme.ThemeManager;
 import sp.phone.util.StringUtils;
 
-/**
- * Created by Justwen on 2018/3/23.
- */
+import java.util.Iterator;
+import java.util.List;
 
-public class ReplyListAdapter extends BaseAppendableAdapter<ThreadPageInfo, ReplyListAdapter.ViewHolder> {
+/** Created by Justwen on 2018/3/23. */
+public class ReplyListAdapter
+        extends BaseAppendableAdapter<ThreadPageInfo, ReplyListAdapter.ViewHolder> {
 
     private boolean isNightMode;
 
@@ -51,9 +49,7 @@ public class ReplyListAdapter extends BaseAppendableAdapter<ThreadPageInfo, Repl
 
         holder.itemView.setOnClickListener(mOnClickListener);
         holder.itemView.setTag(pageInfo);
-
     }
-
 
     @Override
     public void setData(List<ThreadPageInfo> dataList) {
@@ -76,24 +72,21 @@ public class ReplyListAdapter extends BaseAppendableAdapter<ThreadPageInfo, Repl
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
-        @BindView(R.id.tv_action)
         public TextView mActionTv;
-
-        @BindView(R.id.tv_content)
         public TextView mContentTv;
-
-        @BindView(R.id.tv_time)
         public TextView mPostDateTv;
-
-        @BindView(R.id.tv_topic)
         public TextView mSubjectTv;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            bindViews(itemView);
+        }
+
+        protected void bindViews(android.view.View root) {
+            mActionTv = root.findViewById(R.id.tv_action);
+            mContentTv = root.findViewById(R.id.tv_content);
+            mPostDateTv = root.findViewById(R.id.tv_time);
+            mSubjectTv = root.findViewById(R.id.tv_topic);
         }
     }
-
-
 }

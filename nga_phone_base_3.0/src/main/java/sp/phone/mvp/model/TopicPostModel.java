@@ -93,7 +93,6 @@ public class TopicPostModel extends BaseModel implements TopicPostContract.Model
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
                 .map((String s) -> {
-                    NLog.d(s);
                     s = s.replace("window.script_muti_get_var_store=", "");
                     TopicPostBean bean = JSON.parseObject(s, TopicPostBean.class);
                     postParam.setAuthCode(bean.getData().getAuth());

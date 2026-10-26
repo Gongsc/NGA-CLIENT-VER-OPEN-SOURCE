@@ -1,6 +1,7 @@
 package gov.anzong.androidnga.core.corebuild;
 
 import java.util.List;
+import gov.anzong.androidnga.core.decode.ForumImageUrl;
 
 import gov.anzong.androidnga.core.data.AttachmentData;
 import gov.anzong.androidnga.core.data.HtmlData;
@@ -13,8 +14,8 @@ public class HtmlAttachmentBuilder implements IHtmlBuild {
 
     private static StringBuilder buildAudioAttachment(StringBuilder ret, AttachmentData attachment) {
         String url = attachment.getAttachUrl();
-        ret.append("<tr><td><a href='http://")
-                .append(attachment.getAttachmentHost())
+        ret.append("<tr><td><a href='https://")
+                .append(ForumImageUrl.HOST)
                 .append("/attachments/")
                 .append(url)
                 .append("'>")
@@ -25,8 +26,8 @@ public class HtmlAttachmentBuilder implements IHtmlBuild {
 
     private static StringBuilder buildVideoAttachment(StringBuilder ret, AttachmentData attachment) {
         String url = attachment.getAttachUrl();
-        ret.append("<tr><td><a href='http://")
-                .append(attachment.getAttachmentHost())
+        ret.append("<tr><td><a href='https://")
+                .append(ForumImageUrl.HOST)
                 .append("/attachments/")
                 .append(url)
                 .append("'>")
@@ -37,7 +38,8 @@ public class HtmlAttachmentBuilder implements IHtmlBuild {
 
     private static StringBuilder buildImageAttachment(StringBuilder ret, AttachmentData attachment, int index, List<String> imageUrls) {
 
-        String attachUrl = "http://" + attachment.getAttachmentHost() + "/attachments/" + attachment.getAttachUrl();
+        String attachUrl = ForumImageUrl.normalize(attachment.getAttachUrl());
+        if (attachUrl == null) return ret;
         String attachUrlThumb = attachUrl;
         String indexStr = String.valueOf(index);
         if ("1".equals(attachment.getThumb())) {

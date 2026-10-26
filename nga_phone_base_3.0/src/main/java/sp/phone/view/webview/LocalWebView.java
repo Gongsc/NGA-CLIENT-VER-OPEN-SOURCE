@@ -78,6 +78,11 @@ public class LocalWebView extends WebViewEx implements DownloadListener {
         downloadByBrowser(url);
     }
 
+    /** 复用正文容器时允许同一文档重新绑定，避免中断加载后被旧缓存跳过。 */
+    public void clearContentCache() {
+        mContentData = null;
+    }
+
     @Override
     public void loadDataWithBaseURL(@Nullable String baseUrl, String data, @Nullable String mimeType, @Nullable String encoding, @Nullable String historyUrl) {
         if (data.equals(mContentData)) {

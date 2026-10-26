@@ -1,6 +1,5 @@
 package sp.phone.common;
 
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,10 +10,8 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import androidx.core.app.NotificationCompat;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.core.app.NotificationCompat;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.activity.MessageListActivity;
@@ -22,10 +19,13 @@ import gov.anzong.androidnga.activity.RecentNotificationActivity;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.common.PreferenceKey;
 import gov.anzong.androidnga.http.OnHttpCallBack;
+
 import sp.phone.mvp.model.entity.NotificationInfo;
 import sp.phone.mvp.model.entity.RecentReplyInfo;
 import sp.phone.task.ForumNotificationTask;
-import gov.anzong.androidnga.base.util.DeviceUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class NotificationController {
 
@@ -41,15 +41,16 @@ public class NotificationController {
 
     private long mLastQueryTime;
 
-    private Handler mHandler = new Handler(new Handler.Callback() {
+    private Handler mHandler =
+            new Handler(
+                    new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
 
-            mNotificationTask.queryNotification(new OnHttpCallBack<List<NotificationInfo>>() {
+                            mNotificationTask.queryNotification(
+                                    new OnHttpCallBack<List<NotificationInfo>>() {
                 @Override
-                public void onError(String text) {
-
-                }
+                                        public void onError(String text) {}
 
                 @Override
                 public void onSuccess(List<NotificationInfo> data) {
@@ -81,10 +82,13 @@ public class NotificationController {
             mLastQueryTime = System.currentTimeMillis();
             mHandler.sendEmptyMessage(0);
         }
-
     }
 
     private void showNotification(List<NotificationInfo> infoList) {
+        if (!androidx.core.app.NotificationManagerCompat.from(ContextUtils.getContext())
+                .areNotificationsEnabled()) {
+            return;
+        }
         if (infoList.isEmpty() || !infoList.get(0).isUnread()) {
             return;
         }
@@ -104,7 +108,9 @@ public class NotificationController {
 
         if (!recentReplyList.isEmpty()) {
             PreferenceManager.getDefaultSharedPreferences(ContextUtils.getContext())
-                    .edit().putInt(PreferenceKey.KEY_REPLY_COUNT, recentReplyList.size()).apply();
+                    .edit()
+                    .putInt(PreferenceKey.KEY_REPLY_COUNT, recentReplyList.size())
+                    .apply();
             showReplyNotification(recentReplyList);
         }
     }
@@ -118,7 +124,12 @@ public class NotificationController {
 
         intent.putParcelableArrayListExtra("unread", infoList);
 
-        PendingIntent pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pending =
+                PendingIntent.getActivity(
+                        context,
+                        0,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = buildNotification(context);
         builder.setContentIntent(pending)
@@ -126,7 +137,8 @@ public class NotificationController {
                 .setContentTitle("有新的被喷提醒，请查看")
                 .setContentText("有新的被喷提醒，请查看");
 
-        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager nm =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm != null) {
             nm.notify(id, builder.build()); // 通过通知管理器发送通知
         }
@@ -137,7 +149,12 @@ public class NotificationController {
 
         Intent intent = new Intent(context, MessageListActivity.class);
 
-        PendingIntent pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pending =
+                PendingIntent.getActivity(
+                        context,
+                        0,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = buildNotification(context);
         builder.setContentIntent(pending)
@@ -145,31 +162,34 @@ public class NotificationController {
                 .setContentTitle("有新的短消息，请查看")
                 .setContentText("有新的短消息，请查看");
 
-        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager nm =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm != null) {
             nm.notify(1000, builder.build()); // 通过通知管理器发送通知
         }
     }
 
     private NotificationCompat.Builder buildNotification(Context context) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_ID);
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context, NOTIFICATION_ID);
         builder.setLights(Color.parseColor("#fff0cd"), 2333, 0)
                 .setSmallIcon(R.drawable.nga_bg) //设置图标
                 .setWhen(System.currentTimeMillis()) //发送时间
-                .setDefaults(mConfiguration.isNotificationSoundEnabled() ? Notification.DEFAULT_ALL : Notification.DEFAULT_LIGHTS) //设置默认的提示音，振动方式，灯光
+                .setDefaults(
+                        mConfiguration.isNotificationSoundEnabled()
+                                ? Notification.DEFAULT_ALL
+                                : Notification.DEFAULT_LIGHTS) // 设置默认的提示音，振动方式，灯光
                 .setAutoCancel(true);//打开程序后图标消失
-        if (DeviceUtils.isGreaterEqual_10_0()) {
             builder.setSmallIcon(R.mipmap.ic_launcher_foreground);
-        }
         return builder;
     }
 
-    @TargetApi(26)
     private void createNotificationChannel(Context context) {
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        if (!DeviceUtils.isGreaterEqual_8_0() || notificationManager == null) {
+        if (notificationManager == null) {
             return;
         }
         String id = NOTIFICATION_ID;

@@ -1,20 +1,28 @@
 package sp.phone.http.bean;
 
+import sp.phone.mvp.model.entity.ThreadPageInfo;
+
 import java.util.List;
 import java.util.Map;
 
-import sp.phone.mvp.model.entity.ThreadPageInfo;
-
 public class ThreadData {
     private List<ThreadRowInfo> rowList;
+    private List<ThreadRowInfo> hotReplyList = new java.util.ArrayList<>();
+
+    public List<ThreadRowInfo> getHotReplyList() {
+        return hotReplyList;
+    }
+
+    public void setHotReplyList(List<ThreadRowInfo> replies) {
+        hotReplyList = replies;
+    }
+
     private ThreadPageInfo threadInfo;
     private Map<String, String> __F;
     private int __ROWS;
     private int rowNum;
 
-    /**
-     * 从服务端获取的原始数据
-     */
+    /** 从服务端获取的原始数据 */
     private String mRawData;
 
     public List<ThreadRowInfo> getRowList() {

@@ -41,7 +41,7 @@
     </FrameLayout>
 
 
-    <com.getbase.floatingactionbutton.FloatingActionsMenu
+    <gov.anzong.androidnga.ui.compose.ExpandableActionMenu
         android:id="@+id/fab_menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -49,22 +49,23 @@
         app:layout_behavior="sp.phone.view.behavior.ScrollAwareFamBehavior">
 
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:id="@+id/fab_post"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:fab_title="@string/reply_thread"
-            app:srcCompat="@drawable/btn_ic_create"
+            android:text="@string/reply_thread"
+            app:icon="@drawable/btn_ic_create"
             tools:ignore="VectorDrawableCompat" />
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:id="@+id/fab_refresh"
+            android:contentDescription="刷新"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:fab_title="刷新"
-            app:srcCompat="@drawable/btn_ic_refresh"
+            android:text="刷新"
+            app:icon="@drawable/btn_ic_refresh"
             tools:ignore="VectorDrawableCompat" />
 
-    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+    </gov.anzong.androidnga.ui.compose.ExpandableActionMenu>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

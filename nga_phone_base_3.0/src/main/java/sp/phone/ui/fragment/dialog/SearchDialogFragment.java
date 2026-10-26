@@ -5,9 +5,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,12 +16,17 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import java.util.Objects;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 
 import gov.anzong.androidnga.R;
+
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.util.StringUtils;
+
+import java.util.Objects;
 
 public class SearchDialogFragment extends DialogFragment {
 
@@ -44,9 +46,14 @@ public class SearchDialogFragment extends DialogFragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         mEditText.requestFocus();
-        getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        getDialog()
+                .getWindow()
+                .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -66,31 +73,30 @@ public class SearchDialogFragment extends DialogFragment {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View view = getActivity().getLayoutInflater().inflate(R.layout.dialog_search, null);
         getViews(view);
-        mSearchRadio.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        mSearchRadio.setOnCheckedChangeListener(
+                new RadioGroup.OnCheckedChangeListener() {
 
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId) {
-                    case R.id.search_topic://搜索本版面主题
-                    case R.id.search_alltopic://搜索全部主题
+                        int selectedResourceId = checkedId;
+                        if (selectedResourceId == R.id.search_topic
+                                || selectedResourceId == R.id.search_alltopic) {
+                            // 搜索全部主题
                         mEditText.setHint(R.string.search_dialog_hint);
                         mContentCheckBox.setVisibility(View.VISIBLE);
-                        break;
-                    case R.id.search_user_topic://搜索用户主题
+                        } else if (selectedResourceId == R.id.search_user_topic) {
+                            // 搜索用户主题
                         mEditText.setHint(R.string.search_dialog_hint_topic_reply_byself);
                         mContentCheckBox.setVisibility(View.GONE);
-                        break;
-                    case R.id.search_user_apply://搜索用户回复
+                        } else if (selectedResourceId == R.id.search_user_apply) {
+                            // 搜索用户回复
                         mEditText.setHint(R.string.search_dialog_hint_reply_byself);
                         mContentCheckBox.setVisibility(View.GONE);
-                        break;
-                    default:
-                        break;
                 }
             }
-
         });
-        mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        mEditText.setOnEditorActionListener(
+                new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (event != null
@@ -105,13 +111,17 @@ public class SearchDialogFragment extends DialogFragment {
         });
         builder.setView(view)
                 .setTitle(R.string.search_hint)
-                .setPositiveButton("搜索", new DialogInterface.OnClickListener() {
+                .setPositiveButton(
+                        "搜索",
+                        new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         handleSearch();
                     }
                 })
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                .setNegativeButton(
+                        "取消",
+                        new DialogInterface.OnClickListener() {
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -135,7 +145,8 @@ public class SearchDialogFragment extends DialogFragment {
     }
 
     private void searchUserTopic(String inputString) {
-        Intent intent = new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
+        Intent intent =
+                new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
         if (!StringUtils.isEmpty(inputString)) {
             intent.putExtra("fid", getArguments().getInt("fid", -7));
             intent.putExtra("author", inputString);
@@ -153,7 +164,8 @@ public class SearchDialogFragment extends DialogFragment {
     }
 
     private void searchUserReply(String inputString) {
-        Intent intent = new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
+        Intent intent =
+                new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
         if (!StringUtils.isEmpty(inputString)) {
             intent.putExtra("fid", getArguments().getInt("fid", -7));
             intent.putExtra("author", inputString + "&searchpost=1");
@@ -171,7 +183,8 @@ public class SearchDialogFragment extends DialogFragment {
     }
 
     private void searchTopic(String inputString) {
-        Intent intent = new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
+        Intent intent =
+                new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
         if (!StringUtils.isEmpty(inputString)) {
             if (mContentCheckBox.isChecked()) {
                 intent.putExtra("content", 1);
@@ -185,7 +198,8 @@ public class SearchDialogFragment extends DialogFragment {
     }
 
     private void searchAllTopic(String inputString) {
-        Intent intent = new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
+        Intent intent =
+                new Intent(getContext(), PhoneConfiguration.getInstance().topicActivityClass);
         if (!StringUtils.isEmpty(inputString)) {
             if (mContentCheckBox.isChecked()) {
                 intent.putExtra("content", 1);
@@ -196,5 +210,4 @@ public class SearchDialogFragment extends DialogFragment {
             startActivity(intent);
         }
     }
-
 }

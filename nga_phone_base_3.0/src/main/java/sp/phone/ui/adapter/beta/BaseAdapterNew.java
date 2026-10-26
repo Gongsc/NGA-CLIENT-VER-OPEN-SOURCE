@@ -114,11 +114,11 @@ public abstract class BaseAdapterNew<E, T extends RecyclerView.ViewHolder> exten
     }
 
     private int getEmptyViewCount() {
-        return getItemViewCount() == 0 && mEmptyViewResId > 0 && mDataList != null ? 1 : 0;
+        return getItemViewCount() == 0 && mEmptyViewResId != 0 && mDataList != null ? 1 : 0;
     }
 
     private int getLoadingViewCount() {
-        return mDataList == null && mLoadingViewResId > 0 && getItemViewCount() == 0 ? 1 : 0;
+        return mDataList == null && mLoadingViewResId != 0 && getItemViewCount() == 0 ? 1 : 0;
     }
 
     private boolean isFooterViewType(int position) {
@@ -164,9 +164,9 @@ public abstract class BaseAdapterNew<E, T extends RecyclerView.ViewHolder> exten
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (mEmptyViewResId > 0 && viewType == VIEW_TYPE_EMPTY) {
+        if (mEmptyViewResId != 0 && viewType == VIEW_TYPE_EMPTY) {
             return onCreateEmptyViewHolder(parent, mInflater.inflate(mEmptyViewResId, parent, false));
-        } else if (viewType == VIEW_TYPE_LOADING && mLoadingViewResId > 0) {
+        } else if (viewType == VIEW_TYPE_LOADING && mLoadingViewResId != 0) {
             return onCreateLoadingViewHolder(mInflater.inflate(mLoadingViewResId, parent, false));
         } else if (mFooterViews != null && mFooterViews.get(viewType) != null) {
             return onCreateFooterViewHolder(parent, mFooterViews.get(viewType), viewType - VIEW_TYPE_FOOTER);

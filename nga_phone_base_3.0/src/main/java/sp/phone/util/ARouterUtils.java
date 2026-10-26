@@ -2,8 +2,8 @@ package sp.phone.util;
 
 import android.content.Context;
 
-import com.alibaba.android.arouter.facade.Postcard;
-import com.alibaba.android.arouter.launcher.ARouter;
+import gov.anzong.androidnga.arouter.NavigationRequest;
+import gov.anzong.androidnga.arouter.AppNavigator;
 
 import gov.anzong.androidnga.base.util.ContextUtils;
 
@@ -16,9 +16,8 @@ public class ARouterUtils {
 
     }
 
-    public static Postcard build(String path) {
-        ARouter.init(ContextUtils.getApplication());
-        return ARouter.getInstance().build(path);
+    public static NavigationRequest build(String path) {
+        return AppNavigator.getInstance().build(path);
     }
 
     public static void navigation(String path) {
@@ -26,7 +25,7 @@ public class ARouterUtils {
     }
 
     public static void navigation(Context context, String path) {
-        ARouter.getInstance().build(path).navigation(context);
+        AppNavigator.getInstance().build(path).navigation(context);
     }
 
 }

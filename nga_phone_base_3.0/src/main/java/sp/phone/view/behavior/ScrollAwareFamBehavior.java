@@ -9,12 +9,12 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.Interpolator;
 
-import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import gov.anzong.androidnga.ui.compose.ExpandableActionMenu;
 
 /**
  * Created by Justwen on 2018/8/12.
  */
-public class ScrollAwareFamBehavior extends com.getbase.floatingactionbutton.ScrollAwareFamBehavior {
+public class ScrollAwareFamBehavior extends CoordinatorLayout.Behavior<ExpandableActionMenu> {
 
     private static final Interpolator INTERPOLATOR = new FastOutSlowInInterpolator();
     private boolean mIsAnimatingOut = false;
@@ -26,11 +26,11 @@ public class ScrollAwareFamBehavior extends com.getbase.floatingactionbutton.Scr
         super(context, attrs);
     }
 
-    public boolean onStartNestedScroll(CoordinatorLayout coordinatorLayout, FloatingActionsMenu child, View directTargetChild, View target, int nestedScrollAxes) {
+    public boolean onStartNestedScroll(CoordinatorLayout coordinatorLayout, ExpandableActionMenu child, View directTargetChild, View target, int nestedScrollAxes) {
         return nestedScrollAxes == 2;
     }
 
-    public void onNestedScroll(CoordinatorLayout coordinatorLayout, FloatingActionsMenu child, View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
+    public void onNestedScroll(CoordinatorLayout coordinatorLayout, ExpandableActionMenu child, View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
         if (dyConsumed > 10 && !this.mIsAnimatingOut && this.mIsShown) {
             child.collapse();
             animateOut(child);
@@ -40,7 +40,7 @@ public class ScrollAwareFamBehavior extends com.getbase.floatingactionbutton.Scr
 
     }
 
-    public void animateOut(FloatingActionsMenu button) {
+    public void animateOut(ExpandableActionMenu button) {
         int height = button.getAddFloatingActionButton().getHeight() + button.getAddButtonMarginBottom();
         ViewCompat.animate(button).translationY((float) height).setInterpolator(INTERPOLATOR).setListener(new ViewPropertyAnimatorListener() {
             public void onAnimationStart(View view) {
@@ -58,7 +58,7 @@ public class ScrollAwareFamBehavior extends com.getbase.floatingactionbutton.Scr
         }).start();
     }
 
-    public void animateIn(FloatingActionsMenu button) {
+    public void animateIn(ExpandableActionMenu button) {
         if (mIsAnimationIn || mIsShown) {
             return;
         }

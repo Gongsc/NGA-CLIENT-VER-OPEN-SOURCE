@@ -13,14 +13,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
 import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -33,7 +29,9 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Objects;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 
 import gov.anzong.androidnga.BuildConfig;
 import gov.anzong.androidnga.R;
@@ -41,15 +39,17 @@ import gov.anzong.androidnga.Utils;
 import gov.anzong.androidnga.base.util.ToastUtils;
 import gov.anzong.androidnga.core.data.HtmlData;
 import gov.anzong.androidnga.core.decode.ForumDecoder;
-import gov.anzong.androidnga.util.NetUtil;
-import sp.phone.http.bean.MessageArticlePageInfo;
-import sp.phone.http.bean.ThreadRowInfo;
+
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.UserManagerImpl;
-import sp.phone.ui.fragment.dialog.ReportDialogFragment;
+import sp.phone.http.bean.MessageArticlePageInfo;
+import sp.phone.http.bean.ThreadRowInfo;
 import sp.phone.proxy.ProxyBridge;
 import sp.phone.theme.ThemeManager;
+import sp.phone.ui.fragment.dialog.ReportDialogFragment;
 import sp.phone.view.webview.WebViewClientEx;
+
+import java.util.Objects;
 
 @SuppressLint("DefaultLocale")
 public class FunctionUtils {
@@ -83,7 +83,8 @@ public class FunctionUtils {
     }
 
     public static void copyToClipboard(Context context, String text) {
-        ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager clipboardManager =
+                (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboardManager != null) {
             ClipData clipData = ClipData.newPlainText(text, text);
             clipboardManager.setPrimaryClip(clipData);
@@ -92,78 +93,88 @@ public class FunctionUtils {
     }
 
     @SuppressWarnings("static-access")
-    public static void handleContentTV(final WebView contentTV, final MessageArticlePageInfo row, int bgColor, int fgColor, Context context) {
+    public static void handleContentTV(
+            final WebView contentTV,
+            final MessageArticlePageInfo row,
+            int bgColor,
+            int fgColor,
+            Context context) {
         final WebViewClient client = new WebViewClientEx((FragmentActivity) context);
         contentTV.setBackgroundColor(0);
         contentTV.setFocusableInTouchMode(false);
         contentTV.setFocusable(false);
         contentTV.setLongClickable(false);
 
-
         WebSettings setting = contentTV.getSettings();
         setting.setUserAgentString(context.getString(R.string.clientua) + BuildConfig.VERSION_CODE);
-        setting.setDefaultFontSize(PhoneConfiguration.getInstance()
-                .getWebSize());
+        setting.setDefaultFontSize(PhoneConfiguration.getInstance().getWebSize());
         setting.setJavaScriptEnabled(false);
         contentTV.setWebViewClient(client);
 
         contentTV.setTag(row.getLou());
-        contentTV.loadDataWithBaseURL(null, row.getFormated_html_data(),
-                "text/html", "utf-8", null);
+        contentTV.loadDataWithBaseURL(
+                null, row.getFormated_html_data(), "text/html", "utf-8", null);
     }
-
 
     public static void errordialogadmin(Context context, final View listView) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage("这白痴是系统账号,神马都看不到");
         builder.setTitle("看不到");
-        builder.setPositiveButton("关闭", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(
+                "关闭",
+                new DialogInterface.OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // TODO Auto-generated method stub
                 dialog.dismiss();
             }
-
         });
 
         final AlertDialog dialog = builder.create();
         dialog.show();
-        dialog.setOnDismissListener(new AlertDialog.OnDismissListener() {
+        dialog.setOnDismissListener(
+                new AlertDialog.OnDismissListener() {
 
             @Override
             public void onDismiss(DialogInterface arg0) {
                 // TODO Auto-generated method stub
                 dialog.dismiss();
             }
-
         });
     }
 
-    public static String signatureToHtmlText_Message(final MessageArticlePageInfo row,
-                                                     boolean showImage, int imageQuality, final String fgColorStr,
-                                                     final String bgcolorStr, Context context) {
+    public static String signatureToHtmlText_Message(
+            final MessageArticlePageInfo row,
+            boolean showImage,
+            int imageQuality,
+            final String fgColorStr,
+            final String bgcolorStr,
+            Context context) {
         initStaticStrings(context);
-        String ngaHtml = StringUtils.decodeForumTag(row.getSignature(),
-                showImage, imageQuality, null);
+        String ngaHtml =
+                StringUtils.decodeForumTag(row.getSignature(), showImage, imageQuality, null);
         if (StringUtils.isEmpty(ngaHtml)) {
-            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide)
-                    + "]</font>";
+            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide) + "]</font>";
         }
-        ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
-                + "<body bgcolor= '#"
+        ngaHtml =
+                "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;  "
+                    + " charset=utf-8 \"><body bgcolor= '#"
                 + bgcolorStr
                 + "'>"
                 + "<font color='#"
-                + fgColorStr + "' size='2'>" + ngaHtml + "</font></body>";
+                        + fgColorStr
+                        + "' size='2'>"
+                        + ngaHtml
+                        + "</font></body>";
 
         return ngaHtml;
     }
 
-    public static void Create_Signature_Dialog(ThreadRowInfo row, final Context context, final View scrollview) {
+    public static void Create_Signature_Dialog(
+            ThreadRowInfo row, final Context context, final View scrollview) {
         LayoutInflater layoutInflater = ((Activity) context).getLayoutInflater();
-        final View view = layoutInflater.inflate(R.layout.dialog_signature,
-                null);
+        final View view = layoutInflater.inflate(R.layout.dialog_signature, null);
         String name = row.getAuthor();
         AlertDialog.Builder alert = new AlertDialog.Builder(context);
         alert.setView(view);
@@ -187,17 +198,24 @@ public class FunctionUtils {
         contentTV.setLongClickable(false);
         boolean showImage = PhoneConfiguration.getInstance().isImageLoadEnabled();
         WebSettings setting = contentTV.getSettings();
-        setting.setDefaultFontSize(PhoneConfiguration.getInstance()
-                .getWebSize());
+        setting.setDefaultFontSize(PhoneConfiguration.getInstance().getWebSize());
         setting.setJavaScriptEnabled(true);
         contentTV.setWebViewClient(client);
-        contentTV
-                .loadDataWithBaseURL(
+        contentTV.loadDataWithBaseURL(
                         null,
-                        FunctionUtils.signatureToHtmlText(row, showImage,
-                                ArticleUtil.showImageQuality(), fgColorStr,
-                                bgcolorStr, context), "text/html", "utf-8", null);
-        alert.setPositiveButton("关闭", new DialogInterface.OnClickListener() {
+                FunctionUtils.signatureToHtmlText(
+                        row,
+                        showImage,
+                        ArticleUtil.showImageQuality(),
+                        fgColorStr,
+                        bgcolorStr,
+                        context),
+                "text/html",
+                "utf-8",
+                null);
+        alert.setPositiveButton(
+                "关闭",
+                new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
@@ -206,7 +224,8 @@ public class FunctionUtils {
 
         final AlertDialog dialog = alert.create();
         dialog.show();
-        dialog.setOnDismissListener(new AlertDialog.OnDismissListener() {
+        dialog.setOnDismissListener(
+                new AlertDialog.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface arg0) {
                 dialog.dismiss();
@@ -215,7 +234,8 @@ public class FunctionUtils {
     }
 
     @SuppressWarnings("unused")
-    public static void createVoteDialog(ThreadRowInfo row, final Context context, final View scrollview, Toast toast) {
+    public static void createVoteDialog(
+            ThreadRowInfo row, final Context context, final View scrollview, Toast toast) {
         LayoutInflater layoutInflater = ((Activity) context).getLayoutInflater();
         final View view = layoutInflater.inflate(R.layout.dialog_vote, null);
         String name = row.getAuthor();
@@ -237,17 +257,19 @@ public class FunctionUtils {
         final WebView contentTV = (WebView) view.findViewById(R.id.votewebview);
         contentTV.setBackgroundColor(0);
         contentTV.setLongClickable(false);
-        contentTV.setOnLongClickListener(new View.OnLongClickListener() {
+        contentTV.setOnLongClickListener(
+                new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 return true;
             }
         });
-        ((Activity) context).getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        ((Activity) context)
+                .getWindow()
+                .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         boolean showImage = PhoneConfiguration.getInstance().isImageLoadEnabled();
         WebSettings setting = contentTV.getSettings();
-        setting.setDefaultFontSize(PhoneConfiguration.getInstance()
-                .getWebSize());
+        setting.setDefaultFontSize(PhoneConfiguration.getInstance().getWebSize());
         setting.setJavaScriptEnabled(true);
         setting.setJavaScriptCanOpenWindowsAutomatically(true);
         contentTV.addJavascriptInterface(new ProxyBridge(context, toast), "ProxyBridge");
@@ -256,13 +278,15 @@ public class FunctionUtils {
         contentTV.setHapticFeedbackEnabled(true);
         contentTV.setClickable(true);
         contentTV.requestFocusFromTouch();
-        contentTV.setWebChromeClient(new WebChromeClient() {
+        contentTV.setWebChromeClient(
+                new WebChromeClient() {
 
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
                 view.requestFocus(View.FOCUS_DOWN);
-                view.setOnTouchListener(new View.OnTouchListener() {
+                        view.setOnTouchListener(
+                                new View.OnTouchListener() {
                     @SuppressLint("ClickableViewAccessibility")
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
@@ -280,15 +304,20 @@ public class FunctionUtils {
             }
 
             @Override
-            public boolean onJsAlert(WebView view, String url, String message,
+                    public boolean onJsAlert(
+                            WebView view,
+                            String url,
+                            String message,
                                      final android.webkit.JsResult result) {
-                final AlertDialog.Builder b2 = new AlertDialog.Builder(context)
+                        final AlertDialog.Builder b2 =
+                                new AlertDialog.Builder(context)
                         .setMessage(message)
-                        .setPositiveButton("确定",
+                                        .setPositiveButton(
+                                                "确定",
                                 new AlertDialog.OnClickListener() {
                                     @Override
-                                    public void onClick(DialogInterface dialog,
-                                                        int which) {
+                                                    public void onClick(
+                                                            DialogInterface dialog, int which) {
                                         result.confirm();
                                     }
                                 });
@@ -300,24 +329,29 @@ public class FunctionUtils {
             }
 
             @Override
-            public boolean onJsConfirm(WebView view, String url,
-                                       String message, final android.webkit.JsResult result) {
-                final AlertDialog.Builder b1 = new AlertDialog.Builder(
-                        context)
+                    public boolean onJsConfirm(
+                            WebView view,
+                            String url,
+                            String message,
+                            final android.webkit.JsResult result) {
+                        final AlertDialog.Builder b1 =
+                                new AlertDialog.Builder(context)
                         .setMessage(message)
-                        .setPositiveButton("确定",
+                                        .setPositiveButton(
+                                                "确定",
                                 new AlertDialog.OnClickListener() {
                                     @Override
-                                    public void onClick(DialogInterface dialog,
-                                                        int which) {
+                                                    public void onClick(
+                                                            DialogInterface dialog, int which) {
                                         result.confirm();
                                     }
                                 })
-                        .setNeutralButton("取消",
+                                        .setNeutralButton(
+                                                "取消",
                                 new AlertDialog.OnClickListener() {
                                     @Override
-                                    public void onClick(DialogInterface dialog,
-                                                        int which) {
+                                                    public void onClick(
+                                                            DialogInterface dialog, int which) {
                                         result.cancel();
                                     }
                                 })
@@ -336,10 +370,15 @@ public class FunctionUtils {
         contentTV.setWebViewClient(client);
         contentTV.loadDataWithBaseURL(
                 null,
-                FunctionUtils.VoteToHtmlText(row, showImage, ArticleUtil.showImageQuality(),
-                        fgColorStr, bgcolorStr), "text/html", "utf-8", null);
+                FunctionUtils.VoteToHtmlText(
+                        row, showImage, ArticleUtil.showImageQuality(), fgColorStr, bgcolorStr),
+                "text/html",
+                "utf-8",
+                null);
         contentTV.requestLayout();
-        alert.setPositiveButton("关闭", new DialogInterface.OnClickListener() {
+        alert.setPositiveButton(
+                "关闭",
+                new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
@@ -349,7 +388,8 @@ public class FunctionUtils {
         final Dialog dialog = alert.create();
         dialog.show();
         dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-        dialog.setOnDismissListener(new AlertDialog.OnDismissListener() {
+        dialog.setOnDismissListener(
+                new AlertDialog.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface arg0) {
                 dialog.dismiss();
@@ -357,8 +397,8 @@ public class FunctionUtils {
         });
     }
 
-    public static void handleNickName(MessageArticlePageInfo row, int fgColor,
-                                      TextView nickNameTV, Context context) {
+    public static void handleNickName(
+            MessageArticlePageInfo row, int fgColor, TextView nickNameTV, Context context) {
         initStaticStrings(context);
         String nickName = row.getAuthor();
         // int now = 0;
@@ -366,8 +406,7 @@ public class FunctionUtils {
         {
             fgColor = nickNameTV.getResources().getColor(R.color.title_red);
             nickName += "(VIP)";
-        } else if (!StringUtils.isEmpty(row.getMute_time())
-                && !"0".equals(row.getMute_time())) {
+        } else if (!StringUtils.isEmpty(row.getMute_time()) && !"0".equals(row.getMute_time())) {
             fgColor = nickNameTV.getResources().getColor(R.color.title_orange);
             nickName += "(" + legend + ")";
         }
@@ -377,9 +416,12 @@ public class FunctionUtils {
         nickNameTV.setTextColor(fgColor);
     }
 
-
-    public static void handleNickName(ThreadRowInfo row, int fgColor,
-                                      TextView nickNameTV, String topicOwner, Context context) {
+    public static void handleNickName(
+            ThreadRowInfo row,
+            int fgColor,
+            TextView nickNameTV,
+            String topicOwner,
+            Context context) {
         initStaticStrings(context);
         String nickName = row.getAuthor();
         // int now = 0;
@@ -387,8 +429,8 @@ public class FunctionUtils {
         {
             fgColor = nickNameTV.getResources().getColor(R.color.title_red);
             nickName += "(VIP)";
-        } else if (!StringUtils.isEmpty(row.getMuteTime())
-                && !"0".equals(row.getMuteTime()) || row.isMuted()) {
+        } else if (!StringUtils.isEmpty(row.getMuteTime()) && !"0".equals(row.getMuteTime())
+                || row.isMuted()) {
             fgColor = nickNameTV.getResources().getColor(R.color.title_orange);
             nickName += "(" + legend + ")";
         }
@@ -427,7 +469,9 @@ public class FunctionUtils {
         int htmlfgColor = fgColor & 0xffffff;
         final String fgColorStr = String.format("%06x", htmlfgColor);
 
-        String formated_html_data = HtmlUtils.convertToHtmlText(row, isShowImage(), showImageQuality(), fgColorStr, context);
+        String formated_html_data =
+                HtmlUtils.convertToHtmlText(
+                        row, isShowImage(), showImageQuality(), fgColorStr, context);
         row.setFormattedHtmlData(formated_html_data);
     }
 
@@ -444,38 +488,56 @@ public class FunctionUtils {
 //        }
     }
 
-    public static String signatureToHtmlText(final ThreadRowInfo row,
-                                             boolean showImage, int imageQuality, final String fgColorStr,
-                                             final String bgcolorStr, Context context) {
+    public static String signatureToHtmlText(
+            final ThreadRowInfo row,
+            boolean showImage,
+            int imageQuality,
+            final String fgColorStr,
+            final String bgcolorStr,
+            Context context) {
         initStaticStrings(context);
-        String ngaHtml = ForumDecoder.decode(row.getSignature(), HtmlData.create(row.getSignature(), Utils.getNGAHost()));
+        String ngaHtml =
+                ForumDecoder.decode(
+                        row.getSignature(),
+                        HtmlData.create(row.getSignature(), Utils.getNGAHost()));
         if (StringUtils.isEmpty(ngaHtml)) {
             ngaHtml = row.getAlterinfo();
         }
         if (StringUtils.isEmpty(ngaHtml)) {
-            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide)
-                    + "]</font>";
+            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide) + "]</font>";
         }
-        ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
-                + "<body bgcolor= '#"
+        ngaHtml =
+                "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;  "
+                    + " charset=utf-8 \"><body bgcolor= '#"
                 + bgcolorStr
                 + "'>"
                 + "<font color='#"
-                + fgColorStr + "' size='2'>" + ngaHtml + "</font></body>"
-                + "<script type=\"text/javascript\" src=\"file:///android_asset/html/script.js\"></script>";
+                        + fgColorStr
+                        + "' size='2'>"
+                        + ngaHtml
+                        + "</font></body><script type=\"text/javascript\""
+                        + " src=\"file:///android_asset/html/script.js\"></script>";
 
         return ngaHtml;
     }
 
-    public static String VoteToHtmlText(final ThreadRowInfo row, boolean showImage,
-                                        int imageQuality, final String fgColorStr, final String bgcolorStr) {
-        if (StringUtils.isEmpty(row.getVote()))
-            return "本楼没有投票/投注内容";
-        String ngaHtml = String.valueOf(row.getTid()) + ",'" + row.getVote()
-                + "'";
-        ngaHtml = "<!DOCTYPE html><html><head><meta http-equiv=Content-Type content=\"text/html;charset=utf-8\">"
-                + "<script type=\"text/javascript\" src=\"file:///android_asset/vote/vote.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"file:///android_asset/vote/vote.css\" />"
-                + " </head><body style=\"color:#" + fgColorStr + "\"bgcolor= '#"
+    public static String VoteToHtmlText(
+            final ThreadRowInfo row,
+            boolean showImage,
+            int imageQuality,
+            final String fgColorStr,
+            final String bgcolorStr) {
+        if (StringUtils.isEmpty(row.getVote())) return "本楼没有投票/投注内容";
+        String ngaHtml = String.valueOf(row.getTid()) + ",'" + row.getVote() + "'";
+        ngaHtml =
+                "<!DOCTYPE html><html><head><meta http-equiv=Content-Type"
+                    + " content=\"text/html;charset=utf-8\"><script type=\"text/javascript\""
+                    + " src=\"file:///android_asset/vote/vote.js\"></script><link"
+                    + " rel=\"stylesheet\" type=\"text/css\""
+                    + " href=\"file:///android_asset/vote/vote.css\" /> </head><body"
+                    + " style=\"color:#"
+                        + fgColorStr
+                        + "\"bgcolor= '#"
                 + bgcolorStr
                 + "'><span id='votec'></span><script>vote("
                 + ngaHtml
@@ -483,18 +545,15 @@ public class FunctionUtils {
         return ngaHtml;
     }
 
-
     public static String parseAvatarUrl(String js_escap_avatar) {
-        // "js_escap_avatar":"{ \"t\":1,\"l\":2,\"0\":{ \"0\":\"http://pic2.178.com/53/533387/month_1109/93ba4788cc8c7d6c75453fa8a74f3da6.jpg\",\"cX\":0.47,\"cY\":0.78},\"1\":{ \"0\":\"http://pic2.178.com/53/533387/month_1108/8851abc8674af3adc622a8edff731213.jpg\",\"cX\":0.49,\"cY\":0.68}}"
-        if (null == js_escap_avatar)
-            return null;
+        // "js_escap_avatar":"{ \"t\":1,\"l\":2,\"0\":{
+        // \"0\":\"http://pic2.178.com/53/533387/month_1109/93ba4788cc8c7d6c75453fa8a74f3da6.jpg\",\"cX\":0.47,\"cY\":0.78},\"1\":{ \"0\":\"http://pic2.178.com/53/533387/month_1108/8851abc8674af3adc622a8edff731213.jpg\",\"cX\":0.49,\"cY\":0.68}}"
+        if (null == js_escap_avatar) return null;
 
         int start = js_escap_avatar.indexOf("http");
-        if (start == 0 || start == -1)
-            return js_escap_avatar;
+        if (start == 0 || start == -1) return js_escap_avatar;
         int end = js_escap_avatar.indexOf("\"", start);//
-        if (end == -1)
-            end = js_escap_avatar.length();
+        if (end == -1) end = js_escap_avatar.length();
         String ret = null;
         try {
             ret = js_escap_avatar.substring(start, end);
@@ -505,73 +564,101 @@ public class FunctionUtils {
     }
 
 //	public static String findimgonphone(String avatarlocalurl){
-//		
+//
 //	}
 
-    public static String avatarToHtmlText_Message(final MessageArticlePageInfo row, boolean showImage,
-                                                  int imageQuality, final String fgColorStr, final String bgcolorStr, Context context) {
+    public static String avatarToHtmlText_Message(
+            final MessageArticlePageInfo row,
+            boolean showImage,
+            int imageQuality,
+            final String fgColorStr,
+            final String bgcolorStr,
+            Context context) {
         String ngaHtml = null;
         initStaticStrings(context);
         if (row.getJs_escap_avatar().equals("")) {
-            ngaHtml = StringUtils
-                    .decodeForumTag(
-                            "这家伙是骷髅党,头像什么的没有啦~<br/><img src='file:///android_asset/default_avatar.png' style= 'max-width:100%;' >",
+            ngaHtml =
+                    StringUtils.decodeForumTag(
+                            "这家伙是骷髅党,头像什么的没有啦~<br/><img"
+                                + " src='file:///android_asset/default_avatar.png' style="
+                                + " 'max-width:100%;' >",
                             showImage, imageQuality, null);
         } else {
-            ngaHtml = StringUtils.decodeForumTag(
-                    "[img]" + parseAvatarUrl(row.getJs_escap_avatar())
-                            + "[/img]", showImage, imageQuality, null);
+            ngaHtml =
+                    StringUtils.decodeForumTag(
+                            "[img]" + parseAvatarUrl(row.getJs_escap_avatar()) + "[/img]",
+                            showImage,
+                            imageQuality,
+                            null);
         }
         if (StringUtils.isEmpty(ngaHtml)) {
-            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide)
-                    + "]</font>";
+            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide) + "]</font>";
         }
-        ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
-                + "<body bgcolor= '#"
+        ngaHtml =
+                "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;  "
+                    + " charset=utf-8 \"><body bgcolor= '#"
                 + bgcolorStr
                 + "'>"
                 + "<font color='#"
-                + fgColorStr + "' size='2'>" + ngaHtml + "</font></body>";
+                        + fgColorStr
+                        + "' size='2'>"
+                        + ngaHtml
+                        + "</font></body>";
 
         return ngaHtml;
     }
 
-    public static String avatarToHtmlText(final ThreadRowInfo row, boolean showImage,
-                                          int imageQuality, final String fgColorStr, final String bgcolorStr, Context context) {
+    public static String avatarToHtmlText(
+            final ThreadRowInfo row,
+            boolean showImage,
+            int imageQuality,
+            final String fgColorStr,
+            final String bgcolorStr,
+            Context context) {
         String ngaHtml = null;
         initStaticStrings(context);
         if (row.getJs_escap_avatar().equals("")) {
-            ngaHtml = StringUtils
-                    .decodeForumTag(
-                            "这家伙是骷髅党,头像什么的没有啦~<br/><img src='file:///android_asset/default_avatar.png' style= 'max-width:100%;' >",
+            ngaHtml =
+                    StringUtils.decodeForumTag(
+                            "这家伙是骷髅党,头像什么的没有啦~<br/><img"
+                                + " src='file:///android_asset/default_avatar.png' style="
+                                + " 'max-width:100%;' >",
                             showImage, imageQuality, null);
         } else {
-            ngaHtml = StringUtils.decodeForumTag(
-                    "[img]" + parseAvatarUrl(row.getJs_escap_avatar())
-                            + "[/img]", showImage, imageQuality, null);
+            ngaHtml =
+                    StringUtils.decodeForumTag(
+                            "[img]" + parseAvatarUrl(row.getJs_escap_avatar()) + "[/img]",
+                            showImage,
+                            imageQuality,
+                            null);
         }
         if (StringUtils.isEmpty(ngaHtml)) {
             ngaHtml = row.getAlterinfo();
         }
         if (StringUtils.isEmpty(ngaHtml)) {
-            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide)
-                    + "]</font>";
+            ngaHtml = "<font color='red'>[" + context.getString(R.string.hide) + "]</font>";
         }
-        ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
-                + "<body bgcolor= '#"
+        ngaHtml =
+                "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;  "
+                    + " charset=utf-8 \"><body bgcolor= '#"
                 + bgcolorStr
                 + "'>"
                 + "<font color='#"
-                + fgColorStr + "' size='2'>" + ngaHtml + "</font></body>";
+                        + fgColorStr
+                        + "' size='2'>"
+                        + ngaHtml
+                        + "</font></body>";
 
         return ngaHtml;
     }
 
     public static boolean isComment(ThreadRowInfo row) {
 
-        return row.getAlterinfo() == null && row.getAttachs() == null
+        return row.getAlterinfo() == null
+                && row.getAttachs() == null
                 && row.getComments() == null
-                && row.getJs_escap_avatar() == null && row.getLevel() == null
+                && row.getJs_escap_avatar() == null
+                && row.getLevel() == null
                 && row.getSignature() == null;
     }
 
@@ -583,7 +670,6 @@ public class FunctionUtils {
         args.putInt("pid", row.getPid());
         df.setArguments(args);
         df.show(fm, null);
-
     }
 
     public static String checkContent(String content) {
@@ -622,10 +708,14 @@ public class FunctionUtils {
                 {"[flash]", "[/flash]"},
                 {"[table]", "[/table]"},
                 {"[tid", "[/tid]"},// 30
-                {"[pid", "[/pid]"}, {"[dice]", "[/dice]"},
+            {"[pid", "[/pid]"},
+            {"[dice]", "[/dice]"},
                 {"[crypt]", "[/crypt]"},
-                {"[randomblock]", "[/randomblock]"}, {"[@", "]"},
-                {"[t.178.com/", "]"}, {"[collapse", "[/collapse]"},};
+            {"[randomblock]", "[/randomblock]"},
+            {"[@", "]"},
+            {"[t.178.com/", "]"},
+            {"[collapse", "[/collapse]"},
+        };
         while (content.startsWith("\n")) {
             content = content.replaceFirst("\n", "");
         }
@@ -634,10 +724,10 @@ public class FunctionUtils {
             mode = true;
         }
         for (i = 0; i < 38; i++) {
-            while (content.toLowerCase().lastIndexOf(quotekeyword[i][0]) > content
-                    .toLowerCase().lastIndexOf(quotekeyword[i][1])) {
-                content = content.substring(0, content.toLowerCase()
-                        .lastIndexOf(quotekeyword[i][0]));
+            while (content.toLowerCase().lastIndexOf(quotekeyword[i][0])
+                    > content.toLowerCase().lastIndexOf(quotekeyword[i][1])) {
+                content =
+                        content.substring(0, content.toLowerCase().lastIndexOf(quotekeyword[i][0]));
             }
         }
         if (mode) {
@@ -646,7 +736,6 @@ public class FunctionUtils {
         return content.toString();
     }
 
-
     @SuppressWarnings("unused")
     public static String ColorTxt(String bodyString) {
         while (bodyString.startsWith("\n")) {
@@ -654,14 +743,40 @@ public class FunctionUtils {
         }
         String existquotetxt = "";
         if (bodyString.toLowerCase().indexOf("[quote]") == 0) {
-            existquotetxt = bodyString.substring(0, bodyString.toLowerCase().indexOf("[/quote]")) + "[/quote]";
+            existquotetxt =
+                    bodyString.substring(0, bodyString.toLowerCase().indexOf("[/quote]"))
+                            + "[/quote]";
             bodyString = bodyString.substring(bodyString.toLowerCase().indexOf("[/quote]") + 8);
         }
         int i, ia, ib, itmp = 0, bslenth, tmplenth;
         bslenth = bodyString.length();
 
-
-        String scolor[] = {"[color=skyblue]", "[color=royalblue]", "[color=blue]", "[color=darkblue]", "[color=orange]", "[color=orangered]", "[color=crimson]", "[color=red]", "[color=firebrick]", "[color=darkred]", "[color=green]", "[color=limegreen]", "[color=seagreen]", "[color=teal]", "[color=deeppink]", "[color=tomato]", "[color=coral]", "[color=purple]", "[color=indigo]", "[color=burlywood]", "[color=sandybrown]", "[color=sienna]", "[color=chocolate]", "[color=silver]"};
+        String scolor[] = {
+            "[color=skyblue]",
+            "[color=royalblue]",
+            "[color=blue]",
+            "[color=darkblue]",
+            "[color=orange]",
+            "[color=orangered]",
+            "[color=crimson]",
+            "[color=red]",
+            "[color=firebrick]",
+            "[color=darkred]",
+            "[color=green]",
+            "[color=limegreen]",
+            "[color=seagreen]",
+            "[color=teal]",
+            "[color=deeppink]",
+            "[color=tomato]",
+            "[color=coral]",
+            "[color=purple]",
+            "[color=indigo]",
+            "[color=burlywood]",
+            "[color=sandybrown]",
+            "[color=sienna]",
+            "[color=chocolate]",
+            "[color=silver]"
+        };
         String keyword[][] = {
                 {"[customachieve]", "[/customachieve]", "16"},
                 {"[wow", "]]", "2"},
@@ -718,64 +833,105 @@ public class FunctionUtils {
                 {"[list", "]", "1"},
                 {"[/list]", "[/list]", "7"},
                 {"[collapse", "]", "1"},
-                {"[/collapse]", "[/collapse]", "11"}};
+            {"[/collapse]", "[/collapse]", "11"}
+        };
         char[] arrtxtchar = bodyString.toCharArray();
         String txtsendout = scolor[(int) (Math.random() * 23)];
         String quotetxt = "";
         for (i = 0; i < bslenth; i++) {
-            if (Character.toString(arrtxtchar[i]).equals("\n") == false && Character.toString(arrtxtchar[i]).equals("[") == false && Character.toString(arrtxtchar[i]).equals(" ") == false) {
-                txtsendout += arrtxtchar[i] + "[/color]" + scolor[(int) (Math.random() * 23)];/*开始就是普通文字的话就直接加彩色字体了*/
+            if (Character.toString(arrtxtchar[i]).equals("\n") == false
+                    && Character.toString(arrtxtchar[i]).equals("[") == false
+                    && Character.toString(arrtxtchar[i]).equals(" ") == false) {
+                txtsendout +=
+                        arrtxtchar[i]
+                                + "[/color]"
+                                + scolor[(int) (Math.random() * 23)]; /*开始就是普通文字的话就直接加彩色字体了*/
             } else if (Character.toString(arrtxtchar[i]).equals("[")) {//首字符是[要判断
                 if (bodyString.toLowerCase().indexOf("[quote]", i - 1) == i) {//是引用的话
-                    if (bodyString.toLowerCase().indexOf("[quote]", i - 1) > bodyString.toLowerCase().indexOf("[/quote]", i - 1)) {//这个他妈的引用没完
+                    if (bodyString.toLowerCase().indexOf("[quote]", i - 1)
+                            > bodyString.toLowerCase().indexOf("[/quote]", i - 1)) { // 这个他妈的引用没完
                         quotetxt = bodyString.substring(i + 7);
                         if (quotetxt.toLowerCase().lastIndexOf("[") >= 0) {//最后还有点留下来
-                            quotetxt = quotetxt.substring(0, quotetxt.toLowerCase().lastIndexOf("["));
+                            quotetxt =
+                                    quotetxt.substring(0, quotetxt.toLowerCase().lastIndexOf("["));
                         }
                         while (quotetxt.endsWith(".")) {
                             quotetxt = quotetxt.substring(0, quotetxt.length() - 1);
                         }
                         bslenth = bodyString.length();
-                        txtsendout = txtsendout.substring(0, txtsendout.toLowerCase().lastIndexOf("[color"));
+                        txtsendout =
+                                txtsendout.substring(
+                                        0, txtsendout.toLowerCase().lastIndexOf("[color"));
                         quotetxt = "[quote]" + FunctionUtils.checkContent(quotetxt) + "[/quote]";
                         txtsendout += quotetxt + scolor[(int) (Math.random() * 23)];
                         break;
                     } else {
-                        quotetxt = bodyString.substring(i + 7, bodyString.toLowerCase().indexOf("[/quote]", i));
+                        quotetxt =
+                                bodyString.substring(
+                                        i + 7, bodyString.toLowerCase().indexOf("[/quote]", i));
                         while (quotetxt.endsWith(".")) {
                             quotetxt = quotetxt.substring(0, quotetxt.length() - 1);
                         }
-                        txtsendout = txtsendout.substring(0, txtsendout.toLowerCase().lastIndexOf("[color"));
+                        txtsendout =
+                                txtsendout.substring(
+                                        0, txtsendout.toLowerCase().lastIndexOf("[color"));
                         quotetxt = "[quote]" + FunctionUtils.checkContent(quotetxt) + "[/quote]";
                         txtsendout += quotetxt + scolor[(int) (Math.random() * 23)];
                         i = bodyString.toLowerCase().indexOf("[/quote]", i) + 7;
                     }
                 } else if (bodyString.toLowerCase().indexOf("[color", i - 1) == i) {
                     if (bodyString.toLowerCase().indexOf("[/color]", i) >= 0) {
-                        txtsendout += bodyString.substring(bodyString.indexOf("]", i) + 1, bodyString.toLowerCase().indexOf("[/color]", i) + 8) + scolor[(int) (Math.random() * 23)];
+                        txtsendout +=
+                                bodyString.substring(
+                                                bodyString.indexOf("]", i) + 1,
+                                                bodyString.toLowerCase().indexOf("[/color]", i) + 8)
+                                        + scolor[(int) (Math.random() * 23)];
                         i = bodyString.indexOf("[/color]", i) + 7;
                     } else {
-                        bodyString = bodyString.substring(0, i) + bodyString.substring(bodyString.toLowerCase().indexOf("]", i) + 1, bslenth);
+                        bodyString =
+                                bodyString.substring(0, i)
+                                        + bodyString.substring(
+                                                bodyString.toLowerCase().indexOf("]", i) + 1,
+                                                bslenth);
                         i = bodyString.indexOf("]", i);
                     }
                 } else {
                     for (ia = 0; ia < 56; ia++) {
                         if (bodyString.toLowerCase().indexOf(keyword[ia][0], i - 1) == i) {
                             if (bodyString.toLowerCase().indexOf(keyword[ia][1], i) >= 0) {
-                                txtsendout = txtsendout.substring(0, txtsendout.toLowerCase().lastIndexOf("[color"));
-                                txtsendout += bodyString.substring(i, bodyString.toLowerCase().indexOf(keyword[ia][1], i)) + keyword[ia][1] + scolor[(int) (Math.random() * 23)];
-                                i = bodyString.toLowerCase().indexOf(keyword[ia][1], i) + Integer.parseInt(keyword[ia][2]) - 1;
+                                txtsendout =
+                                        txtsendout.substring(
+                                                0, txtsendout.toLowerCase().lastIndexOf("[color"));
+                                txtsendout +=
+                                        bodyString.substring(
+                                                        i,
+                                                        bodyString
+                                                                .toLowerCase()
+                                                                .indexOf(keyword[ia][1], i))
+                                                + keyword[ia][1]
+                                                + scolor[(int) (Math.random() * 23)];
+                                i =
+                                        bodyString.toLowerCase().indexOf(keyword[ia][1], i)
+                                                + Integer.parseInt(keyword[ia][2])
+                                                - 1;
                             } else {
                                 itmp = bodyString.indexOf("]", i);
-                                bodyString = bodyString.substring(0, i) + bodyString.substring(bodyString.toLowerCase().indexOf("]", i) + 1, bslenth);
+                                bodyString =
+                                        bodyString.substring(0, i)
+                                                + bodyString.substring(
+                                                        bodyString.toLowerCase().indexOf("]", i)
+                                                                + 1,
+                                                        bslenth);
                                 i = itmp;
                             }
                             break;
                         }
                     }
                 }
-            } else if (Character.toString(arrtxtchar[i]).equals(" ") || Character.toString(arrtxtchar[i]).equals("\n")) {
-                txtsendout = txtsendout.substring(0, txtsendout.toLowerCase().lastIndexOf("[color"));
+            } else if (Character.toString(arrtxtchar[i]).equals(" ")
+                    || Character.toString(arrtxtchar[i]).equals("\n")) {
+                txtsendout =
+                        txtsendout.substring(0, txtsendout.toLowerCase().lastIndexOf("[color"));
                 txtsendout += bodyString.substring(i, i + 1) + scolor[(int) (Math.random() * 23)];
             }
         }
@@ -798,10 +954,8 @@ public class FunctionUtils {
 
     public static String getPath(final Context context, final Uri uri) {
 
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-
         // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
@@ -809,8 +963,7 @@ public class FunctionUtils {
                 final String type = split[0];
 
                 if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/"
-                            + split[1];
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
                 }
 
                 // TODO handle non-primary volumes
@@ -819,7 +972,8 @@ public class FunctionUtils {
             else if (isDownloadsDocument(uri)) {
 
                 final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(
+                final Uri contentUri =
+                        ContentUris.withAppendedId(
                         Uri.parse("content://downloads/public_downloads"),
                         Long.valueOf(id));
 
@@ -843,8 +997,7 @@ public class FunctionUtils {
                 final String selection = "_id=?";
                 final String[] selectionArgs = new String[]{split[1]};
 
-                return getDataColumn(context, contentUri, selection,
-                        selectionArgs);
+                return getDataColumn(context, contentUri, selection, selectionArgs);
             }
         }
         // MediaStore (and general)
@@ -859,57 +1012,61 @@ public class FunctionUtils {
         return null;
     }
 
-    public static String getDataColumn(Context context, Uri uri,
-                                       String selection, String[] selectionArgs) {
+    public static String getDataColumn(
+            Context context, Uri uri, String selection, String[] selectionArgs) {
 
         Cursor cursor = null;
         final String column = "_data";
         final String[] projection = {column};
 
         try {
-            cursor = context.getContentResolver().query(uri, projection,
-                    selection, selectionArgs, null);
+            cursor =
+                    context.getContentResolver()
+                            .query(uri, projection, selection, selectionArgs, null);
             if (cursor != null && cursor.moveToFirst()) {
                 final int column_index = cursor.getColumnIndexOrThrow(column);
                 return cursor.getString(column_index);
             }
         } finally {
-            if (cursor != null)
-                cursor.close();
+            if (cursor != null) cursor.close();
         }
         return null;
     }
 
     public static boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri
-                .getAuthority());
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
     }
 
     public static boolean isDownloadsDocument(Uri uri) {
-        return "com.android.providers.downloads.documents".equals(uri
-                .getAuthority());
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
     }
 
     public static boolean isMediaDocument(Uri uri) {
-        return "com.android.providers.media.documents".equals(uri
-                .getAuthority());
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
     public static String getngaClientChecksum(Context context) {
         String str = null;
-        String secret = context
-                .getString(R.string.checksecret);
+        String secret = context.getString(R.string.checksecret);
         try {
-            str = MD5Util.MD5(new StringBuilder(String
-                    .valueOf(UserManagerImpl.getInstance().getUserId()))
-                    .append(secret).append(System.currentTimeMillis() / 1000L)
+            str =
+                    MD5Util.MD5(
+                                    new StringBuilder(
+                                                    String.valueOf(
+                                                            UserManagerImpl.getInstance()
+                                                                    .getUserId()))
+                                            .append(secret)
+                                            .append(System.currentTimeMillis() / 1000L)
                     .toString())
                     + System.currentTimeMillis() / 1000L;
             return str;
         } catch (Exception localException) {
             while (true)
-                str = MD5Util.MD5(new StringBuilder(secret).append(
-                        System.currentTimeMillis() / 1000L).toString())
+                str =
+                        MD5Util.MD5(
+                                        new StringBuilder(secret)
+                                                .append(System.currentTimeMillis() / 1000L)
+                                                .toString())
                         + System.currentTimeMillis() / 1000L;
         }
     }

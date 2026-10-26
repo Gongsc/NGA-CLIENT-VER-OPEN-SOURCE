@@ -16,16 +16,10 @@ import android.widget.TextView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 
-import com.alibaba.android.arouter.facade.annotation.Route;
-import com.alibaba.android.arouter.launcher.ARouter;
+import gov.anzong.androidnga.arouter.AppNavigator;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
-import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.Utils;
 import gov.anzong.androidnga.arouter.ARouterConstants;
@@ -34,6 +28,7 @@ import gov.anzong.androidnga.base.util.ToastUtils;
 import gov.anzong.androidnga.core.data.HtmlData;
 import gov.anzong.androidnga.core.decode.ForumDecoder;
 import gov.anzong.androidnga.http.OnHttpCallBack;
+
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.UserManager;
 import sp.phone.common.UserManagerImpl;
@@ -49,7 +44,8 @@ import sp.phone.util.ImageUtils;
 import sp.phone.util.StringUtils;
 import sp.phone.view.webview.WebViewEx;
 
-@Route(path = ARouterConstants.ACTIVITY_PROFILE)
+import java.util.List;
+
 public class ProfileActivity extends BaseActivity implements OnHttpCallBack<ProfileData> {
 
     private static final String TAG = "ProfileActivity";
@@ -61,65 +57,29 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
     private String mParams;
 
     private boolean mCurrentUser;
-
-    @BindView(R.id.tv_user_money_copper)
     public TextView mMoneyCopperTv;
-
-    @BindView(R.id.tv_user_money_silver)
     public TextView mMoneySilverTv;
-
-    @BindView(R.id.tv_user_money_gold)
     public TextView mMoneyGoldTv;
-
-    @BindView(R.id.tv_user_state)
     public TextView mUserStateTv;
-
-    @BindView(R.id.tv_user_mute_time)
     public TextView mUserMuteTime;
-
-    @BindView(R.id.tv_user_group)
     public TextView mUserGroupTv;
-
-    @BindView(R.id.tv_user_register_time)
     public TextView mRegisterTimeTv;
-
-    @BindView(R.id.tv_user_tel)
     public TextView mUserTelTv;
-
-    @BindView(R.id.tv_user_email)
     public TextView mUserEmailTv;
-
-    @BindView(R.id.tv_post_count)
     public TextView mPostCountTv;
-
-    @BindView(R.id.btn_modify_sign)
     public TextView mModifySignBtn;
-
-    @BindView(R.id.iv_avatar)
     public ImageView mAvatarIv;
-
-    @BindView(R.id.toolbar_layout)
     public CollapsingToolbarLayout mToolbarLayout;
-
-    @BindView(R.id.tv_uid)
     public TextView mUidTv;
-
-    @BindView(R.id.wv_admin)
     public WebViewEx mAdminWebView;
-
-    @BindView(R.id.wv_fame)
     public WebViewEx mFameWebView;
-
-    @BindView(R.id.wv_sign)
     public WebViewEx mSignWebView;
 
     private JsonProfileLoadTask mProfileLoadTask;
 
     private Menu mOptionMenu;
 
-    /**
-     * 利用反射获取状态栏高度
-     */
+    /** 利用反射获取状态栏高度 */
     public int getStatusBarHeight() {
         int result;
         Resources res = getResources();
@@ -136,7 +96,8 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
     private void updateToolbarLayout() {
         AppBarLayout appBarLayout = findViewById(R.id.app_bar);
         if (DeviceUtils.isFullScreenDevice()) {
-            appBarLayout.getLayoutParams().height = getResources().getDimensionPixelSize(R.dimen.app_bar_height_full_screen);
+            appBarLayout.getLayoutParams().height =
+                    getResources().getDimensionPixelSize(R.dimen.app_bar_height_full_screen);
         }
         int statusBarHeight = getStatusBarHeight();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -145,7 +106,6 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
         View parentView = (View) mAvatarIv.getParent();
         parentView.setPadding(0, statusBarHeight, 0, 0);
-
     }
 
     @Override
@@ -170,7 +130,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         }
 
         setContentView(R.layout.activity_user_profile);
-        ButterKnife.bind(this);
+        bindViews(getWindow().getDecorView());
         setupActionBar();
         updateToolbarLayout();
         setupStatusBar();
@@ -191,7 +151,6 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         mProfileLoadTask = new JsonProfileLoadTask(this);
         mProfileLoadTask.execute(mParams);
     }
-
 
     @Override
     protected void onDestroy() {
@@ -256,8 +215,11 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
             builder.append("无管理板块");
         } else {
             for (AdminForumsData data : adminForumsEntryList) {
-                builder.append("<a style=\"color:#551200;\" href=\"http://nga.178.com/thread.php?fid=")
-                        .append(data.getFid()).append("\">[")
+                builder.append(
+                                "<a style=\"color:#551200;\""
+                                    + " href=\"http://nga.178.com/thread.php?fid=")
+                        .append(data.getFid())
+                        .append("\">[")
                         .append(data.getForumName())
                         .append("]</a>&nbsp;");
             }
@@ -266,7 +228,6 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         return builder.toString();
     }
 
-    @OnClick(R.id.btn_modify_sign)
     public void startChangeSignActivity() {
         Intent intent = new Intent();
         intent.putExtra("prefix", mProfileData.getSign());
@@ -293,7 +254,9 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         }
         StringBuilder builder = new StringBuilder("<ul style=\"padding: 0px; margin: 0px;\">");
         builder.append("<li style=\"display: block;float: left;width: 33%;\">")
-                .append("<label style=\"float: left;color: ").append(color).append(";\">威望</label>")
+                .append("<label style=\"float: left;color: ")
+                .append(color)
+                .append(";\">威望</label>")
                 .append("<span style=\"float: left; color: #808080;\">:</span>")
                 .append("<span style=\"float: left; color: #808080;\">")
                 .append(frame)
@@ -303,16 +266,19 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
             for (ReputationData data : reputationEntryList) {
                 builder.append("<li style=\"display: block;float: left;width: 33%;\">")
                         .append("<label style=\"float: left;color: ")
-                        .append(color).append(";\">").append(data.getName()).append("</label>")
+                        .append(color)
+                        .append(";\">")
+                        .append(data.getName())
+                        .append("</label>")
                         .append("<span style=\"float: left; color: #808080;\">:</span>")
                         .append("<span style=\"float: left; color: #808080;\">")
-                        .append(data.getData()).append("</span></li>");
+                        .append(data.getData())
+                        .append("</span></li>");
             }
         }
         builder.append("</ul><br>");
         return builder.toString();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -348,31 +314,23 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_send_message:
+        int selectedResourceId = item.getItemId();
+        if (selectedResourceId == R.id.menu_send_message) {
                 sendShortMessage();
-                break;
-            case R.id.menu_search_post:
+        } else if (selectedResourceId == R.id.menu_search_post) {
                 searchPost();
-                break;
-            case R.id.menu_search_reply:
+        } else if (selectedResourceId == R.id.menu_search_reply) {
                 searchReply();
-                break;
-            case R.id.menu_modify_avatar:
+        } else if (selectedResourceId == R.id.menu_modify_avatar) {
                 startModifyAvatar();
-                break;
-            case R.id.menu_copy_url:
+        } else if (selectedResourceId == R.id.menu_copy_url) {
                 FunctionUtils.copyToClipboard(this, getUrl());
-                break;
-            case R.id.menu_open_by_browser:
+        } else if (selectedResourceId == R.id.menu_open_by_browser) {
                 FunctionUtils.openUrlByDefaultBrowser(this, getUrl());
-                break;
-            case R.id.menu_ban_this_one:
+        } else if (selectedResourceId == R.id.menu_ban_this_one) {
                 banThisSB();
-                break;
-            default:
+        } else {
                 return super.onOptionsItemSelected(item);
-
         }
         return true;
     }
@@ -396,7 +354,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
     }
 
     private void sendShortMessage() {
-        ARouter.getInstance()
+        AppNavigator.getInstance()
                 .build(ARouterConstants.ACTIVITY_MESSAGE_POST)
                 .withString("to", mProfileData.getUserName())
                 .withString(ParamKey.KEY_ACTION, "new")
@@ -421,6 +379,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 321 && resultCode == Activity.RESULT_OK) {
             String signData = data.getStringExtra("sign");
             if (mProfileData != null) {
@@ -452,9 +411,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
         contentTV.setLocalMode();
         contentTV.loadDataWithBaseURL(
-                null,
-                signatureToHtmlText(ret, fgColorStr, bgcolorStr),
-                "text/html", "utf-8", null);
+                null, signatureToHtmlText(ret, fgColorStr, bgcolorStr), "text/html", "utf-8", null);
     }
 
     private void handleAdminWebView(WebViewEx contentTV, ProfileData ret) {
@@ -475,8 +432,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
         contentTV.setLocalMode();
         contentTV.loadDataWithBaseURL(
-                null,
-                adminToHtmlText(ret, fgColorStr, bgcolorStr), "text/html", "utf-8", null);
+                null, adminToHtmlText(ret, fgColorStr, bgcolorStr), "text/html", "utf-8", null);
     }
 
     private void handleFameWebView(WebViewEx contentTV, ProfileData ret) {
@@ -497,51 +453,65 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
 
         contentTV.setLocalMode();
         contentTV.loadDataWithBaseURL(
-                null,
-                fameToHtmlText(ret, fgColorStr, bgcolorStr), "text/html", "utf-8", null);
+                null, fameToHtmlText(ret, fgColorStr, bgcolorStr), "text/html", "utf-8", null);
     }
 
-    public String fameToHtmlText(final ProfileData ret, final String fgColorStr, final String bgcolorStr) {
+    public String fameToHtmlText(
+            final ProfileData ret, final String fgColorStr, final String bgcolorStr) {
         String color = "#121C46";
         if (mThemeManager.isNightMode()) {
             color = "#712D08";
         }
         String ngaHtml = createFameHtml(ret, color);
-        ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
-                + "<body bgcolor= '#"
+        ngaHtml =
+                "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;  "
+                    + " charset=utf-8 \"><body bgcolor= '#"
                 + bgcolorStr
                 + "'>"
                 + "<font color='#"
-                + fgColorStr + "' size='2'>" + ngaHtml + "</font></body>";
+                        + fgColorStr
+                        + "' size='2'>"
+                        + ngaHtml
+                        + "</font></body>";
 
         return ngaHtml;
     }
 
-    public String adminToHtmlText(final ProfileData ret, final String fgColorStr, final String bgcolorStr) {
+    public String adminToHtmlText(
+            final ProfileData ret, final String fgColorStr, final String bgcolorStr) {
         String ngaHtml = createAdminHtml(ret);
-        ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
-                + "<body bgcolor= '#"
+        ngaHtml =
+                "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;  "
+                    + " charset=utf-8 \"><body bgcolor= '#"
                 + bgcolorStr
                 + "'>"
                 + "<font color='#"
-                + fgColorStr + "' size='2'>" + ngaHtml + "</font></body>";
+                        + fgColorStr
+                        + "' size='2'>"
+                        + ngaHtml
+                        + "</font></body>";
 
         return ngaHtml;
     }
 
-    public String signatureToHtmlText(final ProfileData ret, final String fgColorStr, final String bgcolorStr) {
-        String ngaHtml = ForumDecoder.decode(ret.getSign(), HtmlData.create(ret.getSign(), Utils.getNGAHost()));
+    public String signatureToHtmlText(
+            final ProfileData ret, final String fgColorStr, final String bgcolorStr) {
+        String ngaHtml =
+                ForumDecoder.decode(
+                        ret.getSign(), HtmlData.create(ret.getSign(), Utils.getNGAHost()));
 
-        ngaHtml = "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;   charset=utf-8 \">"
-                + "<body bgcolor= '#"
+        ngaHtml =
+                "<HTML> <HEAD><META   http-equiv=Content-Type   content= \"text/html;  "
+                    + " charset=utf-8 \"><body bgcolor= '#"
                 + bgcolorStr
                 + "'>"
                 + "<font color='#"
                 + fgColorStr
                 + "' size='2'>"
                 + "<div style=\"border: 3px solid rgb(204, 204, 204);padding: 2px; \">"
-                + ngaHtml + "</div>" + "</font></body>"
-                + "<script type=\"text/javascript\" src=\"file:///android_asset/html/script.js\"></script>";
+                        + ngaHtml
+                        + "</div></font></body><script type=\"text/javascript\""
+                        + " src=\"file:///android_asset/html/script.js\"></script>";
 
         return ngaHtml;
     }
@@ -549,8 +519,8 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
     private void handleAvatar(ProfileData row) {
         final String avatarUrl = FunctionUtils.parseAvatarUrl(row.getAvatarUrl());//
         ImageUtils.loadRoundCornerAvatar(mAvatarIv, avatarUrl);
-        ImageUtils.loadDefaultAvatar((ImageView) findViewById(R.id.iv_toolbar_layout_bg), avatarUrl);
-
+        ImageUtils.loadDefaultAvatar(
+                (ImageView) findViewById(R.id.iv_toolbar_layout_bg), avatarUrl);
     }
 
     @Override
@@ -565,4 +535,25 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
             loadProfileInfo(data);
         }
     }
+
+    protected void bindViews(android.view.View root) {
+        mMoneyCopperTv = root.findViewById(R.id.tv_user_money_copper);
+        mMoneySilverTv = root.findViewById(R.id.tv_user_money_silver);
+        mMoneyGoldTv = root.findViewById(R.id.tv_user_money_gold);
+        mUserStateTv = root.findViewById(R.id.tv_user_state);
+        mUserMuteTime = root.findViewById(R.id.tv_user_mute_time);
+        mUserGroupTv = root.findViewById(R.id.tv_user_group);
+        mRegisterTimeTv = root.findViewById(R.id.tv_user_register_time);
+        mUserTelTv = root.findViewById(R.id.tv_user_tel);
+        mUserEmailTv = root.findViewById(R.id.tv_user_email);
+        mPostCountTv = root.findViewById(R.id.tv_post_count);
+        mModifySignBtn = root.findViewById(R.id.btn_modify_sign);
+        mAvatarIv = root.findViewById(R.id.iv_avatar);
+        mToolbarLayout = root.findViewById(R.id.toolbar_layout);
+        mUidTv = root.findViewById(R.id.tv_uid);
+        mAdminWebView = root.findViewById(R.id.wv_admin);
+        mFameWebView = root.findViewById(R.id.wv_fame);
+        mSignWebView = root.findViewById(R.id.wv_sign);
+        root.findViewById(R.id.btn_modify_sign).setOnClickListener(v -> startChangeSignActivity());
+}
 }

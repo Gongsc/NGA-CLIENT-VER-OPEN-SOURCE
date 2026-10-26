@@ -2,7 +2,7 @@ package sp.phone.mvp.model.convert;
 
 import android.text.TextUtils;
 
-import com.alibaba.fastjson.JSON;
+import sp.phone.http.article.ArticleResponse;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.ArrayList;
@@ -47,34 +47,23 @@ public class ArticleConvertFactory {
     private static ThreadData parseJsonThreadPage(String js) {
         ThreadData data = null;
         try {
-            if (js.isEmpty()) {
-                return null;
-            } else if (js.contains("/*error fill content")) {
-                js = js.substring(0, js.indexOf("/*error fill content"));
-            }
+            JSONObject obj = ArticleResponse.decode(js);
 
-            js = js.replaceAll("/\\*\\$js\\$\\*/", "")
-                    .replaceAll("\"content\":\\+(\\d+),", "\"content\":\"+$1\",")
-                    .replaceAll("\"subject\":\\+(\\d+),", "\"subject\":\"+$1\",")
-                    .replaceAll("\"content\":(0\\d+),", "\"content\":\"$1\",")
-                    .replaceAll("\"subject\":(0\\d+),", "\"subject\":\"$1\",")
-                    .replaceAll("\"author\":(0\\d+),", "\"author\":\"$1\",")
-                    .replaceAll("\"alterinfo\":\"\\[(\\w|\\s)+\\]\\s+\",", ""); //部分页面打不开的问题
-//            NLog.e(js);
-            JSONObject obj = (JSONObject) JSON.parseObject(js).get("data");
-            NLog.d(TAG, "js = :\n" + js);
             if (obj == null) {
                 return null;
             }
-            int allRows = (Integer) obj.get("__ROWS");
+            int allRows = obj.getIntValue("__ROWS");
             data = new ThreadData();
             data.setRawData(js);
             data.setThreadInfo(buildThreadPageInfo(obj));
+            if (data.getThreadInfo() == null) return null;
             data.setRowList(buildThreadRowList(obj));
+            data.setHotReplyList(buildHotReplies(obj));
             data.set__ROWS(allRows);
             data.setRowNum(data.getRowList().size());
         } catch (Exception e) {
-            NLog.e(TAG, "can not parse :\n" + js);
+            data = null;
+            NLog.e(TAG, "主题响应解析失败");
             e.printStackTrace();
         }
         return data;
@@ -95,7 +84,7 @@ public class ArticleConvertFactory {
 
     private static List<ThreadRowInfo> buildThreadRowList(JSONObject obj) {
         JSONObject subObj = (JSONObject) obj.get("__R");
-        int rows = (Integer) obj.get("__R__ROWS");
+        int rows = obj.getIntValue("__R__ROWS");
         JSONObject userInfoMap = (JSONObject) obj.get("__U");
         if (subObj == null) {
             return new ArrayList<>();
@@ -103,6 +92,57 @@ public class ArticleConvertFactory {
         return convertJsObjToList(subObj, rows, userInfoMap);
     }
 
+
+    private static List<ThreadRowInfo> buildHotReplies(JSONObject data) {
+        JSONObject rows = data.getJSONObject("__R");
+        JSONObject users = data.getJSONObject("__U");
+        if (rows == null) return new ArrayList<>();
+        for (Object value : rows.values()) {
+            if (!(value instanceof JSONObject)) continue;
+            JSONObject parent = (JSONObject) value;
+            if (parent.getIntValue("lou") != 0 || parent.getIntValue("pid") != 0) continue;
+            Object hot = parent.get("hotreply");
+            java.util.Collection<?> values;
+            if (hot instanceof JSONObject) {
+                java.util.List<String> keys = new ArrayList<>(((JSONObject) hot).keySet());
+                keys.sort(java.util.Comparator.comparingInt(key -> {
+                    try { return Integer.parseInt(key); } catch (NumberFormatException ignored) { return Integer.MAX_VALUE; }
+                }));
+                java.util.List<Object> ordered = new ArrayList<>();
+                for (String key : keys) ordered.add(((JSONObject) hot).get(key));
+                values = ordered;
+            }
+            else if (hot instanceof com.alibaba.fastjson.JSONArray) values = (com.alibaba.fastjson.JSONArray) hot;
+            else continue;
+            List<ThreadRowInfo> result = new ArrayList<>();
+            java.util.Set<Integer> seen = new java.util.HashSet<>();
+            for (Object reply : values) {
+                if (!(reply instanceof JSONObject)) continue;
+                JSONObject row = new JSONObject((JSONObject) reply);
+                int pid = row.getIntValue("pid");
+                if (pid <= 0 || seen.contains(pid) || (!row.containsKey("content") && !row.containsKey("subject"))) continue;
+                if (!row.containsKey("tid")) row.put("tid", parent.get("tid"));
+                if (!row.containsKey("fid")) row.put("fid", parent.get("fid"));
+                if (!row.containsKey("lou")) {
+                    row.put("lou", -1);
+                    for (Object normal : rows.values()) {
+                        if (normal instanceof JSONObject && ((JSONObject) normal).getIntValue("pid") == pid)
+                            row.put("lou", ((JSONObject) normal).get("lou"));
+                    }
+                }
+                JSONObject normalized = new JSONObject(true);
+                normalized.put("0", row);
+                try {
+                    result.addAll(convertJsObjToList(normalized, 1, users));
+                    seen.add(pid);
+                } catch (RuntimeException ignored) {
+                    // 可选热点条目异常时保留主题正文与其他有效热点。
+                }
+            }
+            return result;
+        }
+        return new ArrayList<>();
+    }
 
     private static List<ThreadRowInfo> convertJsObjToList(JSONObject rowMap, int count, JSONObject userInfoMap) {
         List<ThreadRowInfo> rowList = new ArrayList<>();
@@ -246,7 +286,7 @@ public class ArticleConvertFactory {
     }
 
     private static void buildRowUserInfo(ThreadRowInfo row, JSONObject userInfoMap) {
-        if (row.getAuthorid() == 0) {
+        if (row.getAuthorid() == 0 || userInfoMap == null) {
             return;
         }
         JSONObject userInfo = (JSONObject) userInfoMap.get(String.valueOf(row
@@ -260,10 +300,12 @@ public class ArticleConvertFactory {
         row.set_IsInBlackList(UserManagerImpl.getInstance().checkBlackList(String.valueOf(uid)));
         String t1 = "甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥";
         String t2 = "王李张刘陈杨黄吴赵周徐孙马朱胡林郭何高罗郑梁谢宋唐许邓冯韩曹曾彭萧蔡潘田董袁于余叶蒋杜苏魏程吕丁沈任姚卢傅钟姜崔谭廖范汪陆金石戴贾韦夏邱方侯邹熊孟秦白江阎薛尹段雷黎史龙陶贺顾毛郝龚邵万钱严赖覃洪武莫孔汤向常温康施文牛樊葛邢安齐易乔伍庞颜倪庄聂章鲁岳翟殷詹申欧耿关兰焦俞左柳甘祝包宁尚符舒阮柯纪梅童凌毕单季裴霍涂成苗谷盛曲翁冉骆蓝路游辛靳管柴蒙鲍华喻祁蒲房滕屈饶解牟艾尤阳时穆农司卓古吉缪简车项连芦麦褚娄窦戚岑景党宫费卜冷晏席卫米柏宗瞿桂全佟应臧闵苟邬边卞姬师和仇栾隋商刁沙荣巫寇桑郎甄丛仲虞敖巩明佘池查麻苑迟邝 ";
-        if (userInfo.getString("username").length() == 39
-                && userInfo.getString("username").startsWith("#anony_")) {
+        String userName = userInfo.getString("username");
+        if (userName == null) userName = "UID:" + uid;
+        if (userName.length() == 39
+                && userName.startsWith("#anony_")) {
             StringBuilder builder = new StringBuilder();
-            String username = userInfo.getString("username");
+            String username = userName;
             int i = 6;
             for (int j = 0; j < 6; j++) {
                 int pos;
@@ -279,7 +321,7 @@ public class ArticleConvertFactory {
             row.setAuthor(builder.toString());
             row.setISANONYMOUS(true);
         } else {
-            row.setAuthor(userInfo.getString("username"));
+            row.setAuthor(userName);
         }
         row.setJs_escap_avatar(userInfo.getString("avatar"));
         row.setYz(userInfo.getString("yz"));

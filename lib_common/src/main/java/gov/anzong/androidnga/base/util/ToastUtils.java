@@ -5,7 +5,6 @@ import android.widget.Toast;
 
 import androidx.annotation.StringRes;
 
-import es.dmoral.toasty.Toasty;
 
 /**
  * Created by Justwen on 2018/8/11.
@@ -48,31 +47,8 @@ public class ToastUtils {
         info(ContextUtils.getString(id));
     }
 
-    public static void success(String text) {
-        if (!ThreadUtils.isMainThread()) {
-            ThreadUtils.runOnMainThread(() -> ToastUtils.success(text));
-        } else {
-            Toasty.custom(ContextUtils.getContext(), text, ContextUtils.getDrawable(es.dmoral.toasty.R.drawable.ic_check_white_24dp),
-                    ThemeUtils.getAccentColor(), Color.WHITE, Toast.LENGTH_SHORT, true, true)
-                    .show();
-        }
-    }
-
-    public static void error(String text) {
-        Toasty.error(ContextUtils.getContext(), text).show();
-    }
-
-    public static void info(String text) {
-        if (!ThreadUtils.isMainThread()) {
-            ThreadUtils.runOnMainThread(() -> ToastUtils.info(text));
-        } else {
-            Toasty.custom(ContextUtils.getContext(), text, null, ThemeUtils.getAccentColor(), Color.WHITE, Toast.LENGTH_SHORT, false, false)
-                    .show();
-        }
-    }
-
-    public static void warn(String text) {
-        Toasty.warning(ContextUtils.getContext(), text).show();
-    }
-
+    public static void success(String text) { show(text); }
+    public static void error(String text) { show(text); }
+    public static void info(String text) { show(text); }
+    public static void warn(String text) { show(text); }
 }

@@ -14,16 +14,14 @@ import androidx.lifecycle.ViewModelProvider;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.activity.BaseActivity;
 import gov.anzong.androidnga.base.util.ToastUtils;
+
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.util.ActivityUtils;
 
-/**
- * Created by liuboyu on 16/6/28.
- */
+/** Created by liuboyu on 16/6/28. */
 public abstract class BaseFragment extends Fragment {
 
-    @Nullable
-    protected BaseActivity mActivity;
+    @Nullable protected BaseActivity mActivity;
 
     protected Toast mToast;
 
@@ -112,11 +110,10 @@ public abstract class BaseFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_history:
+        int selectedResourceId = item.getItemId();
+        if (selectedResourceId == R.id.menu_history) {
                 ActivityUtils.startHistoryTopicActivity(getContext());
-                break;
-            default:
+        } else {
                 return super.onOptionsItemSelected(item);
         }
         return true;
@@ -133,5 +130,4 @@ public abstract class BaseFragment extends Fragment {
         }
         return mActivityViewModelProvider;
     }
-
 }
