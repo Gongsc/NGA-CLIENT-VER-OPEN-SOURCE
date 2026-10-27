@@ -4,6 +4,25 @@ NGA Android 客户端开源项目，提供版块浏览、主题阅读、内容�
 
 当前版本仅支持 **Android 12（API 31）及以上系统**，不再支持 Android 11 及更早版本。
 
+## 界面预览
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/previews/implemented/compact-home.png" width="200" alt="首页：底部导航与版块收藏"></td>
+    <td align="center"><img src="docs/previews/implemented/topic-post-expanded-light.png" width="200" alt="主题列表：浮起卡片与热帖回复数"></td>
+    <td align="center"><img src="docs/previews/implemented/reader-floating-light.png" width="200" alt="主题阅读：楼层卡片与悬浮翻页"></td>
+    <td align="center"><img src="docs/previews/implemented/appearance-dark.png" width="200" alt="外观与布局：四套配色与深色模式"></td>
+  </tr>
+  <tr>
+    <td align="center">首页</td>
+    <td align="center">主题列表</td>
+    <td align="center">主题阅读</td>
+    <td align="center">配色与深色模式</td>
+  </tr>
+</table>
+
+截图由设备测试使用离线示例数据生成，不包含真实账号内容。
+
 ## 重构进度
 
 下列页面已采用 Jetpack Compose 实现：

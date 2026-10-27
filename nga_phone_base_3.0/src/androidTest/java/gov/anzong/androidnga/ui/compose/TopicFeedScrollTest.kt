@@ -34,7 +34,14 @@ class TopicFeedScrollTest {
             title = "主题列表 · 离线示例"
             canPost = true
             hasMore = false
-            rows = (0..29).map { TopicRow("sample_$it", AnnotatedString("示例主题 $it：阅读与交流"), "示例作者", "示例回复者", it, null) }
+            // 标题与回复数取自固定示例，覆盖长标题换行与热帖胶囊，同时用于 README 预览截图。
+            val titles = listOf("示例主题 0：阅读与交流", "新版本更新内容汇总与常见问题解答，欢迎补充", "分享一下最近拍的游戏截图",
+                "周末适合放松的单机游戏有哪些推荐", "装机讨论：预算五千元如何在显卡与处理器之间取舍", "长期更新：新手入门资料整理")
+            val replies = listOf(12, 86, 5, 57, 23, 140)
+            rows = (0..29).map {
+                TopicRow("sample_$it", AnnotatedString(titles.getOrElse(it) { _ -> "示例主题 $it：阅读与交流" }),
+                    "示例作者 ${it % 4 + 1}", "示例回复者", replies.getOrElse(it) { _ -> it }, null)
+            }
         }
         var posts = 0
         try {
