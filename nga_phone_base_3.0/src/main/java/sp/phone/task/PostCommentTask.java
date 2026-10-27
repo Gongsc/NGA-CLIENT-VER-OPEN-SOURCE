@@ -1,6 +1,6 @@
 package sp.phone.task;
 
-import android.os.AsyncTask;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 import androidx.fragment.app.FragmentActivity;
 
 import gov.anzong.androidnga.base.json.NgaJson;
@@ -18,7 +18,7 @@ import sp.phone.param.HttpPostClient;
 import sp.phone.util.NLog;
 import sp.phone.util.StringUtils;
 
-public class PostCommentTask extends AsyncTask<String, Integer, String> {
+public class PostCommentTask {
 
     public interface OnPostCommentFinishedListener {
         void OnPostCommentFinished(String result, boolean success);
@@ -46,8 +46,12 @@ public class PostCommentTask extends AsyncTask<String, Integer, String> {
         this.anonymode = anonymode;
     }
 
-    @Override
-    protected String doInBackground(String... params) {
+    /** 原 AsyncTask.execute：在后台提交，结果在主线程回调。 */
+    public void execute(String... params) {
+        BackgroundTask.run(() -> doInBackground(params), this::onPostExecute);
+    }
+
+    private String doInBackground(String... params) {
         String comment = params[0];
         if (!StringUtils.isEmpty(prefix)) {
             comment = prefix + comment;
@@ -135,25 +139,11 @@ public class PostCommentTask extends AsyncTask<String, Integer, String> {
         return "未知错误";
     }
 
-    @Override
-    protected void onPreExecute() {
-        // TODO Auto-generated method stub
-        super.onPreExecute();
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
+    private void onPostExecute(String result) {
         if (success) {
             NLog.i("TSG", "DS");
         }
         notifier.OnPostCommentFinished(result, success);
-        super.onPostExecute(result);
-    }
-
-    @Override
-    protected void onCancelled() {
-        // TODO Auto-generated method stub
-        super.onCancelled();
     }
 
 }

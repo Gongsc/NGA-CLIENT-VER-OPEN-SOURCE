@@ -5,11 +5,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.widget.Toast;
 
 import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 
 import gov.anzong.androidnga.common.util.StreamUtils;
 
@@ -28,7 +30,7 @@ import sp.phone.util.ImageUtils;
 import sp.phone.util.NLog;
 import sp.phone.util.StringUtils;
 
-public class AvatarFileUploadTask extends AsyncTask<String, Integer, String> {
+public class AvatarFileUploadTask {
     @SuppressWarnings("unused")
     private static final String TAG = AvatarFileUploadTask.class
             .getSimpleName();
@@ -63,26 +65,24 @@ public class AvatarFileUploadTask extends AsyncTask<String, Integer, String> {
         this.uri = uri;
     }
 
-    @Override
-    protected void onPreExecute() {
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    /** 原 AsyncTask.execute：先显示进度条，在后台上传，结果在主线程处理。 */
+    public void execute(String... params) {
+        onPreExecute();
+        BackgroundTask.run(() -> doInBackground(params), this::onPostExecute);
+    }
+
+    private void onPreExecute() {
         ActivityUtils.getInstance().noticeSayingWithProgressBar(context);
-        super.onPreExecute();
     }
 
-    @Override
-    protected void onCancelled() {
-        ActivityUtils.getInstance().dismiss();
-        super.onCancelled();
+    /** 原 AsyncTask.publishProgress：进度在主线程更新。 */
+    private void publishProgress(int progress) {
+        mainHandler.post(() -> onProgressUpdate(progress));
     }
 
-    @Override
-    protected void onCancelled(String result) {
-        ActivityUtils.getInstance().dismiss();
-        super.onCancelled();
-    }
-
-    @Override
-    protected void onProgressUpdate(Integer... values) {
+    private void onProgressUpdate(Integer... values) {
         if (values[0] == -101) {
             ToastUtils.info(R.string.image_to_big2);
         } else {
@@ -93,8 +93,7 @@ public class AvatarFileUploadTask extends AsyncTask<String, Integer, String> {
         }
     }
 
-    @Override
-    protected void onPostExecute(String result) {
+    private void onPostExecute(String result) {
         if (StringUtils.isEmpty(result)) {
             ToastUtils.error(errorStr);
         } else {
@@ -106,12 +105,10 @@ public class AvatarFileUploadTask extends AsyncTask<String, Integer, String> {
             }
         }
         ActivityUtils.getInstance().dismiss();
-        super.onPostExecute(result);
     }
 
     @SuppressWarnings("unused")
-    @Override
-    protected String doInBackground(String... params) {
+    private String doInBackground(String... params) {
 
         ContentResolver cr = context.getContentResolver();
 

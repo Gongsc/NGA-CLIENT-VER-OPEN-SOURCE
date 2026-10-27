@@ -1,7 +1,7 @@
 package sp.phone.task;
 
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 import android.widget.ImageView;
 
 import java.io.FileInputStream;
@@ -12,7 +12,7 @@ import sp.phone.util.ImageUtils;
 import sp.phone.util.HttpUtil;
 import sp.phone.util.NLog;
 
-public class ChangeAvatarLoadTask extends AsyncTask<String, Integer, Bitmap> {
+public class ChangeAvatarLoadTask {
 
     public interface ChangeAvatarLoadCompleteCallBack {
         void OnAvatarLoadStart(String url);
@@ -28,7 +28,6 @@ public class ChangeAvatarLoadTask extends AsyncTask<String, Integer, Bitmap> {
     String uri = null;
 
     public ChangeAvatarLoadTask(ImageView view, int floor, ChangeAvatarLoadCompleteCallBack callBack) {
-        super();
         this.view = view;
         this.downImg = true;
         this.floor = floor;
@@ -36,9 +35,13 @@ public class ChangeAvatarLoadTask extends AsyncTask<String, Integer, Bitmap> {
     }
 
 
+    /** 原 AsyncTask.execute：在后台下载头像，结果在主线程显示。 */
+    public void execute(String... params) {
+        BackgroundTask.run(() -> doInBackground(params), this::onPostExecute);
+    }
+
     @SuppressWarnings("resource")
-    @Override
-    protected Bitmap doInBackground(String... params) {
+    private Bitmap doInBackground(String... params) {
 
         final String avatarUrl = params[0];
         final String avatarLocalPath = params[1];
@@ -68,25 +71,11 @@ public class ChangeAvatarLoadTask extends AsyncTask<String, Integer, Bitmap> {
     }
 
 
-    @Override
-    protected void onPostExecute(Bitmap result) {
+    private void onPostExecute(Bitmap result) {
         if (result != null) {
             view.setImageBitmap(result);
         }
         callBack.OnAvatarLoadComplete(uri, result);
-    }
-
-
-    @Override
-    protected void onCancelled(Bitmap result) {
-
-        onCancelled();
-    }
-
-
-    @Override
-    protected void onCancelled() {
-        callBack.OnAvatarLoadComplete(uri, null);
     }
 
 

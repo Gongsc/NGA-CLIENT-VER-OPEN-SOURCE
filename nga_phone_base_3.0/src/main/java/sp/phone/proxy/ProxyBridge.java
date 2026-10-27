@@ -1,12 +1,12 @@
 package sp.phone.proxy;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 
 import gov.anzong.androidnga.common.util.StreamUtils;
 
@@ -36,88 +36,86 @@ public final class ProxyBridge {
     @JavascriptInterface
     public void postURL(String url) {
         ActivityUtils.getInstance().noticeSaying("正在提交...", context);
-        (new AsyncTask<String, Integer, String>() {
-            @Override
-            protected void onPostExecute(String result) {
-                ActivityUtils.getInstance().dismiss();
-                if (StringUtils.isEmpty(result))
-                    result = "未知错误,请重试";
-                if (result.startsWith("操作成功"))
-                    result = "操作成功";
-                if (toast != null) {
-                    toast.setText(result);
-                    toast.setDuration(Toast.LENGTH_SHORT);
-                    toast.show();
+        BackgroundTask.run(() -> doInBackground(url), this::onPostExecute);
+    }
+
+    private void onPostExecute(String result) {
+        ActivityUtils.getInstance().dismiss();
+        if (StringUtils.isEmpty(result))
+            result = "未知错误,请重试";
+        if (result.startsWith("操作成功"))
+            result = "操作成功";
+        if (toast != null) {
+            toast.setText(result);
+            toast.setDuration(Toast.LENGTH_SHORT);
+            toast.show();
+        } else {
+            toast = Toast.makeText(context,
+                    result,
+                    Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
+    private String doInBackground(String... params) {
+        if (StringUtils.isEmpty(params[0]))
+            return "选择错误";
+        String url = Utils.getNGAHost() + "nuke.php?" + params[0];
+        HttpPostClient c = new HttpPostClient(url);
+        String cookie = PhoneConfiguration.getInstance().getCookie();
+        c.setCookie(cookie);
+        try {
+            InputStream input = null;
+            HttpURLConnection conn = c.post_body(params[0]);
+            if (conn != null) {
+                if (conn.getResponseCode() >= 500) {
+                    input = null;
                 } else {
-                    toast = Toast.makeText(context,
-                            result,
-                            Toast.LENGTH_SHORT);
-                    toast.show();
+                    if (conn.getResponseCode() >= 400) {
+                        input = conn.getErrorStream();
+                    } else
+                        input = conn.getInputStream();
                 }
+            } else {
+                return "网络错误";
             }
 
-            @Override
-            protected String doInBackground(String... params) {
-                if (StringUtils.isEmpty(params[0]))
-                    return "选择错误";
-                String url = Utils.getNGAHost() + "nuke.php?" + params[0];
-                HttpPostClient c = new HttpPostClient(url);
-                String cookie = PhoneConfiguration.getInstance().getCookie();
-                c.setCookie(cookie);
+            if (input != null) {
+                String js = StreamUtils.toString(input, "gbk");
+                if (null == js) {
+                    return context.getString(R.string.network_error);
+                }
+                js = js.replaceAll("window.script_muti_get_var_store=", "");
+                NgaJsonObject o = null, oerror = null;
                 try {
-                    InputStream input = null;
-                    HttpURLConnection conn = c.post_body(params[0]);
-                    if (conn != null) {
-                        if (conn.getResponseCode() >= 500) {
-                            input = null;
-                        } else {
-                            if (conn.getResponseCode() >= 400) {
-                                input = conn.getErrorStream();
-                            } else
-                                input = conn.getInputStream();
-                        }
-                    } else {
-                        return "网络错误";
-                    }
-
-                    if (input != null) {
-                        String js = StreamUtils.toString(input, "gbk");
-                        if (null == js) {
-                            return context.getString(R.string.network_error);
-                        }
-                        js = js.replaceAll("window.script_muti_get_var_store=", "");
-                        NgaJsonObject o = null, oerror = null;
-                        try {
-                            o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
-                            oerror = (NgaJsonObject) NgaJson.parseObject(js).get("error");
-                        } catch (Exception e) {
-                            NLog.e("ProxyBridge", "can not parse :\n" + js);
-                        }
-                        if (o == null) {
-                            if (oerror == null) {
-                                return "请重新登录";
-                            } else {
-                                if (!StringUtils.isEmpty(oerror.getString("0"))) {
-                                    return oerror.getString("0");
-                                } else {
-                                    return "二哥又开始乱搞了";
-                                }
-                            }
-                        } else {
-                            if (!StringUtils.isEmpty(o.getString("0"))) {
-                                return o.getString("0");
-                            } else {
-                                return "二哥又开始乱搞了";
-                            }
-                        }
-                    } else {
-                        return "二哥在用服务器下毛片";
-                    }
-                } catch (IOException e) {
+                    o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
+                    oerror = (NgaJsonObject) NgaJson.parseObject(js).get("error");
+                } catch (Exception e) {
+                    NLog.e("ProxyBridge", "can not parse :\n" + js);
                 }
-                return "";
+                if (o == null) {
+                    if (oerror == null) {
+                        return "请重新登录";
+                    } else {
+                        if (!StringUtils.isEmpty(oerror.getString("0"))) {
+                            return oerror.getString("0");
+                        } else {
+                            return "二哥又开始乱搞了";
+                        }
+                    }
+                } else {
+                    if (!StringUtils.isEmpty(o.getString("0"))) {
+                        return o.getString("0");
+                    } else {
+                        return "二哥又开始乱搞了";
+                    }
+                }
+            } else {
+                return "二哥在用服务器下毛片";
             }
-        }).execute(url);
+        } catch (IOException e) {
+        }
+        return "";
     }
 
 }

@@ -1,6 +1,5 @@
 package gov.anzong.androidnga.activity;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Context;
@@ -8,7 +7,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -24,6 +22,7 @@ import android.widget.TextView;
 
 import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 
 import gov.anzong.androidnga.common.util.StreamUtils;
 
@@ -228,9 +227,8 @@ public class AvatarPostActivity extends BaseActivity implements
         super.onResume();
     }
 
-    @TargetApi(11)
     private void RunParallel(AvatarFileUploadTask task) {
-        task.executeOnExecutor(AvatarFileUploadTask.THREAD_POOL_EXECUTOR);
+        task.execute();
     }
 
     @Override
@@ -316,42 +314,26 @@ public class AvatarPostActivity extends BaseActivity implements
 
     }
 
-    private class ArticlePostTask extends AsyncTask<String, Integer, String> {
+    private class ArticlePostTask {
 
         final Context c;
         private boolean keepActivity = false;
 
         public ArticlePostTask(Context context) {
-            super();
             this.c = context;
         }
 
-        @Override
-        protected void onPreExecute() {
+        /** 原 AsyncTask.execute：先显示提示，在后台提交，结果在主线程处理。 */
+        public void execute(String... params) {
+            onPreExecute();
+            BackgroundTask.run(() -> doInBackground(params), this::onPostExecute);
+        }
+
+        private void onPreExecute() {
             ActivityUtils.getInstance().noticeSaying(c);
-            super.onPreExecute();
         }
 
-        @Override
-        protected void onCancelled() {
-            synchronized (commit_lock) {
-                loading = false;
-            }
-            ActivityUtils.getInstance().dismiss();
-            super.onCancelled();
-        }
-
-        @Override
-        protected void onCancelled(String result) {
-            synchronized (commit_lock) {
-                loading = false;
-            }
-            ActivityUtils.getInstance().dismiss();
-            super.onCancelled();
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
+        private String doInBackground(String... params) {
             if (params.length < 2)
                 return "parameter error";
             String ret = "网络错误";
@@ -423,8 +405,7 @@ public class AvatarPostActivity extends BaseActivity implements
             return o.getString("0");
         }
 
-        @Override
-        protected void onPostExecute(String result) {
+        private void onPostExecute(String result) {
             String success_results[] = {"操作成功 你可能需要重新登录以显示新的头像"};
             if (keepActivity == false) {
                 boolean success = false;
@@ -451,8 +432,6 @@ public class AvatarPostActivity extends BaseActivity implements
             synchronized (commit_lock) {
                 loading = false;
             }
-
-            super.onPostExecute(result);
         }
 
     }

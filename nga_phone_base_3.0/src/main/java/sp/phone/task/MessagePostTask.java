@@ -1,7 +1,7 @@
 package sp.phone.task;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 
 import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
@@ -22,7 +22,7 @@ import sp.phone.util.NLog;
  * Created by Justwen on 2017/5/28.
  */
 
-public class MessagePostTask extends AsyncTask<String, Integer, String> {
+public class MessagePostTask {
 
     private CallBack mCallBack;
 
@@ -47,26 +47,17 @@ public class MessagePostTask extends AsyncTask<String, Integer, String> {
     }
 
 
-    @Override
-    protected void onPreExecute() {
+    /** 原 AsyncTask.execute：先在调用线程执行 onPreExecute，再在后台执行请求，结果在主线程处理。 */
+    public void execute(String... params) {
+        onPreExecute();
+        BackgroundTask.run(() -> doInBackground(params), this::onPostExecute);
+    }
+
+    private void onPreExecute() {
         ActivityUtils.getInstance().noticeSaying(mContext);
-        super.onPreExecute();
     }
 
-    @Override
-    protected void onCancelled() {
-        mCallBack.onMessagePostFinished(false,null);
-        super.onCancelled();
-    }
-
-    @Override
-    protected void onCancelled(String result) {
-        mCallBack.onMessagePostFinished(false,null);
-        super.onCancelled();
-    }
-
-    @Override
-    protected String doInBackground(String... params) {
+    private String doInBackground(String... params) {
         if (params.length == 0) {
             return "parameter error";
         }
@@ -137,8 +128,7 @@ public class MessagePostTask extends AsyncTask<String, Integer, String> {
         return o.getString("0");
     }
 
-    @Override
-    protected void onPostExecute(String result) {
+    private void onPostExecute(String result) {
         String success_results[] = {"发送完毕 ...", " @提醒每24小时不能超过50个", "操作成功"};
         if (mSuccess) {
             boolean success = false;
@@ -153,7 +143,5 @@ public class MessagePostTask extends AsyncTask<String, Integer, String> {
         }
 
         mCallBack.onMessagePostFinished(mSuccess,result);
-
-        super.onPostExecute(result);
     }
 }

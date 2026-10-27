@@ -1,7 +1,7 @@
 package sp.phone.task;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 
 import gov.anzong.androidnga.common.util.StreamUtils;
 
@@ -18,7 +18,7 @@ import sp.phone.util.NLog;
  * Created by Justwen on 2017/6/6.
  */
 
-public class TopicPostTask extends AsyncTask<String, Integer, String> {
+public class TopicPostTask {
 
     private final Context mContext;
 
@@ -46,20 +46,12 @@ public class TopicPostTask extends AsyncTask<String, Integer, String> {
         mCallBack = callBack;
     }
 
-    @Override
-    protected void onCancelled() {
-        mCallBack.onArticlePostFinished(false, null);
-        super.onCancelled();
+    /** 原 AsyncTask.execute：在后台发帖，结果在主线程回调。 */
+    public void execute(String... params) {
+        BackgroundTask.run(() -> doInBackground(params), this::onPostExecute);
     }
 
-    @Override
-    protected void onCancelled(String result) {
-        mCallBack.onArticlePostFinished(false, null);
-        super.onCancelled();
-    }
-
-    @Override
-    protected String doInBackground(String... params) {
+    private String doInBackground(String... params) {
         if (params.length < 1)
             return "parameter error";
         String ret = "网络错误";
@@ -110,8 +102,7 @@ public class TopicPostTask extends AsyncTask<String, Integer, String> {
         return html.substring(start, end);
     }
 
-    @Override
-    protected void onPostExecute(String result) {
+    private void onPostExecute(String result) {
         String success_results[] = {"发贴完毕", "@提醒每24小时不能超过50个"};
         if (!mHasError) {
             boolean success = false;
@@ -126,6 +117,5 @@ public class TopicPostTask extends AsyncTask<String, Integer, String> {
                 mHasError = true;
         }
         mCallBack.onArticlePostFinished(!mHasError, result);
-        super.onPostExecute(result);
     }
 }
