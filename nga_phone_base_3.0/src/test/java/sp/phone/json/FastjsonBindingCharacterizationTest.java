@@ -6,12 +6,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,9 +28,22 @@ import sp.phone.mvp.model.entity.ThreadPageInfo;
  *
  * <p>本地已保存的数据由旧版本写入，替换实现后必须能原样读取，并继续写出可被旧版本读取的格式。两条绑定路径规则不同：
  * {@code parseObject/parseArray(text, Class)} 宽松匹配键名（忽略大小写与下划线），
- * {@code JSONObject.toJavaObject} 仅按属性名精确匹配。
+ * {@code JSONObject.toJavaObject} 仅按属性名精确匹配，两者的类型转换规则也不同。每个用例同时针对 fastjson 与
+ * {@code NgaJson} 运行。
  */
+@RunWith(Parameterized.class)
 public class FastjsonBindingCharacterizationTest {
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> backends() {
+        return JsonBackend.all();
+    }
+
+    private final JsonBackend json;
+
+    public FastjsonBindingCharacterizationTest(JsonBackend json) {
+        this.json = json;
+    }
 
     // ---- 屏蔽用户：PreferenceKey.BLACK_LIST、旧版 USER_LIST ----
 
@@ -42,7 +55,7 @@ public class FastjsonBindingCharacterizationTest {
                 "[{\"avatarUrl\":\"https://img/a.png\",\"cid\":\"cid-x\",\"mAvatarUrl\":\"https://img/a.png\","
                         + "\"mCid\":\"cid-x\",\"mNickName\":\"昵称\",\"mUserId\":\"42\",\"nickName\":\"昵称\","
                         + "\"userId\":\"42\"}]",
-                JSON.toJSONString(Collections.singletonList(user)));
+                json.toJSONString(Collections.singletonList(user)));
     }
 
     @Test
@@ -53,8 +66,8 @@ public class FastjsonBindingCharacterizationTest {
         assertUser("1|n|null|null", "[{\"user_id\":\"1\",\"nick_name\":\"n\"}]");
     }
 
-    private static void assertUser(String expected, String source) {
-        User user = JSON.parseArray(source, User.class).get(0);
+    private void assertUser(String expected, String source) {
+        User user = json.parseArray(source, User.class).get(0);
         assertEquals(
                 source,
                 expected,
@@ -67,15 +80,15 @@ public class FastjsonBindingCharacterizationTest {
     public void filterKeywordFormat() {
         assertEquals(
                 "[{\"enabled\":true,\"keyword\":\"词\"},{\"enabled\":false}]",
-                JSON.toJSONString(Arrays.asList(new FilterKeyword("词"), new FilterKeyword())));
+                json.toJSONString(Arrays.asList(new FilterKeyword("词"), new FilterKeyword())));
         assertKeyword("k|true", "[{\"keyword\":\"k\",\"enabled\":true}]");
         assertKeyword("k|false", "[{\"keyword\":\"k\"}]");
         assertKeyword("k|true", "[{\"keyword\":\"k\",\"enabled\":\"1\"}]");
         assertKeyword("k|true", "[{\"keyword\":\"k\",\"enabled\":1}]");
     }
 
-    private static void assertKeyword(String expected, String source) {
-        FilterKeyword keyword = JSON.parseArray(source, FilterKeyword.class).get(0);
+    private void assertKeyword(String expected, String source) {
+        FilterKeyword keyword = json.parseArray(source, FilterKeyword.class).get(0);
         assertEquals(source, expected, keyword.getKeyword() + "|" + keyword.isEnabled());
     }
 
@@ -120,20 +133,20 @@ public class FastjsonBindingCharacterizationTest {
 
     @Test
     public void topicHistoryFormat() {
-        assertEquals(SAMPLE_TOPIC_JSON, JSON.toJSONString(sampleTopic()));
+        assertEquals(SAMPLE_TOPIC_JSON, json.toJSONString(sampleTopic()));
         assertEquals(
                 "{\"anonymity\":false,\"authorId\":0,\"fid\":0,\"historyVisitedAt\":0,\"mirrorBoard\":false,"
                         + "\"page\":0,\"pid\":0,\"position\":0,\"postDate\":0,\"replies\":0,\"tid\":0,\"type\":0}",
-                JSON.toJSONString(new ThreadPageInfo()));
+                json.toJSONString(new ThreadPageInfo()));
         assertEquals(
                 SAMPLE_TOPIC_JSON,
-                JSON.toJSONString(JSON.parseArray("[" + SAMPLE_TOPIC_JSON + "]", ThreadPageInfo.class).get(0)));
+                json.toJSONString(json.parseArray("[" + SAMPLE_TOPIC_JSON + "]", ThreadPageInfo.class).get(0)));
     }
 
     @Test
     public void olderTopicHistoryIsReadWithCoercion() {
         ThreadPageInfo topic =
-                JSON.parseObject(
+                json.parseObject(
                         "{\"tid\":\"42\",\"page\":3,\"subject\":\"离线\",\"mirrorBoard\":true,\"anonymity\":1,"
                                 + "\"historyVisitedAt\":\"5\"}",
                         ThreadPageInfo.class);
@@ -150,7 +163,7 @@ public class FastjsonBindingCharacterizationTest {
 
     @Test
     public void stringListAndForumFavoriteCacheFormat() {
-        assertEquals("[\"a\",\"中\"]", JSON.toJSONString(Arrays.asList("a", "中")));
+        assertEquals("[\"a\",\"中\"]", json.toJSONString(Arrays.asList("a", "中")));
         List<ForumFavoriteBoard> boards =
                 Arrays.asList(new ForumFavoriteBoard(-7, 0, "版块", null), new ForumFavoriteBoard(0, 42, "合集", "置顶"));
         String cache = ForumFavoritesParser.INSTANCE.serialize(boards);
@@ -165,8 +178,8 @@ public class FastjsonBindingCharacterizationTest {
     @Test
     public void topicHeaderBindsOnlyExactPropertyNames() {
         ThreadPageInfo topic =
-                JSONObject.toJavaObject(
-                        JSON.parseObject(
+                json.toJavaObject(
+                        json.parseObject(
                                 "{\"tid\":12,\"fid\":-7,\"subject\":\"主题\",\"author\":\"作者\",\"authorid\":\"9\","
                                         + "\"postdate\":1700000000,\"type\":\"1024\",\"topic_misc\":\"m\",\"titlefont\":\"tf\","
                                         + "\"lastposter\":\"lp\",\"replies\":\"3\",\"quote_from\":0,\"this_visit_rows\":20}"),
@@ -188,8 +201,8 @@ public class FastjsonBindingCharacterizationTest {
     @Test
     public void replyRowBindsWithCoercionAndNestedAttachments() {
         ThreadRowInfo row =
-                JSONObject.toJavaObject(
-                        JSON.parseObject(
+                json.toJavaObject(
+                        json.parseObject(
                                 "{\"tid\":\"12\",\"fid\":-7,\"author\":\"作者\",\"authorid\":\"9\",\"subject\":\"标题\","
                                         + "\"vote\":\"v\",\"postdate\":\"2024-01-02 03:04\",\"postdatetimestamp\":1700000000,"
                                         + "\"pid\":\"0\",\"isanonymous\":\"1\",\"alterinfo\":\"[E1]\",\"content\":\"正文\","
@@ -233,8 +246,8 @@ public class FastjsonBindingCharacterizationTest {
     @Test
     public void replyRowKeyMatchingIsCaseSensitive() {
         ThreadRowInfo row =
-                JSONObject.toJavaObject(
-                        JSON.parseObject(
+                json.toJavaObject(
+                        json.parseObject(
                                 "{\"FROM_CLIENT\":\"x\",\"fromClient\":\"y\",\"isAnonymous\":true,\"Lou\":2}"),
                         ThreadRowInfo.class);
         assertEquals("y", row.getFromClient());
@@ -245,8 +258,8 @@ public class FastjsonBindingCharacterizationTest {
     @Test
     public void replyRowEmptyContainersBecomeNull() {
         ThreadRowInfo row =
-                JSONObject.toJavaObject(
-                        JSON.parseObject("{\"attachs\":\"\",\"comment\":\"\"}"), ThreadRowInfo.class);
+                json.toJavaObject(
+                        json.parseObject("{\"attachs\":\"\",\"comment\":\"\"}"), ThreadRowInfo.class);
         assertNull(row.getAttachs());
         assertNull(row.getComments());
     }
@@ -258,11 +271,114 @@ public class FastjsonBindingCharacterizationTest {
                     "{\"lou\":\"\"}", "{\"pid\":\"abc\"}", "{\"attachs\":[{\"attachurl\":\"a\"}]}"
                 }) {
             try {
-                JSONObject.toJavaObject(JSON.parseObject(source), ThreadRowInfo.class);
+                json.toJavaObject(json.parseObject(source), ThreadRowInfo.class);
                 fail("应拒绝：" + source);
             } catch (RuntimeException expected) {
                 // 当前转换整页失败；替换时保持一致，放宽另行处理。
             }
         }
+    }
+
+    // ---- 两条绑定路径的类型转换差异 ----
+
+    /** 绑定为 ThreadPageInfo 后的 tid|anonymity|subject，失败记为 "!"。 */
+    private String topicFields(String source, boolean strict) {
+        try {
+            ThreadPageInfo topic =
+                    strict
+                            ? json.toJavaObject(json.parseObject(source), ThreadPageInfo.class)
+                            : json.parseObject(source, ThreadPageInfo.class);
+            return topic.getTid() + "|" + topic.isAnonymity() + "|" + topic.getSubject();
+        } catch (RuntimeException e) {
+            return "!";
+        }
+    }
+
+    @Test
+    public void textAndTreeBindingCoerceScalarsDifferently() {
+        // {输入, parseObject(text, Class) 的结果, toJavaObject 的结果}
+        String[][] cases = {
+            {"{\"tid\":\"\"}", "0|false|null", "!"},
+            {"{\"tid\":null}", "0|false|null", "!"},
+            {"{\"tid\":\"abc\"}", "!", "!"},
+            {"{\"tid\":1.9}", "!", "1|false|null"},
+            {"{\"tid\":3000000000}", "!", "-1294967296|false|null"},
+            {"{\"tid\":true}", "!", "!"},
+            {"{\"anonymity\":\"\"}", "0|false|null", "!"},
+            {"{\"anonymity\":\"Y\"}", "!", "!"},
+            {"{\"anonymity\":2}", "0|false|null", "0|false|null"},
+            {"{\"anonymity\":1}", "0|true|null", "0|true|null"},
+            {"{\"subject\":12}", "0|false|12", "0|false|12"},
+            {"{\"subject\":{\"a\":1}}", "0|false|{\"a\":1}", "0|false|{\"a\":1}"},
+            {"{\"subject\":[1]}", "0|false|[1]", "0|false|[1]"},
+            {"{\"TID\":5}", "5|false|null", "0|false|null"},
+            {"{\"t_i_d\":5}", "5|false|null", "0|false|null"},
+            {"{\"t-id\":5}", "5|false|null", "0|false|null"},
+        };
+        for (String[] c : cases) {
+            assertEquals("parseObject " + c[0], c[1], topicFields(c[0], false));
+            assertEquals("toJavaObject " + c[0], c[2], topicFields(c[0], true));
+        }
+        assertEquals(7, json.parseObject("{\"historyvisitedat\":7}", ThreadPageInfo.class).getHistoryVisitedAt());
+    }
+
+    @Test
+    public void nestedObjectsAndContainers() {
+        for (boolean strict : new boolean[] {false, true}) {
+            assertNull(topic("{\"replyInfo\":\"\"}", strict).getReplyInfo());
+            assertEquals("5", topic("{\"replyInfo\":{\"pidStr\":5}}", strict).getReplyInfo().getPidStr());
+            assertEquals(Arrays.asList("1", null), row("{\"hotReplies\":[1,null]}", strict).hotReplies);
+            assertNull(row("{\"hotReplies\":\"\"}", strict).hotReplies);
+            ThreadRowInfo empty = row("{\"attachs\":{\"0\":\"\"}}", strict);
+            assertTrue(empty.getAttachs().containsKey("0"));
+            assertNull(empty.getAttachs().get("0"));
+            assertEquals(0, row("{\"attachs\":{}}", strict).getAttachs().size());
+            assertEquals(2, row("{\"comments\":[{\"lou\":2}]}", strict).getComments().get(0).getLou());
+            assertEquals(1.5f, row("{\"reputation\":\"1.5\"}", strict).getReputation(), 0);
+            assertNull(row("{\"content\":null}", strict).getContent());
+            try {
+                topic("{\"replyInfo\":[]}", strict);
+                fail("对象属性应拒绝数组");
+            } catch (RuntimeException expected) {
+            }
+        }
+        // 基本类型遇到 null：文本绑定保留默认值，树形绑定失败。
+        assertEquals(0, row("{\"lou\":null}", false).getLou());
+        try {
+            row("{\"lou\":null}", true);
+            fail("toJavaObject 应拒绝 null 写入 int");
+        } catch (RuntimeException expected) {
+        }
+        // 文本绑定可通过读取方法填充没有写入方法的集合。
+        assertEquals(Collections.singletonList("a"), row("{\"imageUrls\":[\"a\"]}", false).getImageUrls());
+    }
+
+    private ThreadPageInfo topic(String source, boolean strict) {
+        return strict
+                ? json.toJavaObject(json.parseObject(source), ThreadPageInfo.class)
+                : json.parseObject(source, ThreadPageInfo.class);
+    }
+
+    private ThreadRowInfo row(String source, boolean strict) {
+        return strict
+                ? json.toJavaObject(json.parseObject(source), ThreadRowInfo.class)
+                : json.parseObject(source, ThreadRowInfo.class);
+    }
+
+    @Test
+    public void typedDocumentEdges() {
+        List<FilterKeyword> keywords = json.parseArray("[null,{\"keyword\":\"k\"}]", FilterKeyword.class);
+        assertNull(keywords.get(0));
+        assertEquals("k", keywords.get(1).getKeyword());
+        assertNull(json.parseObject("", ThreadPageInfo.class));
+        try {
+            json.parseObject("[]", ThreadPageInfo.class);
+            fail("实体不应从数组绑定");
+        } catch (RuntimeException expected) {
+        }
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> map = json.parseObject("{\"b\":{\"x\":\"1\"},\"a\":2}", java.util.Map.class);
+        assertEquals(2, map.get("a"));
+        assertEquals("1", ((java.util.Map<?, ?>) map.get("b")).get("x"));
     }
 }

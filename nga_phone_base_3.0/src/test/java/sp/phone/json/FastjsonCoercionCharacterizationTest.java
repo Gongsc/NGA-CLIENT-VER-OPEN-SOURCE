@@ -2,19 +2,33 @@ package sp.phone.json;
 
 import static org.junit.Assert.assertEquals;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 特征测试：记录 fastjson 取值方法对各类原始值的类型转换结果。
  *
  * <p>替换 fastjson 时，新实现须逐格保持一致；"!" 表示抛出异常（不限定异常类型）。结果前缀：s 字符串、I Integer、
- * L Long、B Boolean、D Double、O 对象、A 数组。
+ * L Long、B Boolean、D Double、O 对象、A 数组。每个用例同时针对 fastjson 与 {@code NgaJson} 运行。
  */
+@RunWith(Parameterized.class)
 public class FastjsonCoercionCharacterizationTest {
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> backends() {
+        return JsonBackend.all();
+    }
+
+    private final JsonBackend json;
+
+    public FastjsonCoercionCharacterizationTest(JsonBackend json) {
+        this.json = json;
+    }
 
     private static final String[] GETTERS = {
         "getString", "getIntValue", "getInteger", "getLongValue", "getLong", "getBoolean",
@@ -58,9 +72,10 @@ public class FastjsonCoercionCharacterizationTest {
     public void gettersCoerceRawValuesAsRecorded() {
         StringBuilder mismatches = new StringBuilder();
         for (String[] row : TABLE) {
-            JSONObject object = JSON.parseObject(row[0] == null ? "{}" : "{\"v\":" + row[0] + "}");
+            Map<String, Object> object = json.parseObject(row[0] == null ? "{}" : "{\"v\":" + row[0] + "}");
             for (int i = 0; i < GETTERS.length; i++) {
-                String actual = describe(object, GETTERS[i]);
+                String getter = GETTERS[i];
+                String actual = describe(() -> json.get(object, getter, "v"));
                 if (!row[i + 1].equals(actual)) {
                     mismatches.append(row[0]).append(' ').append(GETTERS[i]).append(": 期望 ")
                             .append(row[i + 1]).append("，实际 ").append(actual).append('\n');
@@ -71,18 +86,38 @@ public class FastjsonCoercionCharacterizationTest {
     }
 
     @Test
-    public void arrayGetStringSerializesNestedObjects() {
-        JSONArray array = JSON.parseArray("[{\"a\":1},2,\"x\",null]");
-        assertEquals("{\"a\":1}", array.getString(0));
-        assertEquals("2", array.getString(1));
-        assertEquals("x", array.getString(2));
-        assertEquals(null, array.getString(3));
+    public void arrayGettersDoNotParseStringElements() {
+        List<Object> array = json.parseArray("[{\"a\":1},2,\"x\",null,\"3\",\"{\\\"b\\\":2}\"]");
+        assertEquals("{\"a\":1}", json.get(array, "getString", 0));
+        assertEquals("2", json.get(array, "getString", 1));
+        assertEquals("x", json.get(array, "getString", 2));
+        assertEquals(null, json.get(array, "getString", 3));
+        assertEquals(3, json.get(array, "getIntValue", 4));
+        assertEquals(0, json.get(array, "getIntValue", 3));
+        assertEquals("!", describe(() -> json.get(array, "getJSONObject", 5)));
     }
 
-    private static String describe(JSONObject object, String getter) {
+    @Test
+    public void additionalCoercions() {
+        Map<String, Object> o =
+                json.parseObject(
+                        "{\"d\":1e3,\"t\":\"TRUE\",\"n\":\"null\",\"l\":4294967297,\"f\":1.9,\"z\":{\"a\":[1,{\"b\":null}]}}");
+        assertEquals("1000.0", json.get(o, "getString", "d"));
+        assertEquals(true, json.get(o, "getBoolean", "t"));
+        assertEquals(null, json.get(o, "getInteger", "n"));
+        assertEquals(true, json.get(o, "getBoolean", "l"));
+        assertEquals(1L, json.get(o, "getLongValue", "f"));
+        assertEquals("{\"a\":[1,{}]}", json.get(o, "getJSONObject", "z").toString());
+    }
+
+    private interface Call {
+        Object run();
+    }
+
+    private String describe(Call call) {
         Object value;
         try {
-            value = call(object, getter);
+            value = call.run();
         } catch (RuntimeException e) {
             return "!";
         }
@@ -92,25 +127,8 @@ public class FastjsonCoercionCharacterizationTest {
         if (value instanceof Long) return "L:" + value;
         if (value instanceof Boolean) return "B:" + value;
         if (value instanceof Double) return "D:" + value;
-        if (value instanceof JSONObject) return "O:" + ((JSONObject) value).toJSONString();
-        if (value instanceof JSONArray) return "A:" + ((JSONArray) value).toJSONString();
+        if (value instanceof Map) return "O:" + json.toJSONString(value);
+        if (value instanceof List) return "A:" + json.toJSONString(value);
         return value.getClass().getSimpleName() + ":" + value;
-    }
-
-    private static Object call(JSONObject object, String getter) {
-        switch (getter) {
-            case "getString": return object.getString("v");
-            case "getIntValue": return object.getIntValue("v");
-            case "getInteger": return object.getInteger("v");
-            case "getLongValue": return object.getLongValue("v");
-            case "getLong": return object.getLong("v");
-            case "getBoolean": return object.getBoolean("v");
-            case "getBooleanValue": return object.getBooleanValue("v");
-            case "getDoubleValue": return object.getDoubleValue("v");
-            case "getJSONObject": return object.getJSONObject("v");
-            case "getJSONArray": return object.getJSONArray("v");
-            case "containsKey": return object.containsKey("v");
-            default: throw new IllegalArgumentException(getter);
-        }
     }
 }
