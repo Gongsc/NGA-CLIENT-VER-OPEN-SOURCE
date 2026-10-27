@@ -1,7 +1,7 @@
 package sp.phone.task;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import org.reactivestreams.Subscription;
 
@@ -95,9 +95,9 @@ public class JsonProfileLoadTask {
         }
         js = js.replaceAll("\"subject\":\\+(\\d+),", "\"subject\":\"+$1\",")
                 .replaceAll("/\\*\\$js\\$\\*/", "");
-        JSONObject obj = JSON.parseObject(js);
+        NgaJsonObject obj = NgaJson.parseObject(js);
         if (obj.containsKey("data")) {
-            JSONObject dataObj = obj.getJSONObject("data");
+            NgaJsonObject dataObj = obj.getJSONObject("data");
             try {
                 ProfileData ret = new ProfileData();
                 dataObj = dataObj.getJSONObject("0");
@@ -114,7 +114,7 @@ public class JsonProfileLoadTask {
         throw new IllegalStateException();
     }
 
-    private void buildAdminForums(ProfileData ret, JSONObject obj) {
+    private void buildAdminForums(ProfileData ret, NgaJsonObject obj) {
         if (obj != null) {
             List<AdminForumsData> entryList = new ArrayList<>();
             for (String key : obj.keySet()) {
@@ -125,11 +125,11 @@ public class JsonProfileLoadTask {
         }
     }
 
-    private void buildReputation(ProfileData ret, JSONObject obj) {
+    private void buildReputation(ProfileData ret, NgaJsonObject obj) {
         if (obj != null) {
             List<ReputationData> entryList = new ArrayList<>();
             for (int i = 0; i < obj.size(); i++) {
-                JSONObject subObj = obj.getJSONObject(String.valueOf(i));
+                NgaJsonObject subObj = obj.getJSONObject(String.valueOf(i));
                 if (subObj != null) {
                     ReputationData entry = new ReputationData(subObj.getString("0"), subObj.getString("1"));
                     entryList.add(entry);
@@ -139,7 +139,7 @@ public class JsonProfileLoadTask {
         }
     }
 
-    private void buildBasicInfo(ProfileData ret, JSONObject obj) {
+    private void buildBasicInfo(ProfileData ret, NgaJsonObject obj) {
         String defaultValue = "N/A";
 
         String money = obj.getString("money");
@@ -176,7 +176,7 @@ public class JsonProfileLoadTask {
             }
         }
         if (!ret.isNuked()) {
-            JSONObject buffObj = obj.getJSONObject("buffs");
+            NgaJsonObject buffObj = obj.getJSONObject("buffs");
             if (buffObj != null && buffObj.containsKey("0")) {
                 ret.setMutedTime(buffObj.getString("0"));
                 ret.setMuted(true);

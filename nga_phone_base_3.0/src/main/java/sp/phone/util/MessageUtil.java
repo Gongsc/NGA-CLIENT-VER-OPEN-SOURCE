@@ -4,8 +4,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo.State;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,9 +72,9 @@ public class MessageUtil {
             js = validJs;
 
         }
-        JSONObject o = null;
+        NgaJsonObject o = null;
         try {
-            o = (JSONObject) JSON.parseObject(js).get("data");
+            o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
         } catch (Exception e) {
             NLog.e(TAG, "can not parse :\n" + js);
         }
@@ -83,12 +83,12 @@ public class MessageUtil {
 
         MessageDetailInfo data = new MessageDetailInfo();
 
-        JSONObject o1;
-        o1 = (JSONObject) o.get("0");
+        NgaJsonObject o1;
+        o1 = (NgaJsonObject) o.get("0");
         if (o1 == null)
             return null;
 
-        JSONObject userInfoMap = (JSONObject) o1.get("userInfo");
+        NgaJsonObject userInfoMap = (NgaJsonObject) o1.get("userInfo");
 
         List<MessageArticlePageInfo> messageEntryList = convertJSobjToList(o1, userInfoMap, page);
         if (messageEntryList == null)
@@ -117,11 +117,11 @@ public class MessageUtil {
 
     }
 
-    private List<MessageArticlePageInfo> convertJSobjToList(JSONObject rowMap, JSONObject userInfoMap, int page) {
+    private List<MessageArticlePageInfo> convertJSobjToList(NgaJsonObject rowMap, NgaJsonObject userInfoMap, int page) {
         List<MessageArticlePageInfo> __R = new ArrayList<MessageArticlePageInfo>();
         if (rowMap == null)
             return null;
-        JSONObject rowObj = (JSONObject) rowMap.get("0");
+        NgaJsonObject rowObj = (NgaJsonObject) rowMap.get("0");
         for (int i = 1; rowObj != null; i++) {
             MessageArticlePageInfo row = new MessageArticlePageInfo();
 
@@ -138,13 +138,13 @@ public class MessageUtil {
             fillUserInfo(row, userInfoMap);
             fillFormated_html_data(row, i);
             __R.add(row);
-            rowObj = (JSONObject) rowMap.get(String.valueOf(i));
+            rowObj = (NgaJsonObject) rowMap.get(String.valueOf(i));
         }
         return __R;
     }
 
-    private void fillUserInfo(MessageArticlePageInfo row, JSONObject userInfoMap) {
-        JSONObject userInfo = (JSONObject) userInfoMap.get(row.getFrom());
+    private void fillUserInfo(MessageArticlePageInfo row, NgaJsonObject userInfoMap) {
+        NgaJsonObject userInfo = (NgaJsonObject) userInfoMap.get(row.getFrom());
         if (userInfo == null) {
             return;
         }
@@ -157,7 +157,7 @@ public class MessageUtil {
     }
 
     @SuppressWarnings("unused")
-    private List<MessageArticlePageInfo> convertJSobjToList(JSONObject rowMap, JSONObject userInfoMap) {
+    private List<MessageArticlePageInfo> convertJSobjToList(NgaJsonObject rowMap, NgaJsonObject userInfoMap) {
         return convertJSobjToList(rowMap, userInfoMap, 1);
     }
 

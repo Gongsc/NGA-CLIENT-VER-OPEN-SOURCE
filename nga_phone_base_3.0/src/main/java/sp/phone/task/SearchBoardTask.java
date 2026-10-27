@@ -1,7 +1,7 @@
 package sp.phone.task;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -26,7 +26,7 @@ public class SearchBoardTask {
                 .observeOn(Schedulers.io())
                 .map(s -> {
                     try {
-                        JSONObject obj = JSON.parseObject(s).getJSONObject("data").getJSONObject("0");
+                        NgaJsonObject obj = NgaJson.parseObject(s).getJSONObject("data").getJSONObject("0");
                         int fid = obj.getInteger("fid");
                         String title = obj.getString("name");
                         Board board = BoardModel.getInstance().findBoard(String.valueOf(fid));

@@ -1,7 +1,7 @@
 package sp.phone.task;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class LikeTask {
                     @Override
                     public void onNext(String s) {
                         try {
-                            JSONObject obj = JSON.parseObject(s).getJSONObject("data");
+                            NgaJsonObject obj = NgaJson.parseObject(s).getJSONObject("data");
                             callBack.onResult(obj.getString("0"));
                         } catch (Exception e) {
                             callBack.onResult(ContextUtils.getString(R.string.network_error));

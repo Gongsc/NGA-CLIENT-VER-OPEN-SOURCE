@@ -2,7 +2,9 @@ package gov.anzong.androidnga.mvvm.viewmodel
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import com.alibaba.fastjson.JSON
+import gov.anzong.androidnga.base.json.NgaJson
+import gov.anzong.androidnga.base.json.NgaJsonArray
+import gov.anzong.androidnga.base.json.NgaJsonObject
 import gov.anzong.androidnga.Utils
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -103,11 +105,11 @@ private fun requestHomeReplies(cookie: String): Observable<List<RecentReplyInfo>
         }
 
 internal fun homeReplyError(content: String): String? {
-    val json = runCatching { JSON.parseObject(content.removePrefix("window.script_muti_get_var_store=")) }.getOrNull()
+    val json = runCatching { NgaJson.parseObject(content.removePrefix("window.script_muti_get_var_store=")) }.getOrNull()
         ?: return if (content.isBlank()) "回复通知加载失败，请稍后重试" else null
     val error = json["error"] ?: return null
-    return (error as? com.alibaba.fastjson.JSONObject)?.getString("0")
-        ?: (error as? com.alibaba.fastjson.JSONArray)?.getString(0)
+    return (error as? NgaJsonObject)?.getString("0")
+        ?: (error as? NgaJsonArray)?.getString(0)
         ?: error.toString()
 }
 

@@ -1,7 +1,7 @@
 package sp.phone.mvp.model.convert;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import java.net.UnknownHostException;
 
@@ -23,9 +23,9 @@ public class ErrorConvertFactory {
             return ContextUtils.getString(R.string.last_page_prompt);
         } else {
             try {
-                JSONObject obj = (JSONObject) JSON.parse(js);
-                obj = (JSONObject) obj.get("data");
-                obj = (JSONObject) obj.get("__MESSAGE");
+                NgaJsonObject obj = (NgaJsonObject) NgaJson.parse(js);
+                obj = (NgaJsonObject) obj.get("data");
+                obj = (NgaJsonObject) obj.get("__MESSAGE");
                 return obj.getString("1");
             } catch (Exception e) {
                 return null;

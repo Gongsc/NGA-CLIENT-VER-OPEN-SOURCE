@@ -1,7 +1,7 @@
 package sp.phone.mvp.model.convert;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,15 +37,15 @@ public class MessageConvertFactory {
         js = js.replaceAll("\"content\":\\+(\\d+),", "\"content\":\"+$1\",");
         js = js.replaceAll("\"subject\":\\+(\\d+),", "\"subject\":\"+$1\",");
         js = js.replaceAll("/\\*\\$js\\$\\*/", "");
-        JSONObject o = null;
+        NgaJsonObject o = null;
         try {
-            o = (JSONObject) JSON.parseObject(js).get("data");
+            o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
         } catch (Exception e) {
             NLog.e(TAG, "can not parse :\n" + js);
         }
         if (o == null) {
             try {
-                o = (JSONObject) JSON.parseObject(js).get("error");
+                o = (NgaJsonObject) NgaJson.parseObject(js).get("error");
             } catch (Exception e) {
                 NLog.e(TAG, "can not parse :\n" + js);
             }
@@ -60,7 +60,7 @@ public class MessageConvertFactory {
         }
 
         MessageListInfo ret = new MessageListInfo();
-        JSONObject o1 = (JSONObject) o.get("0");
+        NgaJsonObject o1 = (NgaJsonObject) o.get("0");
         if (o1 == null) {
             mErrorMsg = "请重新登录";
             return null;
@@ -71,7 +71,7 @@ public class MessageConvertFactory {
 
 
         List<MessageThreadPageInfo> messageEntryList = new ArrayList<>();
-        JSONObject rowObj = (JSONObject) o1.get("0");
+        NgaJsonObject rowObj = (NgaJsonObject) o1.get("0");
         for (int i = 1; rowObj != null; i++) {
             try {
                 MessageThreadPageInfo entry = new MessageThreadPageInfo();
@@ -93,7 +93,7 @@ public class MessageConvertFactory {
                     entry.setLastTime("");
                 }
                 messageEntryList.add(entry);
-                rowObj = (JSONObject) o1.get(String.valueOf(i));
+                rowObj = (NgaJsonObject) o1.get(String.valueOf(i));
             } catch (Exception e) {
                 /*ThreadPageInfo entry = new ThreadPageInfo();
                 String error = rowObj.getString("error");
@@ -121,16 +121,16 @@ public class MessageConvertFactory {
         js = js.replaceAll("/\\*\\$js\\$\\*/", "");
         js = js.replaceAll("\\[img\\]./mon_", "[img]http://img6.nga.178.com/attachments/mon_");
 
-        JSONObject o = null;
+        NgaJsonObject o = null;
         try {
-            o = (JSONObject) JSON.parseObject(js).get("data");
+            o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
         } catch (Exception e) {
             NLog.e(TAG, "can not parse :\n" + js);
         }
         if (o == null) {
 
             try {
-                o = (JSONObject) JSON.parseObject(js).get("error");
+                o = (NgaJsonObject) NgaJson.parseObject(js).get("error");
             } catch (Exception e) {
                 NLog.e(TAG, "can not parse :\n" + js);
             }

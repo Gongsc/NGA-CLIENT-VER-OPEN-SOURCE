@@ -3,8 +3,8 @@ package sp.phone.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import org.apache.commons.io.IOUtils;
 
@@ -117,15 +117,15 @@ public class MessagePostTask extends AsyncTask<String, Integer, String> {
         js = js.replaceAll("\"content\":\\+(\\d+),", "\"content\":\"+$1\",");
         js = js.replaceAll("\"subject\":\\+(\\d+),", "\"subject\":\"+$1\",");
         js = js.replaceAll("/\\*\\$js\\$\\*/", "");
-        JSONObject o = null;
+        NgaJsonObject o = null;
         try {
-            o = (JSONObject) JSON.parseObject(js).get("data");
+            o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
         } catch (Exception e) {
             NLog.e("TAG", "can not parse :\n" + js);
         }
         if (o == null) {
             try {
-                o = (JSONObject) JSON.parseObject(js).get("error");
+                o = (NgaJsonObject) NgaJson.parseObject(js).get("error");
             } catch (Exception e) {
                 NLog.e("TAG", "can not parse :\n" + js);
             }

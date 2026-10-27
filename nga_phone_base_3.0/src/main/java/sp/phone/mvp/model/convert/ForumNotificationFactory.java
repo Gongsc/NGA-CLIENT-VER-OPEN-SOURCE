@@ -1,8 +1,9 @@
 package sp.phone.mvp.model.convert;
 
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonArray;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +23,14 @@ public class ForumNotificationFactory {
         List<RecentReplyInfo> infoList = new ArrayList<>();
 
         try {
-            JSONObject obj = JSONObject.parseObject(content);
-            JSONObject data = obj == null ? null : obj.getJSONObject("data");
+            NgaJsonObject obj = NgaJson.parseObject(content);
+            NgaJsonObject data = obj == null ? null : obj.getJSONObject("data");
             obj = data == null ? null : data.getJSONObject("0");
             if (obj == null) {
                 // 没有任何通知时服务端不返回 data.0。
                 return infoList;
             }
-            JSONArray array = obj.getJSONArray("0");
+            NgaJsonArray array = obj.getJSONArray("0");
             // 部分响应不带 unread 字段，按无未读处理，避免整个列表解析失败。
             Integer unread = obj.getInteger("unread");
             if (array != null) {
@@ -45,7 +46,7 @@ public class ForumNotificationFactory {
         return infoList;
     }
 
-    private static RecentReplyInfo buildRecentReplyInfo(JSONObject obj) {
+    private static RecentReplyInfo buildRecentReplyInfo(NgaJsonObject obj) {
 
         String userName = obj.get("2").toString();
         String title = obj.get("5").toString();
@@ -76,11 +77,11 @@ public class ForumNotificationFactory {
         List<NotificationInfo> infoList = new ArrayList<>();
 
         try {
-            JSONObject obj = JSONObject.parseObject(content);
+            NgaJsonObject obj = NgaJson.parseObject(content);
             obj = obj.getJSONObject("data").getJSONObject("0");
             if (obj != null) {
                 int unread = obj.getInteger("unread");
-                JSONArray array = obj.getJSONArray("0");
+                NgaJsonArray array = obj.getJSONArray("0");
                 if (array != null) {
                     for (int i = 0; i < array.size(); i++) {
                         RecentReplyInfo info = buildRecentReplyInfo(array.getJSONObject(i));
@@ -105,7 +106,7 @@ public class ForumNotificationFactory {
         return infoList;
     }
 
-    private static NotificationInfo buildMessageInfo(JSONObject obj) {
+    private static NotificationInfo buildMessageInfo(NgaJsonObject obj) {
         String userName = obj.get("2").toString();
         int type = Integer.parseInt(obj.get("0").toString());
         return new NotificationInfo(type, userName);
