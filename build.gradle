@@ -31,4 +31,6 @@ project.ext {
     androidxAppcompat = '1.7.1'
     androidxMaterial = '1.13.0'
     room_version = '2.8.4'
+    retrofit = '3.0.0'
+    okhttp = '4.12.0'
 }

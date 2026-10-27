@@ -93,7 +93,7 @@ public class RetrofitHelper {
                     String body = StringUtils.requestBody2String(request.body());
                     body = URLDecoder.decode(body, "utf-8");
                     if (body.contains("charset=gbk")) {
-                        request = request.newBuilder().post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded;charset=GBK"), body)).build();
+                        request = request.newBuilder().post(RequestBody.create(body, MediaType.get("application/x-www-form-urlencoded;charset=GBK"))).build();
                     }
                 }
             } catch (Exception e) {

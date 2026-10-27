@@ -1,8 +1,8 @@
 package gov.anzong.androidnga.ui.compose
 
 import io.reactivex.Observable
-import okhttp3.MediaType
-import okhttp3.ResponseBody
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.*
 import org.junit.Test
 import sp.phone.http.article.ArticlePageLoader
@@ -22,8 +22,8 @@ class IncompleteTopicTest {
                 assertTrue(url.contains("nga_client_retry="))
                 assertEquals("no-cache, no-store", headers["Cache-Control"])
             }
-            Observable.just(ResponseBody.create(MediaType.parse("application/json; charset=UTF-8"),
-                if (requests == 1) source.dropLast(1) else source))
+            Observable.just((
+                if (requests == 1) source.dropLast(1) else source).toResponseBody("application/json; charset=UTF-8".toMediaType()))
         }, { json -> parses++; ArticleConvertFactory.getArticleInfo(json) })
         val result = loader.load("https://bbs.nga.cn/read.php?tid=47787244&page=1", mapOf("Cookie" to "fixture-account")).blockingFirst()
         assertEquals(2,requests)
@@ -49,8 +49,8 @@ class IncompleteTopicTest {
         var requests = 0
         val loader = ArticlePageLoader<ThreadData>({ _, _ ->
             requests++
-            Observable.just(ResponseBody.create(MediaType.parse("text/html; charset=UTF-8"),
-                if (requests == 1) "{\"data\":" else html))
+            Observable.just((
+                if (requests == 1) "{\"data\":" else html).toResponseBody("text/html; charset=UTF-8".toMediaType()))
         }, ArticleConvertFactory::getArticleInfo)
         val data = loader.load("https://bbs.nga.cn/read.php?tid=12&page=1", emptyMap()).blockingFirst()
         assertEquals(2, requests)

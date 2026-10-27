@@ -49,6 +49,6 @@ dependencies {
     // kotlin
     implementation "androidx.core:core-ktx:1.17.0"
 
-    //retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    // okhttp
+    implementation "com.squareup.okhttp3:okhttp:${rootProject.ext.okhttp}"
 }

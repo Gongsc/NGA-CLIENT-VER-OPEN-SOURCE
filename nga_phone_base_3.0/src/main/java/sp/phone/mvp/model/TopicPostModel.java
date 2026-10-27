@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import gov.anzong.androidnga.R;
@@ -247,8 +246,8 @@ public class TopicPostModel extends BaseModel implements TopicPostContract.Model
     private MultipartBody buildMultipartBody(String fileName, byte[] bytes, PostParam postParam) throws UnsupportedEncodingException {
         MultipartBody.Builder builder = new MultipartBody.Builder();
 
-        builder.setType(Objects.requireNonNull(MediaType.parse("multipart/form-data")))
-                .addPart(MultipartBody.Part.createFormData("attachment_file1", fileName, RequestBody.create(MediaType.parse("image/jpeg"), bytes)))
+        builder.setType(MediaType.get("multipart/form-data"))
+                .addPart(MultipartBody.Part.createFormData("attachment_file1", fileName, RequestBody.create(bytes, MediaType.get("image/jpeg"))))
                 .addFormDataPart("attachment_file1_url_utf8_name", new String(fileName.getBytes(), "UTF-8"))
                 .addFormDataPart("fid", String.valueOf(postParam.getPostFid()))
                 .addFormDataPart("auth", postParam.getAuthCode())

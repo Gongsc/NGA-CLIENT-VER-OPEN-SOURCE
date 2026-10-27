@@ -108,10 +108,9 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
     implementation 'org.jsoup:jsoup:1.23.2'
-    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
-    implementation 'com.squareup.retrofit2:retrofit-converters:2.3.0'
-    implementation 'com.squareup.retrofit2:converter-scalars:2.3.0'
-    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    implementation "com.squareup.retrofit2:retrofit:${rootProject.ext.retrofit}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${rootProject.ext.retrofit}"
+    implementation "com.squareup.okhttp3:okhttp:${rootProject.ext.okhttp}"
 
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
