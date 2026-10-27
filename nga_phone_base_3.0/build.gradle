@@ -112,7 +112,6 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:${rootProject.ext.retrofit}"
     implementation "com.squareup.okhttp3:okhttp:${rootProject.ext.okhttp}"
 
-    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
     implementation 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
     implementation 'com.trello.rxlifecycle2:rxlifecycle-android:2.1.0'
