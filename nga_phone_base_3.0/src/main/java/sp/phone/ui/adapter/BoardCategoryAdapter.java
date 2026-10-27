@@ -1,5 +1,7 @@
 package sp.phone.ui.adapter;
 
+import gov.anzong.androidnga.coroutines.UiEventBus;
+import gov.anzong.androidnga.util.ThrottledClickListener;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
@@ -18,9 +20,7 @@ import gov.anzong.androidnga.util.GlideApp;
 import sp.phone.common.ApiConstants;
 import sp.phone.mvp.model.entity.Board;
 import sp.phone.mvp.model.entity.BoardCategory;
-import sp.phone.rxjava.RxBus;
 import sp.phone.rxjava.RxEvent;
-import sp.phone.rxjava.RxUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,11 +122,10 @@ public class BoardCategoryAdapter
             }
             holder.itemView.setTag(board);
             holder.name.setText(board.getName());
-            RxUtils.clicks(
+            ThrottledClickListener.clicks(
                     holder.itemView,
                     v ->
-                            RxBus.getInstance()
-                                    .post(new RxEvent(RxEvent.EVENT_SHOW_TOPIC_LIST, board)));
+                            UiEventBus.post(new RxEvent(RxEvent.EVENT_SHOW_TOPIC_LIST, board)));
         } else {
             int subCategoryIndex = mTitlePositions.indexOf(position);
             BoardCategory subCategory = mCategory.getSubCategory(subCategoryIndex);

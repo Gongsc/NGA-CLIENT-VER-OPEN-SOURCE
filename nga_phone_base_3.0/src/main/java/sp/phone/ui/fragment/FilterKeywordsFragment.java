@@ -13,7 +13,7 @@ import android.widget.Checkable;
 import android.widget.TextView;
 
 import gov.anzong.androidnga.R;
-import io.reactivex.annotations.Nullable;
+import androidx.annotation.Nullable;
 import sp.phone.ui.adapter.FilterKeywordsAdapter;
 import sp.phone.common.FilterKeyword;
 import sp.phone.common.FilterKeywordsManagerImpl;

@@ -1,5 +1,7 @@
 package sp.phone.mvp.presenter;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Bundle;
 import android.content.Intent;
 import android.util.ArrayMap;
@@ -15,8 +17,6 @@ import sp.phone.http.bean.ThreadRowInfo;
 import sp.phone.mvp.contract.ArticleListContract;
 import sp.phone.mvp.model.ArticleListModel;
 import sp.phone.param.ArticleListParam;
-import sp.phone.rxjava.BaseSubscriber;
-import sp.phone.rxjava.RxUtils;
 import sp.phone.task.LikeTask;
 import sp.phone.ui.fragment.ArticleListFragment;
 import sp.phone.util.FunctionUtils;
@@ -57,16 +57,14 @@ public class ArticleListPresenter extends BasePresenter<ArticleListFragment, Art
                 mThreadData = data;
                 mBaseView.setRefreshing(false);
                 mBaseView.setData(data);
-                RxUtils.postDelay(
-                        300,
-                        new BaseSubscriber<Long>() {
-                            @Override
-                            public void onNext(Long aLong) {
-                                if (mBaseView != null) {
-                                    mBaseView.hideLoadingView();
-                                }
-                            }
-                        });
+                new Handler(Looper.getMainLooper())
+                        .postDelayed(
+                                () -> {
+                                    if (mBaseView != null) {
+                                        mBaseView.hideLoadingView();
+                                    }
+                                },
+                                300);
             }
         }
     }

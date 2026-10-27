@@ -1,5 +1,7 @@
 package sp.phone.ui.fragment;
 
+import gov.anzong.androidnga.coroutines.UiEventBus;
+import gov.anzong.androidnga.util.ThrottledClickListener;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,9 +17,7 @@ import gov.anzong.androidnga.R;
 
 import sp.phone.mvp.contract.LoginContract;
 import sp.phone.mvp.presenter.LoginPresenter;
-import sp.phone.rxjava.RxBus;
 import sp.phone.rxjava.RxEvent;
-import sp.phone.rxjava.RxUtils;
 import sp.phone.ui.fragment.dialog.LoginDialogFragment;
 
 public class LoginFragment extends BaseMvpFragment<LoginPresenter>
@@ -44,7 +44,7 @@ public class LoginFragment extends BaseMvpFragment<LoginPresenter>
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
         mPasswordView = rootView.findViewById(R.id.login_password_edittext);
         mUserNameView = rootView.findViewById(R.id.login_user_edittext);
-        RxUtils.clicks(rootView.findViewById(R.id.login_button), this);
+        ThrottledClickListener.clicks(rootView.findViewById(R.id.login_button), this);
         return rootView;
     }
 
@@ -73,8 +73,7 @@ public class LoginFragment extends BaseMvpFragment<LoginPresenter>
     @Override
     public void setAuthCodeImg(String dataUrl) {
         mAuthCodeDataUrl = dataUrl;
-        RxBus.getInstance()
-                .post(new RxEvent(RxEvent.EVENT_LOGIN_AUTH_CODE_UPDATE, mAuthCodeDataUrl));
+        UiEventBus.post(new RxEvent(RxEvent.EVENT_LOGIN_AUTH_CODE_UPDATE, mAuthCodeDataUrl));
     }
 
     @Override

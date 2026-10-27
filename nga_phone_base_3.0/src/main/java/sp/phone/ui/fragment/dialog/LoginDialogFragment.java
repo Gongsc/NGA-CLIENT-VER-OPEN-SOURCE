@@ -1,5 +1,7 @@
 package sp.phone.ui.fragment.dialog;
 
+import gov.anzong.androidnga.coroutines.UiEventBus;
+import gov.anzong.androidnga.util.ThrottledClickListener;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -17,10 +19,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import gov.anzong.androidnga.R;
 
-import sp.phone.rxjava.BaseSubscriber;
-import sp.phone.rxjava.RxBus;
 import sp.phone.rxjava.RxEvent;
-import sp.phone.rxjava.RxUtils;
 
 public class LoginDialogFragment extends BaseDialogFragment {
     public WebView mAuthCodeWebView;
@@ -44,18 +43,15 @@ public class LoginDialogFragment extends BaseDialogFragment {
         Bundle bundle = getArguments();
         mDataUrl = bundle.getString("data_url");
 
-        RxBus.getInstance()
-                .register(RxEvent.class)
-                .subscribe(
-                        new BaseSubscriber<RxEvent>() {
-            @Override
-            public void onNext(RxEvent rxEvent) {
-                                if (rxEvent.what == RxEvent.EVENT_LOGIN_AUTH_CODE_UPDATE
-                                        && mAuthCodeWebView != null) {
-                    mAuthCodeWebView.loadUrl(String.valueOf(rxEvent.obj));
-                }
-            }
-        });
+        // 随对话框销毁结束订阅，原先的订阅从未释放。
+        UiEventBus.observe(
+                this,
+                rxEvent -> {
+                    if (rxEvent.what == RxEvent.EVENT_LOGIN_AUTH_CODE_UPDATE
+                            && mAuthCodeWebView != null) {
+                        mAuthCodeWebView.loadUrl(String.valueOf(rxEvent.obj));
+                    }
+                });
     }
 
     public void setAuthCodeLoadCallback(OnAuthCodeLoadCallback authCodeLoadCallback) {
@@ -72,7 +68,7 @@ public class LoginDialogFragment extends BaseDialogFragment {
         mAuthCodeWebView.setBackgroundColor(Color.TRANSPARENT);
         mAuthCodeWebView.loadUrl(mDataUrl);
 
-        RxUtils.clicks(
+        ThrottledClickListener.clicks(
                 mUpdateAuthCodeBtn,
                 new View.OnClickListener() {
             @Override

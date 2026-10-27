@@ -1,5 +1,6 @@
 package sp.phone.ui.adapter;
 
+import gov.anzong.androidnga.util.ThrottledClickListener;
 import android.content.Context;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -15,7 +16,6 @@ import gov.anzong.androidnga.R;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.mvp.model.entity.ThreadPageInfo;
 import sp.phone.param.TopicTitleHelper;
-import sp.phone.rxjava.RxUtils;
 import sp.phone.theme.ThemeManager;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class TopicListAdapter
                         LayoutInflater.from(mContext).inflate(R.layout.list_topic, parent, false));
         viewHolder.title.setTextSize(
                 TypedValue.COMPLEX_UNIT_DIP, PhoneConfiguration.getInstance().getTopicTitleSize());
-        RxUtils.clicks(viewHolder.itemView, mOnClickListener);
+        ThrottledClickListener.clicks(viewHolder.itemView, mOnClickListener);
         viewHolder.itemView.setOnLongClickListener(mOnLongClickListener);
         return viewHolder;
     }
