@@ -41,6 +41,7 @@ public abstract class BasePresenter<T extends BaseMvpFragment, E extends BaseMod
         }
         if (mBaseModel != null && mBaseView != null) {
             mBaseModel.setLifecycleProvider(mBaseView.getLifecycleProvider());
+            mBaseModel.setLifecycleOwner(mBaseView);
         }
 
     }
@@ -68,6 +69,7 @@ public abstract class BasePresenter<T extends BaseMvpFragment, E extends BaseMod
         mBaseView = view;
         if (mBaseModel != null) {
             mBaseModel.setLifecycleProvider(view.getLifecycleProvider());
+            mBaseModel.setLifecycleOwner(view);
         }
     }
 

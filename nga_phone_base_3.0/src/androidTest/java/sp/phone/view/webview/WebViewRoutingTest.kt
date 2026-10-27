@@ -14,7 +14,7 @@ import org.junit.Test
 import gov.anzong.androidnga.base.json.NgaJson
 import sp.phone.http.article.ArticlePageLoader
 import sp.phone.mvp.model.convert.ArticleConvertFactory
-import io.reactivex.Observable
+import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 
@@ -68,8 +68,8 @@ class WebViewRoutingTest {
 
     @Test fun xmlCompatibilityResponseBuildsNativeArticleRows() {
         val xml = """<root><__T><tid>12</tid><fid>7</fid><subject>兼容主题</subject></__T><__R><item><tid>12</tid><pid>34</pid><authorid>56</authorid><content><![CDATA[原生正文 [b]内容[/b]]]></content><postdate>2026-10-26</postdate><lou>1</lou></item></__R><__U><item><uid>56</uid><username>兼容用户</username></item></__U><__ROWS>21</__ROWS><__R__ROWS>1</__R__ROWS></root>"""
-        val result = ArticlePageLoader({ _, _ -> Observable.just(xml.toResponseBody("text/xml; charset=UTF-8".toMediaType())) }, ArticleConvertFactory::getArticleInfo)
-            .load("https://bbs.nga.cn/read.php?tid=12&page=2", emptyMap()).blockingFirst()
+        val result = ArticlePageLoader({ _, _ -> (xml.toResponseBody("text/xml; charset=UTF-8".toMediaType())) }, ArticleConvertFactory::getArticleInfo)
+            .let { loader -> runBlocking { loader.load("https://bbs.nga.cn/read.php?tid=12&page=2", emptyMap()) } }
         assertEquals(21, result.__ROWS)
         assertEquals(12, result.threadInfo.tid)
         assertEquals("兼容用户", result.rowList.single().author)

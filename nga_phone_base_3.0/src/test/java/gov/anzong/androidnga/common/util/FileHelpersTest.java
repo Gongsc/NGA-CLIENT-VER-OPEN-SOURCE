@@ -91,6 +91,8 @@ public class FileHelpersTest {
         assertEquals("{\"中\":1}", FileUtils.readFileToString(file));
         FileUtils.write(file, "\n二", true);
         assertEquals("{\"中\":1}\n二", FileUtils.readFileToString(file));
+        FileUtils.write(file, null);
+        assertEquals("", FileUtils.readFileToString(file));
         FileUtils.write(file, "覆盖");
         assertEquals("覆盖", new String(java.nio.file.Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
         try {

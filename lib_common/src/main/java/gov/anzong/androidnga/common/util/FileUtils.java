@@ -35,10 +35,12 @@ public class FileUtils {
         write(file, content, false);
     }
 
-    /** 以 UTF-8 写入，自动创建上级目录。 */
+    /** 以 UTF-8 写入，自动创建上级目录；内容为 null 时与 commons-io 一致只创建文件、不写入。 */
     public static void write(File file, CharSequence content, boolean append) throws IOException {
         try (OutputStream output = openOutputStream(file, append)) {
-            output.write(String.valueOf(content).getBytes(StandardCharsets.UTF_8));
+            if (content != null) {
+                output.write(content.toString().getBytes(StandardCharsets.UTF_8));
+            }
         }
     }
 

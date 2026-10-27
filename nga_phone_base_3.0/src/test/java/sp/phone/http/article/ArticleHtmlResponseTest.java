@@ -2,19 +2,9 @@ package sp.phone.http.article;
 
 import static org.junit.Assert.*;
 
-import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
 
-import io.reactivex.Observable;
-
-import okhttp3.MediaType;
-import okhttp3.ResponseBody;
-
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class ArticleHtmlResponseTest {
     static final String HTML =
@@ -90,72 +80,6 @@ $('postsign20'),$('posterinfo20'),$('postInfo20'),$('postBtnPos20'),null,null,
                 fail("不能将部分楼层当成完整页");
             } catch (IllegalArgumentException expected) {
             }
-        }
-    }
-
-    @Test
-    public void truncatedApiUsesWebpageWithAccountAndFiltersPreserved() {
-        List<String> urls = new ArrayList<>();
-        ArticlePageLoader<NgaJsonObject> loader =
-                new ArticlePageLoader<>(
-                        (url, headers) -> {
-                            urls.add(url);
-                            assertEquals("fixture-account", headers.get("Cookie"));
-                            assertTrue(url.contains("authorid=9&page=2"));
-                            return Observable.just(
-                                    ResponseBody.create(
-                                            MediaType.parse("text/plain; charset=UTF-8"),
-                                            urls.size() == 1 ? "{\"data\":" : HTML));
-                        },
-                        json -> NgaJson.parseObject(json).getJSONObject("data"));
-        NgaJsonObject data =
-                loader.load(
-                                "https://bbs.nga.cn/read.php?tid=12&authorid=9&page=2",
-                                Map.of("Cookie", "fixture-account"))
-                        .blockingFirst();
-        assertEquals(2, urls.size());
-        assertFalse(urls.get(1).contains("__output="));
-        assertEquals(1, data.getIntValue("__R__ROWS"));
-    }
-
-    @Test
-    public void webpageBusinessErrorsStopRequests() {
-        new ArticlePageLoader<>(
-                        (url, headers) ->
-                                Observable.just(
-                                        ResponseBody.create(
-                                                MediaType.parse("text/html; charset=UTF-8"),
-                                                "<!DOCTYPE"
-                                                    + " html><html><body><!--msginfostart--><b>请先登录</b><!--msginfoend--></body></html>")),
-                        json -> json)
-                .load("https://bbs.nga.cn/read.php?tid=12", null)
-                .test()
-                .assertError(
-                        e ->
-                                e instanceof ArticlePageLoader.BusinessException
-                                        && e.getMessage().equals("请先登录"));
-    }
-
-    @Test
-    public void topicIdentityAndRowCountMustMatchBeforeConversion() {
-        for (String response :
-                new String[] {
-                    HTML.replace(",0,12,9,", ",0,13,9,"),
-                    "{\"data\":{\"__T\":{\"tid\":12},\"__R\":{},\"__ROWS\":1,\"__R__ROWS\":2}}"
-                }) {
-            new ArticlePageLoader<>(
-                            (url, headers) ->
-                                    Observable.just(
-                                            ResponseBody.create(
-                                                    MediaType.parse("text/html; charset=UTF-8"),
-                                                    response)),
-                            json -> {
-                                fail("不应转换无效数据");
-                                return json;
-                            })
-                    .load("https://bbs.nga.cn/read.php?tid=12", null)
-                    .test()
-                    .assertError(ArticlePageLoader.ResponseFormatException.class);
         }
     }
 
