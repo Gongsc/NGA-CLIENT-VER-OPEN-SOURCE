@@ -38,7 +38,6 @@ dependencies {
     api "androidx.appcompat:appcompat:${rootProject.ext.androidxAppcompat}"
 
     api 'io.reactivex.rxjava2:rxjava:2.1.5'
-    implementation 'net.steamcrafted:load-toast:1.0.12'
 
     api "io.reactivex.rxjava2:rxandroid:${rootProject.ext.rxAndroid}"
 
