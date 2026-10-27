@@ -1,8 +1,7 @@
 package gov.anzong.androidnga.core.decode;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -144,26 +143,36 @@ public class ForumEmoticonDecoder implements IForumDecoder {
 
     private static final String HTML_EMOTICON_ACNIANG = "<img class='emoticon invertFilter' src='file:///android_asset/%s/%s'>";
 
-    private static Table<String, String, String> sEmotionTable = HashBasedTable.create();
+    /** 表情分类 → UBB 代码 → 图片文件名。 */
+    private static final Map<String, Map<String, String>> sEmotionTable = new HashMap<>();
+
+    private static void putEmoticon(String category, String code, String image) {
+        Map<String, String> row = sEmotionTable.get(category);
+        if (row == null) {
+            row = new HashMap<>();
+            sEmotionTable.put(category, row);
+        }
+        row.put(code, image);
+    }
 
     static {
         for (int i = 0; i < UBB_CODE_ACNIANG.length; i++) {
-            sEmotionTable.put("ac", UBB_CODE_ACNIANG[i], IMG_ADD_ACNIANG[i]);
+            putEmoticon("ac", UBB_CODE_ACNIANG[i], IMG_ADD_ACNIANG[i]);
         }
 
         for (int i = 0; i < UBB_CODE_ACNIANG_NEW.length; i++) {
-            sEmotionTable.put("a2", UBB_CODE_ACNIANG_NEW[i], IMG_ADD_ACNIANG_NEW[i]);
+            putEmoticon("a2", UBB_CODE_ACNIANG_NEW[i], IMG_ADD_ACNIANG_NEW[i]);
         }
 
         for (int i = 0; i < UBB_CODE_PST.length; i++) {
-            sEmotionTable.put("pst", UBB_CODE_PST[i], IMG_ADD_PST[i]);
+            putEmoticon("pst", UBB_CODE_PST[i], IMG_ADD_PST[i]);
         }
         for (int i = 0; i < UBB_CODE_DT.length; i++) {
-            sEmotionTable.put("dt", UBB_CODE_DT[i], IMG_ADD_DT[i]);
+            putEmoticon("dt", UBB_CODE_DT[i], IMG_ADD_DT[i]);
         }
 
         for (int i = 0; i < UBB_CODE_PENGUIN.length; i++) {
-            sEmotionTable.put("pg", UBB_CODE_PENGUIN[i], IMG_ADD_PENGUIN[i]);
+            putEmoticon("pg", UBB_CODE_PENGUIN[i], IMG_ADD_PENGUIN[i]);
         }
     }
 
@@ -179,7 +188,8 @@ public class ForumEmoticonDecoder implements IForumDecoder {
             if (matched == null || category == null || emoticon == null) {
                 continue;
             }
-            String image = sEmotionTable.get(category, emoticon);
+            Map<String, String> row = sEmotionTable.get(category);
+            String image = row == null ? null : row.get(emoticon);
             String html = category.contains("ac") || category.contains("a2") ? HTML_EMOTICON_ACNIANG : HTML_EMOTICON;
             content = content.replace(matched, String.format(html, category, image));
         }
