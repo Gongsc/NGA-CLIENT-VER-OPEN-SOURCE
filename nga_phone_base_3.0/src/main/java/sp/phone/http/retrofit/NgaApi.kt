@@ -14,9 +14,9 @@ import retrofit2.http.QueryMap
 import retrofit2.http.Url
 
 /**
- * [RetrofitService] 的挂起函数版本，方法与之一一对应，迁移完成后取代它。
+ * 论坛接口（挂起函数），取代原先基于 RxJava 的 RetrofitService。
  *
- * 与 [RetrofitService] 共用 Retrofit 实例：`String` 响应按 GBK 解码，非 2xx 响应抛出 `HttpException`。
+ * 使用 [RetrofitHelper] 创建的实例：`String` 响应按 GBK 解码，非 2xx 响应抛出 `HttpException`。
  */
 interface NgaApi {
 

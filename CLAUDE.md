@@ -42,7 +42,7 @@ Tests live almost entirely in the app module (`nga_phone_base_3.0/src/test` and 
 
 Two package roots in the app module, reflecting the project's history:
 
-- `sp.phone.*` — legacy core: Retrofit + RxJava2 networking (`http/retrofit/RetrofitHelper`, `RetrofitService`), MVP (`mvp/contract`, `presenter`, `model`, `model/convert` for response → entity conversion), legacy fragments/adapters, user/account management (`common/UserManagerImpl`), WebView helpers.
+- `sp.phone.*` — legacy core: Retrofit networking with coroutines (`http/retrofit/RetrofitHelper`, suspend API `NgaApi`), MVP (`mvp/contract`, `presenter`, `model`, `model/convert` for response → entity conversion), legacy fragments/adapters, user/account management (`common/UserManagerImpl`), WebView helpers.
 - `gov.anzong.androidnga.*` — newer code: Activities (`activity/`), Room DB (`db/`), MVVM ViewModels (`mvvm/`), and all Compose UI in `ui/compose/` (`NgaTheme`, screens such as `HomeScreen`, `ArticleReaderScreen`, `PostEditorScreen`, `SettingsScreen`).
 
 Key patterns:
@@ -51,10 +51,11 @@ Key patterns:
 - **Navigation**: `arouter/AppNavigator` is a hand-written explicit-Intent router (ARouter itself was removed). Route strings in `ARouterConstants` map to Activity classes in `AppNavigator.destination()`; `ACTIVITY_NEED_LOGIN` lists routes gated by login. Add new destinations there.
 - **Theming**: user-selectable palettes (4) × light/dark/system, defined in `AppearanceSettings` / `NgaTheme`. Theme colors must propagate to WebView article content and remaining View screens, not just Compose.
 - **Topic loading**: detail pages try sources in order JSON → plain web page (parsed with jsoup) → XML → backup XML, at most one request each, normalizing all of them into the common `__T`/`__R`/`__U` structure before conversion and caching. Truncated responses are detected and skipped; auth/forum/network errors are surfaced in-app and must not fall through to other sources, switch accounts, or open a browser. See `docs/topic-opening-fix.md` before touching this path.
+- **Coroutines**: requests are suspend functions on `NgaApi`. Java callers keep `OnHttpCallBack`; Kotlin tasks/models bridge with `launchWithCallback` (work on `NgaDispatchers.io`, callbacks on main, no callback after cancellation) in `scopeOf(lifecycleOwner)` or `AppScope` (`gov.anzong.androidnga.coroutines`). Page events go through `UiEventBus` (`SharedFlow`). Tests swap `Dispatchers.setMain`/`NgaDispatchers.io` and use `FakeNgaApi`/`PendingResponse`. See `docs/rxjava-migration.md`.
 - **Forum favorites** on the home screen are server-side and cached per account; account switches must not leak another account's cache or let stale requests overwrite current state (`docs/forum-favorites-sync.md`).
 
-Removed and should not be reintroduced: fastjson (use `NgaJson`), Kotlin Android Extensions, ButterKnife, ARouter, Jetifier, legacy Support libraries, `WRITE_EXTERNAL_STORAGE` (use MediaStore / system document picker), full-screen swipe-back (use `OnBackPressedDispatcher`). Windows are edge-to-edge; handle insets.
+Removed and should not be reintroduced: fastjson (use `NgaJson`), RxJava/rxandroid/rxlifecycle/rxbinding (use coroutines), Kotlin Android Extensions, ButterKnife, ARouter, Jetifier, legacy Support libraries, `WRITE_EXTERNAL_STORAGE` (use MediaStore / system document picker), full-screen swipe-back (use `OnBackPressedDispatcher`). Windows are edge-to-edge; handle insets.
 
 ## Further docs
 
-`docs/compose-migration.md` (migration scope), `docs/interface-redesign.md`, `docs/topic-scrolling-performance.md` (WebView reuse/height caching in the reader list), `docs/topic-opening-fix.md`, `docs/forum-favorites-sync.md`, `docs/fastjson-migration.md`.
+`docs/compose-migration.md` (migration scope), `docs/interface-redesign.md`, `docs/topic-scrolling-performance.md` (WebView reuse/height caching in the reader list), `docs/topic-opening-fix.md`, `docs/forum-favorites-sync.md`, `docs/fastjson-migration.md`, `docs/rxjava-migration.md`.

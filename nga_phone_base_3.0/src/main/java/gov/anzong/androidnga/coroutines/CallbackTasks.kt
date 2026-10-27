@@ -23,7 +23,7 @@ object NgaDispatchers {
 /** 不随页面取消的请求所用的作用域，对应原先未绑定生命周期的 RxJava 订阅。 */
 object AppScope : CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-/** 有页面时随页面销毁取消（对应 rxlifecycle 的 bindUntilEvent），没有时使用 [AppScope]。 */
+/** 有页面时随页面销毁取消，没有时使用 [AppScope]。 */
 fun scopeOf(owner: LifecycleOwner?): CoroutineScope = owner?.lifecycleScope ?: AppScope
 
 /**

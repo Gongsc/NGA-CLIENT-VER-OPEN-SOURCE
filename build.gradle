@@ -25,7 +25,6 @@ project.ext {
     compileSdkVersion = 37
     appVersionName = '4.1.0'
     appVersionCode = 4100
-    rxAndroid = '2.1.1'
     lifecycle_version = '2.11.0'
     androidxAppcompat = '1.7.1'
     androidxMaterial = '1.13.0'

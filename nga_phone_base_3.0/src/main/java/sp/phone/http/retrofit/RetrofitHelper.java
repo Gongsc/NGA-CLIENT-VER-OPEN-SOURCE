@@ -14,7 +14,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.http.retrofit.converter.JsonStringConvertFactory;
 import sp.phone.util.ForumUtils;
@@ -64,7 +63,6 @@ public class RetrofitHelper {
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .addConverterFactory(JsonStringConvertFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .client(builder.build())
                 .build();
     }
@@ -117,28 +115,7 @@ public class RetrofitHelper {
         return mRetrofit.create(service);
     }
 
-    public RetrofitService getService() {
-        return mRetrofit.create(RetrofitService.class);
-    }
-
-    public static RetrofitService getAuthCodeService() {
-        return new Retrofit.Builder()
-                .baseUrl(URL_NGA_BASE_CC)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
-                .create(RetrofitService.class);
-    }
-
-    public static RetrofitService getDefault() {
-        return new Retrofit.Builder()
-                .baseUrl(URL_NGA_BASE_CC)
-                .addConverterFactory(JsonStringConvertFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
-                .create(RetrofitService.class);
-    }
-
-    /** 与 {@link #getAuthCodeService()} 相同的实例配置：不带公共拦截器，响应原样返回。 */
+    /** 登录验证码图片：不带公共拦截器，响应原样返回。 */
     public static NgaApi getAuthCodeApi() {
         return new Retrofit.Builder()
                 .baseUrl(URL_NGA_BASE_CC)
@@ -146,7 +123,7 @@ public class RetrofitHelper {
                 .create(NgaApi.class);
     }
 
-    /** 与 {@link #getDefault()} 相同的实例配置：不带公共拦截器，字符串按 GBK 解码。 */
+    /** 登录请求：不带公共拦截器，字符串按 GBK 解码。 */
     public static NgaApi getDefaultApi() {
         return new Retrofit.Builder()
                 .baseUrl(URL_NGA_BASE_CC)
