@@ -98,6 +98,11 @@ dependencies {
     implementation "androidx.cardview:cardview:1.0.0"
 
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${rootProject.ext.lifecycle_version}"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:${rootProject.ext.lifecycle_version}"
+
+    // coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${rootProject.ext.coroutines}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${rootProject.ext.coroutines}"
 
     // lifecycle
     implementation "androidx.lifecycle:lifecycle-viewmodel:${rootProject.ext.lifecycle_version}"
