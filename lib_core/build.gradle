@@ -33,5 +33,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 
     compileOnly project(':lib_common')
+    testImplementation project(':lib_common')
 
 }
