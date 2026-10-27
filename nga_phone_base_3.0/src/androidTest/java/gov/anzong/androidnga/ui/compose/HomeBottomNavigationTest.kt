@@ -43,7 +43,8 @@ class HomeBottomNavigationTest {
                 historyContent = { controls -> HomeHistoryScreen(topics, {}, {}, {}, controls) })
         } }
         compose.onNodeWithTag("home_tab_1").performClick()
-        compose.onNodeWithTag("home_history").performTouchInput { swipeUp() }
+        // 底栏浮在列表上方，默认 swipeUp() 从列表底边起手会落在底栏上而非列表；从列表可见区域内起手。
+        compose.onNodeWithTag("home_history").performTouchInput { swipeUp(startY = centerY, endY = top) }
         compose.waitForIdle()
         compose.onNodeWithTag("home_bottom_navigation").assertDoesNotExist()
         compose.onNodeWithTag("home_history").performTouchInput { swipeDown() }
