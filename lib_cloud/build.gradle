@@ -21,8 +21,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled = true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // 库模块没有保留自身类的规则，开启混淆会删除全部代码导致正式版启动闪退；是否压缩由应用模块决定
+            minifyEnabled = false
         }
     }
 

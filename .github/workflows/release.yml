@@ -90,10 +90,11 @@ jobs:
           NGA_KEY_PASSWORD: ${{ secrets.NGA_KEY_PASSWORD }}
         run: ./gradlew :nga_phone_base_3.0:assembleRelease
 
-      - name: Verify signature and collect artifacts
+      - name: Verify signature, required classes and collect artifacts
         run: |
           apk=nga_phone_base_3.0/build/outputs/apk/release/nga_phone_base_3.0-release.apk
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk"
+          .github/scripts/check-apk-classes.sh "$apk" "$ANDROID_HOME/build-tools/36.0.0/dexdump"
           mkdir -p dist
           cp "$apk" "dist/NGA-${{ steps.version.outputs.name }}.apk"
           (cd dist && sha256sum *.apk > SHA256SUMS.txt)
