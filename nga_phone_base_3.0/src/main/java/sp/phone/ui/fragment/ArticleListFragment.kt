@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -87,7 +88,11 @@ open class ArticleListFragment : BaseMvpFragment<ArticleListPresenter>(), Articl
                     putString("name", row.author)
                     putString("url", FunctionUtils.parseAvatarUrl(row.js_escap_avatar))
                 }, AvatarDialogFragment::class.java)
-            }, actions = ::rowActions, onAction = ::handleRowAction)
+            }, actions = ::rowActions, onAction = ::handleRowAction,
+            bottomContentPadding = if (request.searchPost == 0) readerActionsBottomPadding() else 0.dp,
+            onControlsExpandedChange = { expanded ->
+                if (request.searchPost == 0) share.setReaderControls(request.page, expanded)
+            })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

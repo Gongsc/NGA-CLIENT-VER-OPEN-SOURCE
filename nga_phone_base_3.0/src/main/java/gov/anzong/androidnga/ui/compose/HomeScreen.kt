@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,7 +36,6 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var editing by rememberSaveable { mutableStateOf(false) }
     var moreOpen by remember { mutableStateOf(false) }
-    val appearance = LocalAppearance.current
     val category = state.categories.getOrNull(state.selected)
     BackHandler(drawer.isOpen) { scope.launch { drawer.close() } }
     ModalNavigationDrawer(drawerState = drawer, drawerContent = {
@@ -72,12 +70,6 @@ fun HomeScreen(
                             Tab(selected = state.selected == index, onClick = { state.selected = index; editing = false }, text = { Text(item.name) })
                         }
                     }
-                }
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 64.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text(if (category?.bookmark == true) "论坛收藏 · ${favorites.boards.size}" else "版块目录",
-                        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (editing) ActionIcon(Icons.Default.Check, "完成管理", { editing = false })
-                    DensityToggle(appearance.compact, appearance::chooseCompact)
                 }
                 if (category?.bookmark == true) {
                     if (favorites.loading || favorites.mutating) LinearProgressIndicator(Modifier.fillMaxWidth())

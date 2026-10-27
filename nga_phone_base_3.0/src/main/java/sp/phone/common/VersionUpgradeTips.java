@@ -5,6 +5,13 @@ package sp.phone.common;
  */
 public interface VersionUpgradeTips {
 
+    String TIPS_4001 = "4.0.1 更新内容\n"
+            + "● 主题阅读页改为悬浮翻页与回复按钮，保留页码和楼层跳转\n"
+            + "● 上下滑动时自动收起或展开翻页、回复及发帖按钮\n"
+            + "● 适配左手模式、深浅色与大字号，改善列表末尾遮挡\n"
+            + "● 移除版面列表上方的密度切换与标题，仅保留外观与布局设置\n"
+            + "问题与建议请前往 GitHub 反馈\n";
+
     String TIPS_4000 = "4.0.0 更新内容\n"
             + "● 主要界面改用 Jetpack Compose 与 Material 3 重新实现\n"
             + "● 新增松绿、雾蓝、暖砂、石墨四种配色及深色模式\n"

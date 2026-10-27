@@ -9,6 +9,24 @@ import androidx.lifecycle.ViewModel;
  */
 public class ArticleShareViewModel extends ViewModel {
 
+    public static final class ReaderControls {
+        public final int page;
+        public final boolean expanded;
+
+        public ReaderControls(int page, boolean expanded) {
+            this.page = page;
+            this.expanded = expanded;
+        }
+    }
+
+    private final MutableLiveData<ReaderControls> mReaderControls = new MutableLiveData<>();
+
+    public LiveData<ReaderControls> getReaderControls() { return mReaderControls; }
+
+    public void setReaderControls(int page, boolean expanded) {
+        mReaderControls.setValue(new ReaderControls(page, expanded));
+    }
+
     private final MutableLiveData<Integer> mTopicId = new MutableLiveData<>();
 
     public LiveData<Integer> getTopicId() {

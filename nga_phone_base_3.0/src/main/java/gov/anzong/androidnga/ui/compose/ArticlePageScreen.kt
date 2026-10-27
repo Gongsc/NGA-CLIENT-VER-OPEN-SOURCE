@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -44,8 +45,11 @@ class ArticlePageState {
 @Composable
 fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (ThreadRowInfo) -> Unit,
                       onProfile: (ThreadRowInfo) -> Unit, onAvatar: (ThreadRowInfo) -> Unit,
-                      actions: (ThreadRowInfo) -> List<HomeAction>, onAction: (ThreadRowInfo, Int) -> Unit) {
+                      actions: (ThreadRowInfo) -> List<HomeAction>, onAction: (ThreadRowInfo, Int) -> Unit,
+                      bottomContentPadding: androidx.compose.ui.unit.Dp = 0.dp,
+                      onControlsExpandedChange: (Boolean) -> Unit = {}) {
     val list = rememberLazyListState()
+    val scrollConnection = rememberScrollControlsConnection(list, onControlsExpandedChange)
     val bodySize = rememberArticleFontSize()
     val entries = remember(state.rows, state.hotReplies) { articleEntries(state.rows, state.hotReplies) }
     LaunchedEffect(state.scrollRequest, entries) {
@@ -54,8 +58,8 @@ fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (
             if (index >= 0) { list.scrollToItem(index + if (state.error == null) 0 else 1); state.targetFloor = null }
         }
     }
-    PullToRefreshBox(isRefreshing = state.loading, onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
-        LazyColumn(state = list, modifier = Modifier.fillMaxSize().testTag("article_floors"), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    PullToRefreshBox(isRefreshing = state.loading, onRefresh = onRefresh, modifier = Modifier.fillMaxSize().nestedScroll(scrollConnection)) {
+        LazyColumn(state = list, modifier = Modifier.fillMaxSize().testTag("article_floors"), contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp + bottomContentPadding), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             state.error?.let { message ->
                 item("error") {
                     Column(Modifier.padding(16.dp)) {

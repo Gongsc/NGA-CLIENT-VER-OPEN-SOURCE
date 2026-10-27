@@ -15,6 +15,13 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -68,8 +75,16 @@ fun TopicFeedScreen(state: TopicFeedState, onBack: () -> Unit, onRefresh: () -> 
     var menuOpen by remember { mutableStateOf(false) }
     var deleteKey by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
+    var postExpanded by remember(state) { mutableStateOf(true) }
+    val scrollConnection = rememberScrollControlsConnection(listState) { postExpanded = it }
+    val postHeight = with(LocalDensity.current) {
+        (MaterialTheme.typography.labelLarge.lineHeight.toDp() + 32.dp).coerceAtLeast(56.dp)
+    }
     LaunchedEffect(state.refreshGeneration) {
-        if (state.refreshGeneration > 0) listState.scrollToItem(0)
+        if (state.refreshGeneration > 0) {
+            listState.scrollToItem(0)
+            postExpanded = true
+        }
     }
     val nearEnd by remember {
         derivedStateOf {
@@ -95,10 +110,19 @@ fun TopicFeedScreen(state: TopicFeedState, onBack: () -> Unit, onRefresh: () -> 
             }
         })
     }, floatingActionButton = {
-        if (state.canPost) ExtendedFloatingActionButton(onClick = onPost) { Text("发表主题") }
+        if (state.canPost) ExtendedFloatingActionButton(
+            onClick = onPost,
+            expanded = postExpanded,
+            modifier = Modifier.heightIn(min = postHeight).semantics { contentDescription = "发表主题" },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            icon = { Icon(Icons.Default.Edit, contentDescription = null) },
+            text = { Text("发表主题", maxLines = 1) },
+        )
     }, floatingActionButtonPosition = if (PhoneConfiguration.getInstance().isLeftHandMode) FabPosition.Start else FabPosition.End) { padding ->
-        PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = onRefresh, modifier = Modifier.fillMaxSize().padding(padding)) {
-            LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
+        PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = onRefresh, modifier = Modifier.fillMaxSize().padding(padding).nestedScroll(scrollConnection)) {
+            LazyColumn(state = listState, modifier = Modifier.fillMaxSize().testTag("topic_feed_list"), contentPadding = PaddingValues(bottom = postHeight + 40.dp)) {
                 state.error?.let { error ->
                     item(key = "error") {
                         Column(Modifier.padding(16.dp)) {

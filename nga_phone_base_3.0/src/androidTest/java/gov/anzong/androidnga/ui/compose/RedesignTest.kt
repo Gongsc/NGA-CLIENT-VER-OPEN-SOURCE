@@ -4,6 +4,7 @@ import android.content.Context
 import android.webkit.WebView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -65,22 +66,33 @@ class RedesignTest {
         val state = HomeState().apply { categories = listOf(HomeCategory("我的收藏", true, emptyList())) }
         val names = listOf("议事厅","网事杂谈","消费电子","游戏综合","PC 游戏","手机游戏","最终幻想14","暗黑破坏神","炉石传说","守望先锋","硬件配置","软件与硬件","数码家电","影音讨论","旅游出行","读书会","摄影讨论","生活杂谈")
         val favorites = ForumFavoritesSnapshot("fixture", names.mapIndexed { index, name -> ForumFavoriteBoard(index+7,0,name) })
-        compose.setContent { NgaTheme { HomeScreen(state, emptyList(), {}, {}, {}, {}, {}, onRemove = {}, favorites = favorites) } }
+        val showAppearance = androidx.compose.runtime.mutableStateOf(false)
+        compose.setContent { NgaTheme {
+            if (showAppearance.value) AppearanceScreen {}
+            else HomeScreen(state, emptyList(), {}, {}, {}, {}, {}, onRemove = {}, favorites = favorites)
+        } }
+        compose.onNodeWithContentDescription("标准模式").assertDoesNotExist()
+        compose.onNodeWithContentDescription("紧凑模式").assertDoesNotExist()
+        compose.onNodeWithText("论坛收藏 · ${favorites.boards.size}").assertDoesNotExist()
         capture("compact-home.png")
         val compact = compose.onNodeWithTag("board:7:0").fetchSemanticsNode().boundsInRoot.height
-        compose.onNodeWithContentDescription("标准模式").performClick()
+        compose.runOnIdle { showAppearance.value = true }
+        compose.onNodeWithContentDescription("标准模式").performScrollTo().performClick()
+        compose.runOnIdle { showAppearance.value = false }
         capture("standard-home.png")
         val standard = compose.onNodeWithTag("board:7:0").fetchSemanticsNode().boundsInRoot.height
         assertTrue("标准列表应保留更大的图标与留白", standard > compact * 1.5f)
         compose.runOnIdle {
             assertFalse(AppearanceSettings(prefs).compact)
             assertNotEquals(0, sp.phone.theme.ThemeManager.getInstance().webTextColor)
+            showAppearance.value = true
         }
-        compose.onNodeWithContentDescription("紧凑模式").performClick()
+        compose.onNodeWithContentDescription("紧凑模式").performScrollTo().performClick()
         compose.runOnIdle { assertTrue(AppearanceSettings(prefs).compact) }
+
     }
 
-    @Test fun paginationStaysBelowContentAndSupportsJumpAndBoundaries() {
+    @Test fun floatingPaginationSupportsJumpAndBoundaries() {
         val state = ArticleReaderState().apply { pages = 3; rows = 60 }
         compose.setContent { NgaTheme { ArticleReaderScreen(state,1,false,{},{},{},{},{}) { page, _ -> Text("正文 ${page+1}") } } }
         compose.onNodeWithContentDescription("上一页").assertIsNotEnabled()
@@ -92,8 +104,73 @@ class RedesignTest {
         compose.onNodeWithText("跳转", useUnmergedTree = true).performClick()
         compose.onNodeWithText("正文 3").assertIsDisplayed()
         compose.onNodeWithContentDescription("下一页").assertIsNotEnabled()
+        compose.onNodeWithContentDescription("跳转页码或楼层").performClick()
         compose.onNodeWithContentDescription("回到首页").performClick()
         compose.onNodeWithText("正文 1").assertIsDisplayed()
+    }
+
+    @Test fun floatingReaderLightRightHand() = verifyFloatingReader(false, false)
+
+    @Test fun floatingReaderDarkLeftHandWithLargeText() = verifyFloatingReader(true, true)
+
+    private fun verifyFloatingReader(dark: Boolean, leftHand: Boolean) {
+        val state = ArticleReaderState().apply { title = "主题阅读 · 离线示例"; pages = 3; rows = 60 }
+        val pageState = ArticlePageState().apply {
+            loading = false
+            rows = (0..7).map { floor -> sp.phone.http.bean.ThreadRowInfo().apply {
+                tid = 100; pid = floor; lou = floor; author = "示例用户 $floor"
+                content = "这是一段用于检查阅读布局的离线正文。\n翻页与回复入口集中在屏幕下角，正文可以连续阅读。"
+                postdate = "2026-10-27"
+            } }
+        }
+        var replies = 0
+        compose.setContent {
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(
+                    density.density, if (dark) 2f else 1f),
+            ) {
+                NgaTheme {
+                    androidx.compose.material3.MaterialTheme(colorScheme = ngaColorScheme(AppPalette.GREEN, dark)) {
+                        ArticleReaderScreen(state, 1, leftHand, {}, {}, { replies++ }, {}, {}) { _, _ ->
+                            ArticlePageScreen(pageState, {}, {}, {}, {}, { emptyList() }, { _, _ -> },
+                                bottomContentPadding = readerActionsBottomPadding(),
+                                onControlsExpandedChange = { state.controlsExpanded = it })
+                        }
+                    }
+                }
+            }
+        }
+        compose.onNodeWithContentDescription("上一页").assertIsNotEnabled().assertHeightIsAtLeast(48.dp)
+        compose.onNodeWithContentDescription("回复主题").performClick()
+        compose.runOnIdle { assertEquals(1, replies) }
+        val controls = compose.onNodeWithTag("reader_pagination").fetchSemanticsNode().boundsInRoot
+        val root = compose.onRoot().fetchSemanticsNode().boundsInRoot
+        assertTrue(if (leftHand) controls.center.x < root.center.x else controls.center.x > root.center.x)
+        capture(if (dark) "reader-floating-dark-left-large.png" else "reader-floating-light.png")
+        val replyExpanded = compose.onNodeWithContentDescription("回复主题").fetchSemanticsNode().boundsInRoot
+        compose.onNodeWithTag("article_floors").performTouchInput { swipeUp() }
+        compose.onNodeWithContentDescription("下一页").assertDoesNotExist()
+        compose.onNodeWithText("回复", useUnmergedTree = true).assertDoesNotExist()
+        val replyCollapsed = compose.onNodeWithContentDescription("回复主题").fetchSemanticsNode().boundsInRoot
+        assertTrue("回复按钮应缩小", replyCollapsed.width < replyExpanded.width)
+        assertEquals(replyExpanded.bottom, replyCollapsed.bottom, 1f)
+        compose.onNodeWithContentDescription("跳转页码或楼层").assertIsDisplayed()
+        capture(if (dark) "reader-collapsed-dark-left-large.png" else "reader-collapsed-light.png")
+        compose.onNodeWithContentDescription("回复主题").performClick()
+        compose.runOnIdle { assertEquals(2, replies) }
+        compose.onNodeWithTag("article_floors").performTouchInput { swipeDown() }
+        compose.onNodeWithContentDescription("下一页").assertIsDisplayed()
+        compose.onNodeWithText("回复", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("article_floors").performScrollToIndex(7)
+        compose.onNodeWithTag("article_floors").performTouchInput { swipeUp() }
+        val lastFloor = compose.onNodeWithTag("floor_7").fetchSemanticsNode().boundsInRoot
+        assertTrue("末尾回复应能滚动到悬浮控件上方", lastFloor.bottom <= controls.top)
+        compose.onNodeWithContentDescription("跳转页码或楼层").performClick()
+        compose.onNodeWithText("按楼层").performClick()
+        compose.onNode(hasSetTextAction()).performTextInput("42")
+        compose.onNodeWithText("跳转", useUnmergedTree = true).performClick()
+        compose.runOnIdle { assertEquals(2, state.currentPage); assertEquals(42, state.floor) }
     }
 
     @Test fun embeddedHtmlFollowsThemeWithoutRemovingExplicitPostColors() {

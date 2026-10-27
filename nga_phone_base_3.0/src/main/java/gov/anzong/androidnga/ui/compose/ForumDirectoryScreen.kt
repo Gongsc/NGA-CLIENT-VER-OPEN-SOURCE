@@ -79,10 +79,6 @@ fun ForumDirectoryScreen(state: ForumDirectoryState, onBack: () -> Unit, onRetry
         Column(Modifier.fillMaxSize().padding(padding)) {
             OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("筛选版块") }, singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(16.dp))
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("共 ${boards.size} 个版块", style = MaterialTheme.typography.labelLarge)
-                DensityToggle(LocalAppearance.current.compact, LocalAppearance.current::chooseCompact)
-            }
             when {
                 state.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 state.error != null -> Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {

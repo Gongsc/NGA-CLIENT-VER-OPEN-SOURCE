@@ -64,6 +64,9 @@ class ArticleTabFragment : BaseRxFragment() {
         }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        share.readerControls.observe(viewLifecycleOwner) { controls ->
+            if (controls.page == state.currentPage + 1) state.controlsExpanded = controls.expanded
+        }
         share.replyCount.observe(viewLifecycleOwner) { count -> state.rows = count; state.pages = articlePageCount(count); updateActions() }
         share.topicId.observe(viewLifecycleOwner) { request.tid = it }
         share.title.observe(viewLifecycleOwner) { state.title = it }

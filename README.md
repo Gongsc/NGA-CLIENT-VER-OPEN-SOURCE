@@ -86,7 +86,7 @@ nga_phone_base_3.0/build/outputs/apk/debug/
 
 ### 自动发布
 
-推送 `v4.0.0` 格式的版本标签后，[发布工作流](.github/workflows/release.yml)会执行单元测试、构建签名发布包，并创建对应的 GitHub Release。发布附件包括 `NGA-<版本号>.apk` 与 `SHA256SUMS.txt`，发布说明取自 `VersionUpgradeTips` 中当前版本代码的更新说明；未找到时使用 GitHub 自动生成的说明。标签带有 `-` 后缀（如 `v4.1.0-beta.1`）时创建预发布，预发布不会出现在应用的检查更新结果中。
+推送 `v4.0.1` 格式的版本标签后，[发布工作流](.github/workflows/release.yml)会执行单元测试、构建签名发布包，并创建对应的 GitHub Release。发布附件包括 `NGA-<版本号>.apk` 与 `SHA256SUMS.txt`，发布说明取自 `VersionUpgradeTips` 中当前版本代码的更新说明；未找到时使用 GitHub 自动生成的说明。标签带有 `-` 后缀（如 `v4.1.0-beta.1`）时创建预发布，预发布不会出现在应用的检查更新结果中。
 
 首次使用前，需在仓库 Settings → Secrets and variables → Actions 中添加以下 Secrets：
 
@@ -102,11 +102,11 @@ nga_phone_base_3.0/build/outputs/apk/debug/
 发布步骤：
 
 1. 在根目录 `build.gradle` 中更新 `appVersionName` 与 `appVersionCode`，并添加对应的 `TIPS_<版本代码>` 更新说明。
-2. 提交并推送后，创建与 `appVersionName` 一致的标签并推送：`git tag v4.0.0 && git push origin v4.0.0`。
+2. 提交并推送后，创建与 `appVersionName` 一致的标签并推送：`git tag v4.0.1 && git push origin v4.0.1`。
 
 标签与 `appVersionName` 不一致或缺少签名 Secrets 时，工作流会直接失败，不创建发布。
 
-应用“关于 → 检查更新”读取本仓库 GitHub 的最新正式发布（不含草稿与预发布），按数字比较发布标签与 `appVersionName`。发布标签应采用 `v4.0.0` 或 `4.0.0` 格式，发布说明会显示在更新提示中。版本号与版本代码定义于根目录 `build.gradle`，版本代码按 `主版本×1000 + 次版本×100 + 修订号` 递增，并需在 `VersionUpgradeTips` 中添加对应的 `TIPS_<版本代码>` 更新说明。
+应用“关于 → 检查更新”读取本仓库 GitHub 的最新正式发布（不含草稿与预发布），按数字比较发布标签与 `appVersionName`。发布标签应采用 `v4.0.1` 或 `4.0.1` 格式，发布说明会显示在更新提示中。版本号与版本代码定义于根目录 `build.gradle`，版本代码按 `主版本×1000 + 次版本×100 + 修订号` 递增，并需在 `VersionUpgradeTips` 中添加对应的 `TIPS_<版本代码>` 更新说明。
 
 ## 测试与静态检查
 
