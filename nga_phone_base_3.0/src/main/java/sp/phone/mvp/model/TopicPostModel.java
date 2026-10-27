@@ -6,8 +6,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 import com.trello.rxlifecycle2.android.FragmentEvent;
 
 import org.apache.commons.io.IOUtils;
@@ -93,7 +93,7 @@ public class TopicPostModel extends BaseModel implements TopicPostContract.Model
                 .observeOn(Schedulers.io())
                 .map((String s) -> {
                     s = s.replace("window.script_muti_get_var_store=", "");
-                    TopicPostBean bean = JSON.parseObject(s, TopicPostBean.class);
+                    TopicPostBean bean = NgaJson.parseObject(s, TopicPostBean.class);
                     postParam.setAuthCode(bean.getData().getAuth());
                     return postParam;
                 })
@@ -123,7 +123,7 @@ public class TopicPostModel extends BaseModel implements TopicPostContract.Model
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
                 .map(s -> {
-                    JSONObject obj = JSON.parseObject(s).getJSONObject("data").getJSONObject("0");
+                    NgaJsonObject obj = NgaJson.parseObject(s).getJSONObject("data").getJSONObject("0");
                     List<String> ret = new ArrayList<>();
                     for (int index = 0; obj.containsKey(String.valueOf(index)); index++) {
                         ret.add(obj.getJSONObject(String.valueOf(index)).getString("0"));
@@ -218,7 +218,7 @@ public class TopicPostModel extends BaseModel implements TopicPostContract.Model
                     public void onNext(String s) {
                         try {
                             s = s.replace("window.script_muti_get_var_store=", "");
-                            JSONObject object = JSON.parseObject(s);
+                            NgaJsonObject object = NgaJson.parseObject(s);
                             if (object.containsKey("error_code")) {
                                 int errorCode = object.getInteger("error_code");
                                 if (errorCode == 9 && !compress) {

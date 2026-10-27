@@ -2,7 +2,7 @@ package gov.anzong.androidnga.base.util;
 
 import android.content.SharedPreferences;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +68,7 @@ public class PreferenceUtils {
     }
 
     public static void putData(String key, List list) {
-        sPreferences.edit().putString(key, JSON.toJSONString(list)).apply();
+        sPreferences.edit().putString(key, NgaJson.toJSONString(list)).apply();
     }
 
     public static <T> List<T> getData(String key, Class<T> clz) {
@@ -77,7 +77,7 @@ public class PreferenceUtils {
             if (value == null) {
                 return new ArrayList<>();
             } else {
-                return JSON.parseArray(value, clz);
+                return NgaJson.parseArray(value, clz);
             }
         } catch (NullPointerException e) {
             return new ArrayList<>();

@@ -2,7 +2,7 @@ package sp.phone.mvp.model;
 
 import android.text.TextUtils;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import sp.phone.http.bean.CategoryBean;
 import sp.phone.http.favorites.ForumFavoriteBoard;
@@ -42,7 +42,7 @@ public class BoardModel extends BaseModel implements BoardContract.Model {
 
     private List<BoardCategory> loadPreloadBoards() {
         String categoryJson = StringUtils.getStringFromAssets("json/category.json");
-        List<CategoryBean> beans = JSON.parseArray(categoryJson, CategoryBean.class);
+        List<CategoryBean> beans = NgaJson.parseArray(categoryJson, CategoryBean.class);
         List<BoardCategory> categories = new ArrayList<>();
 
         for (CategoryBean categoryBean : beans) {

@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import gov.anzong.androidnga.arouter.AppNavigator
-import com.alibaba.fastjson.JSON
+import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.activity.SearchActivity
 import gov.anzong.androidnga.arouter.ARouterConstants
 import gov.anzong.androidnga.common.PreferenceKey
@@ -54,13 +54,13 @@ private fun SearchScreen(activity: SearchActivity) {
         else -> PreferenceKey.KEY_SEARCH_HISTORY_TOPIC
     }
     var history by remember(key) { mutableStateOf(runCatching {
-        JSON.parseArray(preferences.getString(key, "[]"), String::class.java)?.toList().orEmpty().distinct()
+        NgaJson.parseArray(preferences.getString(key, "[]"), String::class.java)?.toList().orEmpty().distinct()
     }.getOrDefault(emptyList())) }
     val focus = LocalFocusManager.current
     val fid = activity.intent.getIntExtra("fid", 0)
     fun saveHistory(items: List<String>) {
         history = items
-        preferences.edit().putString(key, JSON.toJSONString(items)).apply()
+        preferences.edit().putString(key, NgaJson.toJSONString(items)).apply()
     }
     fun search(input: String) {
         var term = input.trim().replace("\n", "")

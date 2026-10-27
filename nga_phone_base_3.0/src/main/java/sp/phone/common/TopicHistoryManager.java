@@ -3,7 +3,7 @@ package sp.phone.common;
 import android.content.Context;
 import android.preference.PreferenceManager;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class TopicHistoryManager {
         mContext = ContextUtils.getContext();
         String topicStr = PreferenceManager.getDefaultSharedPreferences(mContext).getString(PreferenceKey.KEY_TOPIC_HISTORY, null);
         if (topicStr != null) {
-            mTopicList = JSON.parseArray(topicStr, ThreadPageInfo.class);
+            mTopicList = NgaJson.parseArray(topicStr, ThreadPageInfo.class);
         }
         if (mTopicList == null) {
             mTopicList = new ArrayList<>();
@@ -77,7 +77,7 @@ public class TopicHistoryManager {
     }
 
     private void commit() {
-        String topicStr = JSON.toJSONString(mTopicList);
+        String topicStr = NgaJson.toJSONString(mTopicList);
         PreferenceManager.getDefaultSharedPreferences(mContext)
                 .edit()
                 .putString(PreferenceKey.KEY_TOPIC_HISTORY,topicStr)

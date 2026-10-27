@@ -1,7 +1,7 @@
 package sp.phone.ui.fragment
 
 import androidx.compose.runtime.*
-import com.alibaba.fastjson.JSON
+import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
 import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.arouter.ARouterConstants
@@ -125,7 +125,7 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
     private fun openHistory(topic: ThreadPageInfo) {
         val param = ArticleListParam().apply {
             tid = topic.tid; page = topic.page.coerceAtLeast(1); title = topic.subject
-            topicInfo = JSON.toJSONString(topic)
+            topicInfo = NgaJson.toJSONString(topic)
         }
         startActivity(Intent(requireContext(), PhoneConfiguration.getInstance().articleActivityClass).putExtra(ParamKey.KEY_PARAM, param))
     }
@@ -240,7 +240,7 @@ internal fun parseProfileAvatar(js: String): String {
     val body = js.removePrefix("window.script_muti_get_var_store=").replace("/*\$js\$*/", "")
         .let { if (it.contains("/*error fill content")) it.substringBefore("/*error fill content") else it }
     val avatar = runCatching {
-        JSON.parseObject(body)?.getJSONObject("data")?.getJSONObject("0")?.getString(PreferenceKey.PREFERENCE_AVATAR)
+        NgaJson.parseObject(body)?.getJSONObject("data")?.getJSONObject("0")?.getString(PreferenceKey.PREFERENCE_AVATAR)
     }.getOrNull().orEmpty()
     val url = FunctionUtils.parseAvatarUrl(avatar).orEmpty()
     return if (url.startsWith("//")) "https:$url" else url

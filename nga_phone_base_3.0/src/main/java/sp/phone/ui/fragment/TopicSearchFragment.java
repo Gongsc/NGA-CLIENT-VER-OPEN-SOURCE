@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import gov.anzong.androidnga.arouter.AppNavigator;
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.activity.BaseActivity;
@@ -274,7 +274,7 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
                 param.authorId = info.getAuthorId();
                 param.searchPost = requestParam.searchPost;
             }
-            param.topicInfo = JSON.toJSONString(info);
+            param.topicInfo = NgaJson.toJSONString(info);
 
             Intent intent = new Intent();
             Bundle bundle = new Bundle();

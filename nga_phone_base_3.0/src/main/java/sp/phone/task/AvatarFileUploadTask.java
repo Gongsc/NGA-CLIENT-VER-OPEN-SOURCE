@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 import android.os.ParcelFileDescriptor;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import org.apache.commons.io.IOUtils;
 
@@ -98,7 +98,7 @@ public class AvatarFileUploadTask extends AsyncTask<String, Integer, String> {
         if (StringUtils.isEmpty(result)) {
             ToastUtils.error(errorStr);
         } else {
-            NonameUploadResponse response = JSON.parseObject(result, NonameUploadResponse.class);
+            NonameUploadResponse response = NgaJson.parseObject(result, NonameUploadResponse.class);
             if (response.error) {
                 ToastUtils.error(response.errorinfo);
             } else {

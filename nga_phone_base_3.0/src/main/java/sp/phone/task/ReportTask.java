@@ -1,6 +1,6 @@
 package sp.phone.task;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.Map;
 
@@ -62,7 +62,7 @@ public class ReportTask {
                 .subscribe(new BaseSubscriber<String>() {
                     @Override
                     public void onNext(String s) {
-                        ResultBean resultBean = JSON.parseObject(s, ResultBean.class);
+                        ResultBean resultBean = NgaJson.parseObject(s, ResultBean.class);
                         if (resultBean.error != null) {
                             callBack.onError(resultBean.error.get("0"));
                         } else if (resultBean.data != null) {

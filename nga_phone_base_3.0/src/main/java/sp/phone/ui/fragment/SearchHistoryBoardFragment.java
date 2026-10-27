@@ -12,7 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import gov.anzong.androidnga.arouter.AppNavigator;
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ public class SearchHistoryBoardFragment extends BaseRxFragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        mKeyList = JSON.parseArray(mPreferences.getString(getPreferenceKey(), ""), String.class);
+        mKeyList = NgaJson.parseArray(mPreferences.getString(getPreferenceKey(), ""), String.class);
         if (mKeyList == null) {
             mKeyList = new ArrayList<>();
         }
@@ -113,7 +113,7 @@ public class SearchHistoryBoardFragment extends BaseRxFragment {
 
     protected void saveHistory() {
         mPreferences.edit()
-                .putString(getPreferenceKey(), JSON.toJSONString(mKeyList))
+                .putString(getPreferenceKey(), NgaJson.toJSONString(mKeyList))
                 .apply();
     }
 

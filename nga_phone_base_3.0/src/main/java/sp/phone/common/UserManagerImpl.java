@@ -7,7 +7,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +64,7 @@ public class UserManagerImpl implements UserManager {
         if (TextUtils.isEmpty(blackListStr)) {
             mBlackList = new ArrayList<>();
         } else {
-            mBlackList = JSON.parseArray(blackListStr, User.class);
+            mBlackList = NgaJson.parseArray(blackListStr, User.class);
             if (mBlackList == null) {
                 mBlackList = new ArrayList<>();
             }
@@ -78,7 +78,7 @@ public class UserManagerImpl implements UserManager {
         if (mUserList.isEmpty()) {
             String oldUserStr = PreferenceUtils.getData(PreferenceKey.USER_LIST, "");
             if (!TextUtils.isEmpty(oldUserStr)) {
-                List<User> oldList = JSON.parseArray(oldUserStr, User.class);
+                List<User> oldList = NgaJson.parseArray(oldUserStr, User.class);
                 PreferenceUtils.edit().remove(PreferenceKey.USER_LIST).apply();
                 if (oldList != null) {
                     mUserList.addAll(oldList);
@@ -213,7 +213,7 @@ public class UserManagerImpl implements UserManager {
     private void commit() {
         mPrefs.edit()
                 .putInt(PreferenceKey.USER_ACTIVE_INDEX, mActiveIndex)
-                .putString(PreferenceKey.BLACK_LIST, JSON.toJSONString(mBlackList))
+                .putString(PreferenceKey.BLACK_LIST, NgaJson.toJSONString(mBlackList))
                 .apply();
         saveUsers();
     }
@@ -266,7 +266,7 @@ public class UserManagerImpl implements UserManager {
         user.setUserId(authorId);
         user.setNickName(authorName);
         mBlackList.add(user);
-        mPrefs.edit().putString(PreferenceKey.BLACK_LIST, JSON.toJSONString(mBlackList)).apply();
+        mPrefs.edit().putString(PreferenceKey.BLACK_LIST, NgaJson.toJSONString(mBlackList)).apply();
     }
 
     @Override
@@ -274,7 +274,7 @@ public class UserManagerImpl implements UserManager {
         if (!mBlackList.contains(user)) {
             mBlackList.add(user);
         }
-        mPrefs.edit().putString(PreferenceKey.BLACK_LIST, JSON.toJSONString(mBlackList)).apply();
+        mPrefs.edit().putString(PreferenceKey.BLACK_LIST, NgaJson.toJSONString(mBlackList)).apply();
     }
 
     @Override
@@ -283,7 +283,7 @@ public class UserManagerImpl implements UserManager {
             User user = mBlackList.get(i);
             if (user.getUserId().equals(authorId)) {
                 mBlackList.remove(i);
-                mPrefs.edit().putString(PreferenceKey.BLACK_LIST, JSON.toJSONString(mBlackList)).apply();
+                mPrefs.edit().putString(PreferenceKey.BLACK_LIST, NgaJson.toJSONString(mBlackList)).apply();
                 return;
             }
         }
@@ -312,7 +312,7 @@ public class UserManagerImpl implements UserManager {
     @Override
     public void removeAllBlackList() {
         mBlackList.clear();
-        mPrefs.edit().putString(PreferenceKey.BLACK_LIST, JSON.toJSONString(mBlackList)).apply();
+        mPrefs.edit().putString(PreferenceKey.BLACK_LIST, NgaJson.toJSONString(mBlackList)).apply();
     }
 
     @Override

@@ -107,7 +107,7 @@ NGA 接口返回的 JSON 并不规范，业务代码隐式依赖 fastjson 的宽
 
 1. 编写特征测试，记录 fastjson 当前行为（已完成）。
 2. 加入兼容层，让特征测试同时针对兼容层运行并全部通过（已完成）。
-3. 迁移本地持久化（D）与实体绑定（C），补充“旧版本写入的数据可被读取”的测试。
+3. 迁移本地持久化（D）与实体绑定（C），补充“旧版本写入的数据可被读取”的测试（已完成）。`BeanBindingEquivalenceTest` 用 fastjson 与 `NgaJson` 分别绑定接口实体、内置版面列表 `assets/json/category*.json` 与本地记录，结果一致。`TopicPostModel` 与 `NavigationDrawerFragment` 中少量树形取值随文件一并迁移；`ForumFavorites.kt` 只迁移离线缓存，接口解析依赖 `ArticleResponse.businessError`，随第 5 步迁移。
 4. 迁移其他接口的树形取值（B）。
 5. 迁移主题加载链路（A），运行全部单元测试，并在设备上运行 `IncompleteTopicTest`、`WebViewRoutingTest`。
 6. 删除 fastjson 依赖，确认代码中不再出现 `com.alibaba.fastjson`；删除只针对 fastjson 的测试分支。

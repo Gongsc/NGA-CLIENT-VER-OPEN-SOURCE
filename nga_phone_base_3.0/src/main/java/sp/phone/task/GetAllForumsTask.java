@@ -3,7 +3,7 @@ package sp.phone.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import gov.anzong.androidnga.Utils;
 import gov.anzong.androidnga.activity.ForumListActivity;
@@ -32,7 +32,7 @@ public class GetAllForumsTask extends AsyncTask<String, Integer, ForumsListModel
         String json = HttpUtil.getHtml(mUrl, PhoneConfiguration.getInstance().getCookie());
         ForumsListModel listModel = null;
         try {
-            listModel = JSON.parseObject(json, ForumsListModel.class);
+            listModel = NgaJson.parseObject(json, ForumsListModel.class);
         } catch (Exception e) {
             e.printStackTrace();
         }

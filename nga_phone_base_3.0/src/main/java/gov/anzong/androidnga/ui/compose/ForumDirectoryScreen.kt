@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alibaba.fastjson.JSON
+import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,7 +42,7 @@ class ForumDirectoryViewModel : ViewModel() {
             try {
                 val result = withContext(Dispatchers.IO) {
                     val json = HttpUtil.getHtml(Utils.getNGAHost() + "app_api.php?__lib=home&__act=category", PhoneConfiguration.getInstance().cookie)
-                    JSON.parseObject(json, ForumsListModel::class.java)
+                    NgaJson.parseObject(json, ForumsListModel::class.java)
                 }
                 if (result?.result == null) state.error = "版块目录加载失败，请重试"
                 else accept(result)

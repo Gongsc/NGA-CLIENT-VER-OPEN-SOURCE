@@ -1,6 +1,6 @@
 package sp.phone.mvp.model;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 import com.justwen.androidnga.cloud.CloudServerManager;
 import com.trello.rxlifecycle2.android.FragmentEvent;
 
@@ -79,11 +79,11 @@ public class TopicListModel extends BaseModel implements TopicListContract.Model
                         continue;
                     }
                     String rawData = FileUtils.readFileToString(infoFile);
-                    ThreadPageInfo pageInfo = JSON.parseObject(rawData, ThreadPageInfo.class);
+                    ThreadPageInfo pageInfo = NgaJson.parseObject(rawData, ThreadPageInfo.class);
                     if (pageInfo == null) {
                         CloudServerManager.putCrashData(ContextUtils.getContext(),"rawData", rawData);
                     } else {
-                        listInfo.addThreadPage(JSON.parseObject(rawData, ThreadPageInfo.class));
+                        listInfo.addThreadPage(NgaJson.parseObject(rawData, ThreadPageInfo.class));
                     }
                 }
                 emitter.onNext(listInfo);

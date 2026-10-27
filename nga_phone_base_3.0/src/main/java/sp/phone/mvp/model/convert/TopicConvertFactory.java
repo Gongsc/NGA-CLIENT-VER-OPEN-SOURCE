@@ -2,7 +2,7 @@ package sp.phone.mvp.model.convert;
 
 import android.text.TextUtils;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,7 +39,7 @@ public class TopicConvertFactory {
             js = js.substring("window.script_muti_get_var_store=".length());
         }
 
-        TopicListBean topicListBean = JSON.parseObject(js, TopicListBean.class);
+        TopicListBean topicListBean = NgaJson.parseObject(js, TopicListBean.class);
 
         try {
             TopicListInfo listInfo = new TopicListInfo();
@@ -135,7 +135,7 @@ public class TopicConvertFactory {
             if (TextUtils.isEmpty(subForumsStr)) {
                 return;
             }
-            Map<String, Map<String, String>> subBoardMap = JSON.parseObject(subForumsStr, Map.class);
+            Map<String, Map<String, String>> subBoardMap = NgaJson.parseObject(subForumsStr, Map.class);
             for (String key : subBoardMap.keySet()) {
                 Map<String, String> boardMap = subBoardMap.get(key);
                 SubBoard board = new SubBoard();

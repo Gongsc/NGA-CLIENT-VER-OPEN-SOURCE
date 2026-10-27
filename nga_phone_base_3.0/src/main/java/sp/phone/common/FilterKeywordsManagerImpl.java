@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class FilterKeywordsManagerImpl implements FilterKeywordsManager {
         if (TextUtils.isEmpty(blackListStr)) {
             mFilterKeywords = new ArrayList<>();
         } else {
-            mFilterKeywords = JSON.parseArray(blackListStr, FilterKeyword.class);
+            mFilterKeywords = NgaJson.parseArray(blackListStr, FilterKeyword.class);
             if (mFilterKeywords == null) {
                 mFilterKeywords = new ArrayList<>();
             }
@@ -79,7 +79,7 @@ public class FilterKeywordsManagerImpl implements FilterKeywordsManager {
 
     private void commit() {
         mPrefs.edit()
-                .putString(PreferenceKey.FILTER_KEYWORDS_LIST, JSON.toJSONString(mFilterKeywords))
+                .putString(PreferenceKey.FILTER_KEYWORDS_LIST, NgaJson.toJSONString(mFilterKeywords))
                 .apply();
     }
 }

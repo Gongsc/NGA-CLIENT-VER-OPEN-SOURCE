@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.parser.Feature
+import gov.anzong.androidnga.base.json.NgaJson
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import sp.phone.http.article.ArticleResponse
@@ -44,27 +45,31 @@ object ForumFavoritesParser {
         }
     }
 
-    fun parseCache(source: String): List<ForumFavoriteBoard> = parseRows(JSON.parseArray(source))
+    fun parseCache(source: String): List<ForumFavoriteBoard> = parseRows(NgaJson.parseArray(source))
 
-    fun serialize(boards: List<ForumFavoriteBoard>): String = JSON.toJSONString(boards.map {
+    fun serialize(boards: List<ForumFavoriteBoard>): String = NgaJson.toJSONString(boards.map {
         linkedMapOf("fid" to it.fid, "stid" to it.stid, "name" to it.name, "topped_topic" to it.head)
     })
 
+    /** 接口响应（fastjson）与离线缓存（NgaJson）共用；两者的对象与数组分别实现 Map 与 List。 */
     private fun parseRows(rows: Any?): List<ForumFavoriteBoard> {
         val values = when (rows) {
-            is JSONObject -> rows.values.toList()
-            is JSONArray -> rows.toList()
+            is Map<*, *> -> rows.values.toList()
+            is List<*> -> rows.toList()
             else -> throw IllegalArgumentException("论坛收藏数据格式不兼容，请稍后重试。")
         }
         return values.map { entry ->
-            val board = entry as? JSONObject ?: throw IllegalArgumentException("论坛收藏条目格式不兼容，请稍后重试。")
-            val fid = board.getString("fid")?.toIntOrNull() ?: 0
-            val stid = board.getString("stid")?.toIntOrNull() ?: 0
-            val name = board.getString("name")?.trim().orEmpty()
+            val board = entry as? Map<*, *> ?: throw IllegalArgumentException("论坛收藏条目格式不兼容，请稍后重试。")
+            val fid = board.text("fid")?.toIntOrNull() ?: 0
+            val stid = board.text("stid")?.toIntOrNull() ?: 0
+            val name = board.text("name")?.trim().orEmpty()
             require((fid != 0 || stid != 0) && name.isNotEmpty()) { "论坛收藏条目不完整，请稍后重试。" }
-            ForumFavoriteBoard(fid, stid, name, board.getString("topped_topic")?.takeIf { it.isNotBlank() })
+            ForumFavoriteBoard(fid, stid, name, board.text("topped_topic")?.takeIf { it.isNotBlank() })
         }.distinctBy { it.key }
     }
+
+    /** 与 getString 一致：对象与数组取 JSON 文本，其余取字符串形式。 */
+    private fun Map<*, *>.text(key: String): String? = this[key]?.toString()
 }
 
 interface ForumFavoritesCache {

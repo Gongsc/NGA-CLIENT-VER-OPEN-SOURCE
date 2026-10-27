@@ -14,7 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.List;
 
@@ -121,7 +121,7 @@ public class TopicHistoryFragment extends BaseFragment implements View.OnClickLi
         param.tid = info.getTid();
         param.page = info.getPage();
         param.title = info.getSubject();
-        param.topicInfo = JSON.toJSONString(info);
+        param.topicInfo = NgaJson.toJSONString(info);
         Intent intent = new Intent();
         Bundle bundle = new Bundle();
         bundle.putParcelable(ParamKey.KEY_PARAM, param);
