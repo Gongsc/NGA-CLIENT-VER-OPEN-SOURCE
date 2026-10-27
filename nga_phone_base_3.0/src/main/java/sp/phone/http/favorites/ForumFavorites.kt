@@ -1,10 +1,8 @@
 package sp.phone.http.favorites
 
-import com.alibaba.fastjson.JSON
-import com.alibaba.fastjson.JSONArray
-import com.alibaba.fastjson.JSONObject
-import com.alibaba.fastjson.parser.Feature
 import gov.anzong.androidnga.base.json.NgaJson
+import gov.anzong.androidnga.base.json.NgaJsonArray
+import gov.anzong.androidnga.base.json.NgaJsonObject
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import sp.phone.http.article.ArticleResponse
@@ -17,14 +15,14 @@ data class ForumFavoriteBoard(val fid: Int, val stid: Int, val name: String, val
 
 object ForumFavoritesParser {
     fun parseResponse(source: String): List<ForumFavoriteBoard> {
-        val root = JSON.parseObject(source.trim().removePrefix("/*\$js\$*/"), Feature.OrderedField)
+        val root = NgaJson.parseObject(source.trim().removePrefix("/*\$js\$*/"))
             ?: throw IllegalArgumentException("论坛收藏响应为空，请稍后重试。")
         ArticleResponse.businessError(root)?.let { throw IllegalArgumentException(it) }
         val data = root["data"] ?: throw IllegalArgumentException("无法读取论坛收藏，请稍后重试。")
-        if (data is JSONObject) ArticleResponse.businessError(data)?.let { throw IllegalArgumentException(it) }
+        if (data is NgaJsonObject) ArticleResponse.businessError(data)?.let { throw IllegalArgumentException(it) }
         val rows = when (data) {
-            is JSONObject -> data["0"]
-            is JSONArray -> data.firstOrNull()
+            is NgaJsonObject -> data["0"]
+            is NgaJsonArray -> data.firstOrNull()
             else -> null
         } ?: throw IllegalArgumentException("论坛收藏数据格式不兼容，请稍后重试。")
         return parseRows(rows)
@@ -34,11 +32,11 @@ object ForumFavoritesParser {
         mapOf("action" to if (add) "add" else "del", "fid" to board.serverId)
 
     fun parseMutationResponse(source: String) {
-        val root = JSON.parseObject(source.trim().removePrefix("/*\$js\$*/"))
+        val root = NgaJson.parseObject(source.trim().removePrefix("/*\$js\$*/"))
             ?: throw IllegalArgumentException("收藏操作响应为空，请重试。")
         ArticleResponse.businessError(root)?.let { throw IllegalArgumentException(it) }
         val data = root["data"] ?: throw IllegalArgumentException("未收到论坛收藏操作结果，请重试。")
-        if (data is JSONObject) ArticleResponse.businessError(data)?.let { message ->
+        if (data is NgaJsonObject) ArticleResponse.businessError(data)?.let { message ->
             val normalized = message.trim().trimEnd('!', '！', '。')
             if (normalized !in setOf("操作成功", "收藏成功", "添加成功", "删除成功", "取消收藏成功"))
                 throw IllegalArgumentException(message)
@@ -51,7 +49,7 @@ object ForumFavoritesParser {
         linkedMapOf("fid" to it.fid, "stid" to it.stid, "name" to it.name, "topped_topic" to it.head)
     })
 
-    /** 接口响应（fastjson）与离线缓存（NgaJson）共用；两者的对象与数组分别实现 Map 与 List。 */
+    /** 接口响应与离线缓存共用。 */
     private fun parseRows(rows: Any?): List<ForumFavoriteBoard> {
         val values = when (rows) {
             is Map<*, *> -> rows.values.toList()

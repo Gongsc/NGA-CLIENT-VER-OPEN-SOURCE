@@ -1,8 +1,8 @@
 package sp.phone.http.article;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonArray;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -48,7 +48,7 @@ public final class ArticleResponse {
         return quoted || !stack.isEmpty();
     }
 
-    public static JSONObject decode(String text) throws Exception {
+    public static NgaJsonObject decode(String text) throws Exception {
         String source = text.replace("\uFEFF", "").trim().replace("/*$js$*/", "");
         if (!source.startsWith("<")) {
             int errorFill = source.indexOf("/*error fill content");
@@ -56,9 +56,9 @@ public final class ArticleResponse {
             source =
                     source.replaceAll("\"(content|subject)\":([+]\\d+|0\\d+),", "\"$1\":\"$2\",")
                             .replaceAll("\"author\":(0\\d+),", "\"author\":\"$1\",");
-            JSONObject root = JSON.parseObject(source);
+            NgaJsonObject root = NgaJson.parseObject(source);
             if (root == null) throw new IllegalArgumentException("空主题响应");
-            JSONObject data = root.getJSONObject("data");
+            NgaJsonObject data = root.getJSONObject("data");
             return data != null ? data : root;
         }
         if (source.toLowerCase(Locale.ROOT).startsWith("<!doctype html")
@@ -78,20 +78,20 @@ public final class ArticleResponse {
         Element root =
                 builder.parse(new InputSource(new StringReader(source))).getDocumentElement();
         if (!"root".equals(root.getTagName())) throw new IllegalArgumentException("非主题响应");
-        JSONObject data = (JSONObject) elementValue(root);
+        NgaJsonObject data = (NgaJsonObject) elementValue(root);
         for (String key : new String[] {"__R", "__U"}) {
-            if ("".equals(data.get(key))) data.put(key, new JSONObject(true));
+            if ("".equals(data.get(key))) data.put(key, new NgaJsonObject());
         }
-        if (!data.containsKey("__R__ROWS") && data.get("__R") instanceof JSONObject) {
+        if (!data.containsKey("__R__ROWS") && data.get("__R") instanceof NgaJsonObject) {
             data.put("__R__ROWS", data.getJSONObject("__R").size());
         }
-        JSONObject users = data.getJSONObject("__U");
+        NgaJsonObject users = data.getJSONObject("__U");
         if (users != null) {
-            JSONObject byId = new JSONObject(true);
+            NgaJsonObject byId = new NgaJsonObject();
             for (String key : users.keySet()) {
                 Object user = users.get(key);
                 String uid =
-                        user instanceof JSONObject ? ((JSONObject) user).getString("uid") : null;
+                        user instanceof NgaJsonObject ? ((NgaJsonObject) user).getString("uid") : null;
                 byId.put(uid != null ? uid : key, user);
             }
             data.put("__U", byId);
@@ -100,7 +100,7 @@ public final class ArticleResponse {
     }
 
     private static Object elementValue(Element element) {
-        JSONObject values = new JSONObject(true);
+        NgaJsonObject values = new NgaJsonObject();
         int index = 0;
         boolean hasElements = false;
         for (Node node = element.getFirstChild(); node != null; node = node.getNextSibling()) {
@@ -116,25 +116,25 @@ public final class ArticleResponse {
                             || "attachs".equals(key)
                             || "buffs".equals(key)
                             || "__GROUPS".equals(key))) {
-                value = new JSONObject(true);
+                value = new NgaJsonObject();
             }
             values.put(key, value);
         }
         return hasElements ? values : element.getTextContent();
     }
 
-    public static String businessError(JSONObject data) {
+    public static String businessError(NgaJsonObject data) {
         Object error = data.get("error");
         if (error == null) error = data.get("__MESSAGE");
-        if (error instanceof JSONObject) {
-            JSONObject object = (JSONObject) error;
+        if (error instanceof NgaJsonObject) {
+            NgaJsonObject object = (NgaJsonObject) error;
             String message = object.getString("1");
             if (message == null) message = object.getString("0");
             if (message == null) message = object.getString("message");
             return message;
         }
-        if (error instanceof JSONArray) {
-            JSONArray array = (JSONArray) error;
+        if (error instanceof NgaJsonArray) {
+            NgaJsonArray array = (NgaJsonArray) error;
             return array.isEmpty() ? null : array.getString(array.size() - 1);
         }
         return error instanceof String ? (String) error : null;

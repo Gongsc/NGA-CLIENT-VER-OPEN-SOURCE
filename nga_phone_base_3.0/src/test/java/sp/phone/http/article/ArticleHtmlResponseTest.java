@@ -2,7 +2,8 @@ package sp.phone.http.article;
 
 import static org.junit.Assert.*;
 
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import io.reactivex.Observable;
 
@@ -38,11 +39,11 @@ $('postsign20'),$('posterinfo20'),$('postInfo20'),$('postBtnPos20'),null,null,
 
     @Test
     public void webpageNormalizesToSameSchemaWithoutExecutingScripts() throws Exception {
-        JSONObject data = ArticleResponse.decode(HTML);
+        NgaJsonObject data = ArticleResponse.decode(HTML);
         assertEquals(12, data.getJSONObject("__T").getIntValue("tid"));
         assertEquals("主题 & 标题", data.getJSONObject("__T").getString("subject"));
         assertEquals(43, data.getIntValue("__ROWS"));
-        JSONObject row = data.getJSONObject("__R").getJSONObject("0");
+        NgaJsonObject row = data.getJSONObject("__R").getJSONObject("0");
         assertEquals(20, row.getIntValue("lou"));
         assertEquals(34, row.getIntValue("pid"));
         assertEquals(2, row.getIntValue("score"));
@@ -65,8 +66,8 @@ $('postsign20'),$('posterinfo20'),$('postInfo20'),$('postBtnPos20'),null,null,
                                 "<!--postlistend-->",
                                 "<script>commonui.loadAlertInfo('编辑说明','alertc20');var"
                                     + " __PAGE={0:'/read.php?tid=12',1:1,2:1,3:20};</script><!--postlistend-->");
-        JSONObject data = ArticleResponse.decode(source);
-        JSONObject row = data.getJSONObject("__R").getJSONObject("0");
+        NgaJsonObject data = ArticleResponse.decode(source);
+        NgaJsonObject row = data.getJSONObject("__R").getJSONObject("0");
         assertEquals(
                 "a/test.png",
                 row.getJSONObject("attachs").getJSONObject("0").getString("attachurl"));
@@ -95,7 +96,7 @@ $('postsign20'),$('posterinfo20'),$('postInfo20'),$('postBtnPos20'),null,null,
     @Test
     public void truncatedApiUsesWebpageWithAccountAndFiltersPreserved() {
         List<String> urls = new ArrayList<>();
-        ArticlePageLoader<JSONObject> loader =
+        ArticlePageLoader<NgaJsonObject> loader =
                 new ArticlePageLoader<>(
                         (url, headers) -> {
                             urls.add(url);
@@ -106,8 +107,8 @@ $('postsign20'),$('posterinfo20'),$('postInfo20'),$('postBtnPos20'),null,null,
                                             MediaType.parse("text/plain; charset=UTF-8"),
                                             urls.size() == 1 ? "{\"data\":" : HTML));
                         },
-                        json -> com.alibaba.fastjson.JSON.parseObject(json).getJSONObject("data"));
-        JSONObject data =
+                        json -> NgaJson.parseObject(json).getJSONObject("data"));
+        NgaJsonObject data =
                 loader.load(
                                 "https://bbs.nga.cn/read.php?tid=12&authorid=9&page=2",
                                 Map.of("Cookie", "fixture-account"))
@@ -177,9 +178,9 @@ $('postsign20'),$('posterinfo20'),$('postInfo20'),$('postBtnPos20'),null,null,
                                 "<!--postlistend-->",
                                 "<script>commonui.postArg.proc('__99',null,null,null,null,null,null,null,null,null,99,0,null,'9',1792995370,'18,0,0','18','','','7"
                                     + " iOS','',null,0);</script><!--postlistend-->");
-        JSONObject data = ArticleResponse.decode(source);
+        NgaJsonObject data = ArticleResponse.decode(source);
         assertEquals(1, data.getIntValue("__R__ROWS"));
-        JSONObject hot =
+        NgaJsonObject hot =
                 data.getJSONObject("__R")
                         .getJSONObject("0")
                         .getJSONObject("hotreply")

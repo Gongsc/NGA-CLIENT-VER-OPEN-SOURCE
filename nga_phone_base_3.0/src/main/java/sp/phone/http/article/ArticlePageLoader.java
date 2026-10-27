@@ -1,6 +1,6 @@
 package sp.phone.http.article;
 
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import io.reactivex.Observable;
 
@@ -66,7 +66,7 @@ public final class ArticlePageLoader<T> {
                             }
                             if (ArticleResponse.isIncomplete(source))
                                 throw new ResponseFormatException(true);
-                            JSONObject data;
+                            NgaJsonObject data;
                             try {
                                 data = ArticleResponse.decode(source);
                             } catch (Exception error) {
@@ -77,7 +77,7 @@ public final class ArticlePageLoader<T> {
                                 throw new BusinessException(message);
                             try {
                                 validate(data, baseUrl);
-                                JSONObject root = new JSONObject();
+                                NgaJsonObject root = new NgaJsonObject();
                                 root.put("data", data);
                                 T result = parser.parse(root.toJSONString());
                                 if (result == null) throw new ResponseFormatException();
@@ -97,9 +97,9 @@ public final class ArticlePageLoader<T> {
     }
 
     /** 所有来源都先校验，再进入正文转换和缓存，禁止把半页内容当成完整页。 */
-    private static void validate(JSONObject data, String baseUrl) throws ResponseFormatException {
-        JSONObject topic = data.getJSONObject("__T");
-        JSONObject rows = data.getJSONObject("__R");
+    private static void validate(NgaJsonObject data, String baseUrl) throws ResponseFormatException {
+        NgaJsonObject topic = data.getJSONObject("__T");
+        NgaJsonObject rows = data.getJSONObject("__R");
         if (topic == null
                 || rows == null
                 || !data.containsKey("__ROWS")
@@ -111,7 +111,7 @@ public final class ArticlePageLoader<T> {
         String tid = requested == null ? null : requested.queryParameter("tid");
         if (tid != null && !tid.equals(topic.getString("tid"))) throw new ResponseFormatException();
         for (int i = 0; i < rows.size(); i++) {
-            JSONObject row = rows.getJSONObject(String.valueOf(i));
+            NgaJsonObject row = rows.getJSONObject(String.valueOf(i));
             if (row == null || (!row.containsKey("content") && !row.containsKey("subject")))
                 throw new ResponseFormatException();
         }

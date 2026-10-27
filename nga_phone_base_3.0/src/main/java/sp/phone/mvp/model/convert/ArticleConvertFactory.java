@@ -3,7 +3,9 @@ package sp.phone.mvp.model.convert;
 import android.text.TextUtils;
 
 import sp.phone.http.article.ArticleResponse;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonArray;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +49,7 @@ public class ArticleConvertFactory {
     private static ThreadData parseJsonThreadPage(String js) {
         ThreadData data = null;
         try {
-            JSONObject obj = ArticleResponse.decode(js);
+            NgaJsonObject obj = ArticleResponse.decode(js);
 
             if (obj == null) {
                 return null;
@@ -69,23 +71,23 @@ public class ArticleConvertFactory {
         return data;
     }
 
-    private static ThreadPageInfo buildThreadPageInfo(JSONObject obj) {
-        JSONObject subObj = (JSONObject) obj.get("__T");
+    private static ThreadPageInfo buildThreadPageInfo(NgaJsonObject obj) {
+        NgaJsonObject subObj = (NgaJsonObject) obj.get("__T");
         if (subObj == null) {
             return null;
         }
         try {
-            return JSONObject.toJavaObject(subObj, ThreadPageInfo.class);
+            return NgaJson.toJavaObject(subObj, ThreadPageInfo.class);
         } catch (RuntimeException e) {
             NLog.e(TAG, subObj.toJSONString());
         }
         return null;
     }
 
-    private static List<ThreadRowInfo> buildThreadRowList(JSONObject obj) {
-        JSONObject subObj = (JSONObject) obj.get("__R");
+    private static List<ThreadRowInfo> buildThreadRowList(NgaJsonObject obj) {
+        NgaJsonObject subObj = (NgaJsonObject) obj.get("__R");
         int rows = obj.getIntValue("__R__ROWS");
-        JSONObject userInfoMap = (JSONObject) obj.get("__U");
+        NgaJsonObject userInfoMap = (NgaJsonObject) obj.get("__U");
         if (subObj == null) {
             return new ArrayList<>();
         }
@@ -93,32 +95,32 @@ public class ArticleConvertFactory {
     }
 
 
-    private static List<ThreadRowInfo> buildHotReplies(JSONObject data) {
-        JSONObject rows = data.getJSONObject("__R");
-        JSONObject users = data.getJSONObject("__U");
+    private static List<ThreadRowInfo> buildHotReplies(NgaJsonObject data) {
+        NgaJsonObject rows = data.getJSONObject("__R");
+        NgaJsonObject users = data.getJSONObject("__U");
         if (rows == null) return new ArrayList<>();
         for (Object value : rows.values()) {
-            if (!(value instanceof JSONObject)) continue;
-            JSONObject parent = (JSONObject) value;
+            if (!(value instanceof NgaJsonObject)) continue;
+            NgaJsonObject parent = (NgaJsonObject) value;
             if (parent.getIntValue("lou") != 0 || parent.getIntValue("pid") != 0) continue;
             Object hot = parent.get("hotreply");
             java.util.Collection<?> values;
-            if (hot instanceof JSONObject) {
-                java.util.List<String> keys = new ArrayList<>(((JSONObject) hot).keySet());
+            if (hot instanceof NgaJsonObject) {
+                java.util.List<String> keys = new ArrayList<>(((NgaJsonObject) hot).keySet());
                 keys.sort(java.util.Comparator.comparingInt(key -> {
                     try { return Integer.parseInt(key); } catch (NumberFormatException ignored) { return Integer.MAX_VALUE; }
                 }));
                 java.util.List<Object> ordered = new ArrayList<>();
-                for (String key : keys) ordered.add(((JSONObject) hot).get(key));
+                for (String key : keys) ordered.add(((NgaJsonObject) hot).get(key));
                 values = ordered;
             }
-            else if (hot instanceof com.alibaba.fastjson.JSONArray) values = (com.alibaba.fastjson.JSONArray) hot;
+            else if (hot instanceof NgaJsonArray) values = (NgaJsonArray) hot;
             else continue;
             List<ThreadRowInfo> result = new ArrayList<>();
             java.util.Set<Integer> seen = new java.util.HashSet<>();
             for (Object reply : values) {
-                if (!(reply instanceof JSONObject)) continue;
-                JSONObject row = new JSONObject((JSONObject) reply);
+                if (!(reply instanceof NgaJsonObject)) continue;
+                NgaJsonObject row = new NgaJsonObject((NgaJsonObject) reply);
                 int pid = row.getIntValue("pid");
                 if (pid <= 0 || seen.contains(pid) || (!row.containsKey("content") && !row.containsKey("subject"))) continue;
                 if (!row.containsKey("tid")) row.put("tid", parent.get("tid"));
@@ -126,11 +128,11 @@ public class ArticleConvertFactory {
                 if (!row.containsKey("lou")) {
                     row.put("lou", -1);
                     for (Object normal : rows.values()) {
-                        if (normal instanceof JSONObject && ((JSONObject) normal).getIntValue("pid") == pid)
-                            row.put("lou", ((JSONObject) normal).get("lou"));
+                        if (normal instanceof NgaJsonObject && ((NgaJsonObject) normal).getIntValue("pid") == pid)
+                            row.put("lou", ((NgaJsonObject) normal).get("lou"));
                     }
                 }
-                JSONObject normalized = new JSONObject(true);
+                NgaJsonObject normalized = new NgaJsonObject();
                 normalized.put("0", row);
                 try {
                     result.addAll(convertJsObjToList(normalized, 1, users));
@@ -144,18 +146,18 @@ public class ArticleConvertFactory {
         return new ArrayList<>();
     }
 
-    private static List<ThreadRowInfo> convertJsObjToList(JSONObject rowMap, int count, JSONObject userInfoMap) {
+    private static List<ThreadRowInfo> convertJsObjToList(NgaJsonObject rowMap, int count, NgaJsonObject userInfoMap) {
         List<ThreadRowInfo> rowList = new ArrayList<>();
         NLog.d("ArticleUtil", "convertJsObjToList");
         for (int i = 0; i < count; i++) {
             Object obj = rowMap.get(String.valueOf(i));
-            JSONObject rowObj;
-            if (obj instanceof JSONObject) {
-                rowObj = (JSONObject) obj;
+            NgaJsonObject rowObj;
+            if (obj instanceof NgaJsonObject) {
+                rowObj = (NgaJsonObject) obj;
             } else {
                 continue;
             }
-            ThreadRowInfo row = JSONObject.toJavaObject(rowObj, ThreadRowInfo.class);
+            ThreadRowInfo row = NgaJson.toJavaObject(rowObj, ThreadRowInfo.class);
             buildRowHotReplay(row, rowObj);
             buildRowComment(row, rowObj, userInfoMap);
             buildRowClientInfo(row, rowObj);
@@ -232,7 +234,7 @@ public class ArticleConvertFactory {
         return htmlData;
     }
 
-    private static void buildRowVote(ThreadRowInfo row, JSONObject rowObj) {
+    private static void buildRowVote(ThreadRowInfo row, NgaJsonObject rowObj) {
         String vote = rowObj.getString("vote");
         if (!StringUtils.isEmpty(vote)) {
             row.setVote(vote);
@@ -240,7 +242,7 @@ public class ArticleConvertFactory {
     }
 
     //热门回复
-    private static void buildRowHotReplay(ThreadRowInfo row, JSONObject rowObj) {
+    private static void buildRowHotReplay(ThreadRowInfo row, NgaJsonObject rowObj) {
         String hotObj = rowObj.getString("17");
         if (hotObj != null) {
             row.hotReplies = new ArrayList<>();
@@ -254,14 +256,14 @@ public class ArticleConvertFactory {
     }
 
     //解析贴条
-    private static void buildRowComment(ThreadRowInfo row, JSONObject rowObj, JSONObject userInfoMap) {
-        JSONObject commObj = (JSONObject) rowObj.get("comment");
+    private static void buildRowComment(ThreadRowInfo row, NgaJsonObject rowObj, NgaJsonObject userInfoMap) {
+        NgaJsonObject commObj = (NgaJsonObject) rowObj.get("comment");
         if (commObj != null) {
             row.setComments(convertJsObjToList(commObj, commObj.size(), userInfoMap));
         }
     }
 
-    private static void buildRowClientInfo(ThreadRowInfo row, JSONObject rowObj) {
+    private static void buildRowClientInfo(ThreadRowInfo row, NgaJsonObject rowObj) {
         String client = rowObj.getString("from_client");
         if (!StringUtils.isEmpty(client)) {
             row.setFromClient(client);
@@ -285,13 +287,13 @@ public class ArticleConvertFactory {
         }
     }
 
-    private static void buildRowUserInfo(ThreadRowInfo row, JSONObject userInfoMap) {
+    private static void buildRowUserInfo(ThreadRowInfo row, NgaJsonObject userInfoMap) {
         if (row.getAuthorid() == 0 || userInfoMap == null) {
             return;
         }
-        JSONObject userInfo = (JSONObject) userInfoMap.get(String.valueOf(row
+        NgaJsonObject userInfo = (NgaJsonObject) userInfoMap.get(String.valueOf(row
                 .getAuthorid()));
-        JSONObject groupObj = userInfoMap.getJSONObject("__GROUPS");
+        NgaJsonObject groupObj = userInfoMap.getJSONObject("__GROUPS");
 
         if (userInfo == null) {
             return;
@@ -340,7 +342,7 @@ public class ArticleConvertFactory {
         } catch (Exception e) {
         }
 
-        JSONObject obj = userInfo.getJSONObject("buffs");
+        NgaJsonObject obj = userInfo.getJSONObject("buffs");
         if (obj != null) {
             for (String id : ForumConstants.BUFF_MUTE_IDS) {
                 if (obj.containsKey(id)) {

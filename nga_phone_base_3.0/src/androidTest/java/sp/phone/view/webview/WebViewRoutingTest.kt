@@ -11,7 +11,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import gov.anzong.androidnga.activity.ArticleListActivity
 import org.junit.Assert.*
 import org.junit.Test
-import com.alibaba.fastjson.JSONObject
+import gov.anzong.androidnga.base.json.NgaJson
 import sp.phone.http.article.ArticlePageLoader
 import sp.phone.mvp.model.convert.ArticleConvertFactory
 import io.reactivex.Observable
@@ -74,8 +74,8 @@ class WebViewRoutingTest {
         assertEquals(12, result.threadInfo.tid)
         assertEquals("兼容用户", result.rowList.single().author)
         assertTrue(result.rowList.single().formattedHtmlData.contains("内容"))
-        assertTrue(JSONObject.parseObject(result.rawData).containsKey("data"))
-        val invalid = JSONObject.parseObject(result.rawData)
+        assertTrue(NgaJson.parseObject(result.rawData).containsKey("data"))
+        val invalid = NgaJson.parseObject(result.rawData)
         invalid.getJSONObject("data")["__R__ROWS"] = "invalid"
         assertNull(ArticleConvertFactory.getArticleInfo(invalid.toJSONString()))
     }

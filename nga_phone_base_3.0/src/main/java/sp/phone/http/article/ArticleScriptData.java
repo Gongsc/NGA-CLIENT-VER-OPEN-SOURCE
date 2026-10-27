@@ -1,6 +1,6 @@
 package sp.phone.http.article;
 
-import com.alibaba.fastjson.JSON;
+import gov.anzong.androidnga.base.json.NgaJson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ final class ArticleScriptData {
         String value = args.get(index);
         if ("null".equals(value) || "undefined".equals(value)) return "";
         if (value.startsWith("\"") || value.startsWith("'")) {
-            Object decoded = JSON.parse(value);
+            Object decoded = NgaJson.parse(value);
             return decoded == null ? "" : decoded.toString();
         }
         return value;

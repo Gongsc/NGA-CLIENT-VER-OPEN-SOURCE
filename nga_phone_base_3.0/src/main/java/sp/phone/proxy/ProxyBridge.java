@@ -5,8 +5,8 @@ import android.os.AsyncTask;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import org.apache.commons.io.IOUtils;
 
@@ -86,10 +86,10 @@ public final class ProxyBridge {
                             return context.getString(R.string.network_error);
                         }
                         js = js.replaceAll("window.script_muti_get_var_store=", "");
-                        JSONObject o = null, oerror = null;
+                        NgaJsonObject o = null, oerror = null;
                         try {
-                            o = (JSONObject) JSON.parseObject(js).get("data");
-                            oerror = (JSONObject) JSON.parseObject(js).get("error");
+                            o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
+                            oerror = (NgaJsonObject) NgaJson.parseObject(js).get("error");
                         } catch (Exception e) {
                             NLog.e("ProxyBridge", "can not parse :\n" + js);
                         }

@@ -1,8 +1,8 @@
 package sp.phone.http.article;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonArray;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -17,13 +17,13 @@ import java.util.regex.Pattern;
 final class ArticleHtmlResponse {
     private ArticleHtmlResponse() {}
 
-    static JSONObject decode(String source) {
+    static NgaJsonObject decode(String source) {
         Document document = Jsoup.parse(source);
         document.outputSettings().prettyPrint(false);
         Matcher error =
                 Pattern.compile("(?s)<!--msginfostart-->(.*?)<!--msginfoend-->").matcher(source);
         if (error.find()) {
-            JSONObject result = new JSONObject();
+            NgaJsonObject result = new NgaJsonObject();
             result.put("error", Jsoup.parse(error.group(1)).text());
             return result;
         }
@@ -41,25 +41,25 @@ final class ArticleHtmlResponse {
         int fid = ArticleScriptData.number(meta, 0);
         int tid = ArticleScriptData.number(meta, 2);
         int replies = ArticleScriptData.number(meta, 11);
-        JSONObject topic = new JSONObject();
+        NgaJsonObject topic = new NgaJsonObject();
         topic.put("fid", fid);
         topic.put("tid", tid);
         topic.put("authorid", ArticleScriptData.number(meta, 3));
         topic.put("type", ArticleScriptData.number(meta, 10));
         topic.put("replies", replies);
         topic.put("subject", text(document, "currentTopicName"));
-        JSONObject users = new JSONObject();
+        NgaJsonObject users = new NgaJsonObject();
         List<List<String>> userCalls =
                 ArticleScriptData.calls(bootstrap, "commonui.userInfo.setAll");
         if (!userCalls.isEmpty() && !userCalls.get(0).isEmpty())
-            users = JSON.parseObject(userCalls.get(0).get(0));
+            users = NgaJson.parseObject(userCalls.get(0).get(0));
         topic.put(
                 "author",
                 users.getJSONObject(String.valueOf(topic.getIntValue("authorid"))) == null
                         ? ""
                         : users.getJSONObject(String.valueOf(topic.getIntValue("authorid")))
                                 .getString("username"));
-        JSONObject rows = new JSONObject(true);
+        NgaJsonObject rows = new NgaJsonObject();
         for (List<String> args : ArticleScriptData.calls(bootstrap, "commonui.postArg.proc")) {
             if (args.size() < 23) throw new IllegalArgumentException("楼层元数据不完整");
             String key = ArticleScriptData.literal(args, 0);
@@ -71,7 +71,7 @@ final class ArticleHtmlResponse {
                     || content == null
                     || !container.select("#postcontent" + floor).contains(content))
                 throw new IllegalArgumentException("楼层正文不完整");
-            JSONObject row = new JSONObject();
+            NgaJsonObject row = new NgaJsonObject();
             row.put("tid", tid);
             row.put("fid", fid);
             row.put("lou", floor);
@@ -83,15 +83,15 @@ final class ArticleHtmlResponse {
             row.put("subject", text(document, "postsubject" + floor));
             row.put("content", clean(content.html()));
             row.put("from_client", ArticleScriptData.literal(args, 19));
-            JSONObject attachments = new JSONObject(true);
+            NgaJsonObject attachments = new NgaJsonObject();
             for (Element script : container.select("script")) {
                 for (List<String> call :
                         ArticleScriptData.calls(script.data(), "ubbcode.attach.load")) {
                     for (String argument : call) {
                         if (!argument.startsWith("[")) continue;
-                        JSONArray values = JSON.parseArray(argument);
+                        NgaJsonArray values = NgaJson.parseArray(argument);
                         for (int i = 0; i < values.size(); i++) {
-                            JSONObject attachment = values.getJSONObject(i);
+                            NgaJsonObject attachment = values.getJSONObject(i);
                             attachment.put("attachurl", attachment.getString("url"));
                             attachment.put("subid", attachments.size());
                             attachments.put(String.valueOf(attachments.size()), attachment);
@@ -113,17 +113,17 @@ final class ArticleHtmlResponse {
             throw new IllegalArgumentException("楼层与元数据不匹配");
         Element highlights = document.getElementById("hightlight_for_0");
         if (highlights != null) {
-            JSONObject hot = new JSONObject(true);
+            NgaJsonObject hot = new NgaJsonObject();
             for (List<String> args : ArticleScriptData.calls(bootstrap, "commonui.postArg.proc")) {
                 String suffix = ArticleScriptData.literal(args, 0);
                 if (args.size() < 23 || suffix.matches("[0-9]+")) continue;
                 Element content = highlights.getElementById("postcomment" + suffix);
                 if (content == null) continue;
-                JSONObject row = new JSONObject();
+                NgaJsonObject row = new NgaJsonObject();
                 int pid = ArticleScriptData.number(args, 10);
                 int floor = -1;
                 for (Object value : rows.values()) {
-                    JSONObject normal = (JSONObject) value;
+                    NgaJsonObject normal = (NgaJsonObject) value;
                     if (normal.getIntValue("pid") == pid) floor = normal.getIntValue("lou");
                 }
                 row.put("tid", tid);
@@ -145,7 +145,7 @@ final class ArticleHtmlResponse {
                 hot.put(String.valueOf(hot.size()), row);
             }
             for (Object value : rows.values()) {
-                JSONObject root = (JSONObject) value;
+                NgaJsonObject root = (NgaJsonObject) value;
                 if (root.getIntValue("lou") == 0 && root.getIntValue("pid") == 0)
                     root.put("hotreply", hot);
             }
@@ -154,12 +154,12 @@ final class ArticleHtmlResponse {
             if (alert.size() < 2) continue;
             String target = ArticleScriptData.literal(alert, 1).replace("alertc", "");
             for (Object value : rows.values()) {
-                JSONObject row = (JSONObject) value;
+                NgaJsonObject row = (NgaJsonObject) value;
                 if (String.valueOf(row.getIntValue("lou")).equals(target))
                     row.put("alterinfo", clean(ArticleScriptData.literal(alert, 0)));
             }
         }
-        JSONObject data = new JSONObject();
+        NgaJsonObject data = new NgaJsonObject();
         data.put("__T", topic);
         data.put("__R", rows);
         data.put("__U", users);
@@ -167,7 +167,7 @@ final class ArticleHtmlResponse {
         Matcher pagination =
                 Pattern.compile("var\\s+__PAGE\\s*=\\s*(\\{[^}]+\\})").matcher(bootstrap);
         if (pagination.find()) {
-            JSONObject page = JSON.parseObject(pagination.group(1));
+            NgaJsonObject page = NgaJson.parseObject(pagination.group(1));
             int pages = page.getIntValue("1");
             int current = page.getIntValue("2");
             if (pages > 0 && current > 0 && current <= pages) {

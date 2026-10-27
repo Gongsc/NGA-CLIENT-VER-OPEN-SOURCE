@@ -2,8 +2,8 @@ package sp.phone.http.article;
 
 import static org.junit.Assert.*;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import io.reactivex.Observable;
 
@@ -29,9 +29,9 @@ public class ArticlePageLoaderTest {
                 + " 标题]]></subject></__T><__R><item><content><![CDATA[正文 <br>"
                 + " 内容]]></content></item></__R><__U><item><uid>56</uid><username>用户</username></item><__GROUPS><_1>会员</_1></__GROUPS></__U><__ROWS>21</__ROWS><__R__ROWS>1</__R__ROWS></root>";
 
-    private ArticlePageLoader<JSONObject> loader(ArticlePageLoader.Fetcher fetcher) {
+    private ArticlePageLoader<NgaJsonObject> loader(ArticlePageLoader.Fetcher fetcher) {
         return new ArticlePageLoader<>(
-                fetcher, json -> JSON.parseObject(json).getJSONObject("data"));
+                fetcher, json -> NgaJson.parseObject(json).getJSONObject("data"));
     }
 
     private ResponseBody body(String source) {
@@ -41,7 +41,7 @@ public class ArticlePageLoaderTest {
     @Test
     public void validJsonNeedsOneRequest() {
         List<String> urls = new ArrayList<>();
-        JSONObject result =
+        NgaJsonObject result =
                 loader(
                                 (url, headers) -> {
                                     urls.add(url);
@@ -58,7 +58,7 @@ public class ArticlePageLoaderTest {
         List<String> urls = new ArrayList<>();
         Map<String, String> original = new HashMap<>();
         original.put("Cookie", "test-account");
-        JSONObject result =
+        NgaJsonObject result =
                 loader(
                                 (url, headers) -> {
                                     urls.add(url);
@@ -137,7 +137,7 @@ public class ArticlePageLoaderTest {
     @Test
     public void charsetDefaultsToGb18030AndHonorsUtf8Header() {
         for (String charset : new String[] {"UTF-8", "GB18030"}) {
-            JSONObject result =
+            NgaJsonObject result =
                     loader(
                                     (url, headers) ->
                                             Observable.just(
@@ -158,7 +158,7 @@ public class ArticlePageLoaderTest {
 
     @Test
     public void legacyNumericContentsRetainLeadingZerosAndPlusSign() throws Exception {
-        JSONObject data =
+        NgaJsonObject data =
                 ArticleResponse.decode(
                         "/*$js$*/{\"data\":{\"content\":+123,\"subject\":00123,\"author\":0123,\"tail\":0}}/*error"
                             + " fill content */");
@@ -194,7 +194,7 @@ public class ArticlePageLoaderTest {
 
     @Test
     public void xmlWithoutExplicitRowCountUsesParsedReplyCount() {
-        JSONObject result =
+        NgaJsonObject result =
                 loader(
                                 (url, headers) ->
                                         Observable.just(
@@ -208,9 +208,9 @@ public class ArticlePageLoaderTest {
 
     @Test
     public void incompleteJsonDetectionRespectsQuotedDelimiters() {
-        JSONObject data = new JSONObject();
+        NgaJsonObject data = new NgaJsonObject();
         data.put("content", "literal } ] { [ and \"quote\" and backslash \\");
-        JSONObject root = new JSONObject();
+        NgaJsonObject root = new NgaJsonObject();
         root.put("data", data);
         String source = root.toJSONString();
         assertFalse(ArticleResponse.isIncomplete(source));
@@ -235,7 +235,7 @@ public class ArticlePageLoaderTest {
         List<String> urls = new ArrayList<>();
         Map<String, String> account = new HashMap<>();
         account.put("Cookie", "same-account");
-        JSONObject result =
+        NgaJsonObject result =
                 loader(
                                 (url, headers) -> {
                                     urls.add(url);
@@ -284,7 +284,7 @@ public class ArticlePageLoaderTest {
     @Test
     public void truncatedXmlContinuesToNextSource() {
         List<String> urls = new ArrayList<>();
-        JSONObject result =
+        NgaJsonObject result =
                 loader(
                                 (url, headers) -> {
                                     urls.add(url);

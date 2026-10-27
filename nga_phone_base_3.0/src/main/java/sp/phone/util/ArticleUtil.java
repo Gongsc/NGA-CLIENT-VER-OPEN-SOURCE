@@ -3,8 +3,8 @@ package sp.phone.util;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +42,9 @@ public class ArticleUtil {
         js = js.replaceAll("\"author\":(0\\d+),", "\"author\":\"$1\",");
         js = js.replaceAll("\"alterinfo\":\"\\[(\\w|\\s)+\\]\\s+\",", ""); //部分页面打不开的问题
 
-        JSONObject o = null;
+        NgaJsonObject o = null;
         try {
-            o = (JSONObject) JSON.parseObject(js).get("data");
+            o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
         } catch (Exception e) {
             NLog.e(TAG, "can not parse :\n" + js);
         }
@@ -53,13 +53,13 @@ public class ArticleUtil {
 
         ThreadData data = new ThreadData();
 
-        JSONObject o1;
-        o1 = (JSONObject) o.get("__T");
+        NgaJsonObject o1;
+        o1 = (NgaJsonObject) o.get("__T");
         if (o1 == null)
             return null;
         ThreadPageInfo pageInfo;
         try {
-            pageInfo = JSONObject.toJavaObject(o1, ThreadPageInfo.class);
+            pageInfo = NgaJson.toJavaObject(o1, ThreadPageInfo.class);
             data.setThreadInfo(pageInfo);
         } catch (RuntimeException e) {
             NLog.e(TAG, o1.toJSONString());
@@ -69,11 +69,11 @@ public class ArticleUtil {
         int rows = (Integer) o.get("__R__ROWS");
 
         int all_rows = (Integer) o.get("__ROWS");
-        o1 = (JSONObject) o.get("__R");
+        o1 = (NgaJsonObject) o.get("__R");
 
         if (o1 == null)
             return null;
-        JSONObject userInfoMap = (JSONObject) o.get("__U");
+        NgaJsonObject userInfoMap = (NgaJsonObject) o.get("__U");
 
         List<ThreadRowInfo> __R = convertJsObjToList(o1, rows, userInfoMap);
         data.setRowList(__R);
@@ -83,22 +83,22 @@ public class ArticleUtil {
         return data;
     }
 
-    private List<ThreadRowInfo> convertJsObjToList(JSONObject rowMap, int count, JSONObject userInfoMap) {
+    private List<ThreadRowInfo> convertJsObjToList(NgaJsonObject rowMap, int count, NgaJsonObject userInfoMap) {
         if (rowMap == null)
             return null;
         List<ThreadRowInfo> __R = new ArrayList<ThreadRowInfo>();
         NLog.d("ArticleUtil", "convertJsObjToList");
         for (int i = 0; i < count; i++) {
             Object obj = rowMap.get(String.valueOf(i));
-            JSONObject rowObj = null;
-            if (obj instanceof JSONObject) {
-                rowObj = (JSONObject) obj;
+            NgaJsonObject rowObj = null;
+            if (obj instanceof NgaJsonObject) {
+                rowObj = (NgaJsonObject) obj;
             } else {
                 continue;
             }
-            ThreadRowInfo row = JSONObject.toJavaObject(rowObj, ThreadRowInfo.class);
+            ThreadRowInfo row = NgaJson.toJavaObject(rowObj, ThreadRowInfo.class);
             //解析贴条
-            JSONObject commObj = (JSONObject) rowObj.get("comment");
+            NgaJsonObject commObj = (NgaJsonObject) rowObj.get("comment");
             if (commObj != null) {
                 row.setComments(convertJsObjToList(commObj, commObj.size(), userInfoMap));
             }
@@ -146,11 +146,11 @@ public class ArticleUtil {
         return __R;
     }
 
-    private void fillUserInfo(ThreadRowInfo row, JSONObject userInfoMap) {
+    private void fillUserInfo(ThreadRowInfo row, NgaJsonObject userInfoMap) {
         if (row.getAuthorid() == 0) {
             return;
         }
-        JSONObject userInfo = (JSONObject) userInfoMap.get(String.valueOf(row
+        NgaJsonObject userInfo = (NgaJsonObject) userInfoMap.get(String.valueOf(row
                 .getAuthorid()));
         if (userInfo == null) {
             return;

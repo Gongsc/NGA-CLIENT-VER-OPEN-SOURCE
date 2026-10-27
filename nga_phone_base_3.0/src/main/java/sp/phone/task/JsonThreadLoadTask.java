@@ -3,8 +3,8 @@ package sp.phone.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
 
 import gov.anzong.androidnga.R;
 import sp.phone.http.bean.ThreadData;
@@ -69,18 +69,18 @@ public class JsonThreadLoadTask extends AsyncTask<String, Integer, ThreadData> {
                     R.string.thread_load_error);
             do {
                 try {
-                    JSONObject o = JSON.parseObject(js);
+                    NgaJsonObject o = NgaJson.parseObject(js);
                     if (o == null)
                         break;
-                    o = (JSONObject) o.get("data");
+                    o = (NgaJsonObject) o.get("data");
                     if (o == null)
                         break;
                     String message = null;
                     Object tmp = o.get("__MESSAGE");
                     if (tmp instanceof String) {
                         message = (String) o.get("__MESSAGE");
-                    } else if (tmp instanceof JSONObject) {
-                        o = (JSONObject) tmp;
+                    } else if (tmp instanceof NgaJsonObject) {
+                        o = (NgaJsonObject) tmp;
                         message = (String) o.get("1");
                         if (message == null) {
                             message = (String) o.get("0");
