@@ -124,7 +124,7 @@ nga_phone_base_3.0/build/outputs/apk/debug/
 1. 在根目录 `build.gradle` 中更新 `appVersionName` 与 `appVersionCode`，并添加对应的 `TIPS_<版本代码>` 更新说明。
 2. 提交并推送后，创建与 `appVersionName` 一致的标签并推送：`git tag v4.1.0 && git push origin v4.1.0`。
 
-标签与 `appVersionName` 不一致或缺少签名 Secrets 时，工作流会直接失败，不创建发布。
+标签与 `appVersionName` 不一致或缺少签名 Secrets 时，工作流会直接失败，不创建发布。签名校验后，工作流还会检查安装包包含各模块的关键类，缺失时同样不发布。库模块的 release 构建不开启混淆，避免删除模块代码；4.1.0 与 4.2.0 正式版曾因此启动闪退，已在 4.2.1 修复。
 
 应用“关于 → 检查更新”读取本仓库 GitHub 的最新正式发布（不含草稿与预发布），按数字比较发布标签与 `appVersionName`。发布标签应采用 `v4.1.0` 或 `4.1.0` 格式，发布说明会显示在更新提示中。版本号与版本代码定义于根目录 `build.gradle`，版本代码按 `主版本×1000 + 次版本×100 + 修订号` 递增，并需在 `VersionUpgradeTips` 中添加对应的 `TIPS_<版本代码>` 更新说明。
 
