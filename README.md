@@ -40,6 +40,7 @@ NGA Android 客户端开源项目，提供版块浏览、主题阅读、内容�
 | 贴条 | Compose 输入与提交状态、长度校验及成功后的详情刷新 |
 | 关于 | 版本信息、开源许可、更新入口及贡献者信息 |
 | 应用设置 | 分类设置、主题一致的开关和选择弹窗、字号调整、正文预览及缓存确认 |
+| 图片浏览 | 左右翻页、双指缩放、双击放大与缩放后拖动，Glide 加载，保存图片 |
 
 用户资料、私信、账号管理列表、黑名单、关键词管理和缓存管理入口仍保留原有 View 实现。设置主体与字体调整页使用 Compose。登录认证页面与帖子正文通过 WebView 互操作接入 Compose；详情分页使用 Compose Pager，并通过 AndroidFragment 管理各页业务生命周期。项目仍采用 Compose 与 View 共存的迁移架构。
 
@@ -62,7 +63,7 @@ NGA Android 客户端开源项目，提供版块浏览、主题阅读、内容�
 
 Kotlin 编译采用 AGP 内置支持，Compose Compiler 使用独立插件配置。SDK 版本与公共依赖版本集中定义于根目录 `build.gradle`，依赖仓库统一配置于 `settings.gradle`。
 
-项目已移除 Kotlin Android Extensions、ButterKnife、ARouter 及其编译器、Jetifier、旧 Android Support 库，以及旧滑动返回和悬浮菜单依赖。
+项目已移除 Kotlin Android Extensions、ButterKnife、ARouter 及其编译器、Jetifier、旧 Android Support 库，以及旧滑动返回和悬浮菜单依赖。4.2.0 起另移除 fastjson、RxJava 系列（RxJava 2、rxandroid、rxlifecycle、rxbinding）、Guava、commons-io、PhotoView、load-toast 与 jitpack 仓库，`AsyncTask` 亦不再使用，详见[依赖与异步改造](#依赖与异步改造)。
 
 ## 获取与构建
 
@@ -144,7 +145,7 @@ nga_phone_base_3.0/build/outputs/apk/debug/
 | 单元测试报告 | `nga_phone_base_3.0/build/reports/tests/testDebugUnitTest/index.html` |
 | Lint 报告 | `nga_phone_base_3.0/build/reports/lint-results-debug.html` |
 
-截至 2026 年 10 月 26 日，调试构建、79 项单元测试与 Android 12 模拟器上的 41 项设备交互测试已通过。另通过临时在线测试验证两个异常主题及第二页能够转换为原生楼层数据。Lint 检查未发现错误，仍存在历史警告。单元测试覆盖版块筛选、搜索历史、导航规则、登录 Cookie 解析、编辑器选区处理、分页边界、主题响应格式兼容、链接识别、论坛收藏解析及账号隔离；设备测试覆盖提交与退出确认、编辑内容重建恢复、登录取消、分页、引用入口、离线详情加载、长正文高度测量、正文导航、兼容响应转换、错误后页面保留及登录网页框架的高度适配、论坛收藏管理、菜单状态、同步重试、密度持久化、底部分页、整页主题换色及截断响应来源切换及网页归一化后的原生正文转换与缓存读取。
+截至 2026 年 10 月 27 日，调试构建、应用模块 160 项单元测试与 Android Lint 检查已通过；依赖与异步改造期间，主题加载、热点回复、网页路由、论坛收藏传输、页面宿主、首页底部导航及图片浏览相关的设备交互测试已在 Android 16 实机上通过。2026 年 10 月 26 日时，Android 12 模拟器上的 41 项设备交互测试已通过。另通过临时在线测试验证两个异常主题及第二页能够转换为原生楼层数据。Lint 检查未发现错误，仍存在历史警告。单元测试覆盖版块筛选、搜索历史、导航规则、登录 Cookie 解析、编辑器选区处理、分页边界、主题响应格式兼容、链接识别、论坛收藏解析及账号隔离；设备测试覆盖提交与退出确认、编辑内容重建恢复、登录取消、分页、引用入口、离线详情加载、长正文高度测量、正文导航、兼容响应转换、错误后页面保留及登录网页框架的高度适配、论坛收藏管理、菜单状态、同步重试、密度持久化、底部分页、整页主题换色及截断响应来源切换及网页归一化后的原生正文转换与缓存读取。
 
 Lint 保持错误阻断。由于当前 AGP 的 SARIF 报告器存在数组越界问题，项目暂时关闭 SARIF 导出，保留 HTML、文本与 XML 报告。
 
@@ -252,6 +253,18 @@ Compose 界面与公共主题位于应用模块的 `gov.anzong.androidnga.ui.com
 正文中的 NGA 主题、回复与版块链接按实际域名和路径识别，支持相对地址、协议相对地址及既有域名别名，并保留分页、作者筛选和楼层定位参数。用户主动打开外部网站或选择详情菜单中的浏览器入口时，仍可使用相应浏览器功能。
 
 实现依据与回归验证范围见 [主题加载修复说明](docs/topic-opening-fix.md)。
+
+## 依赖与异步改造
+
+4.2.0 版本未改变界面功能，主要替换已停止维护的依赖：
+
+- **JSON 解析**：fastjson 替换为 `lib_common` 中自有的 `NgaJson`。宽松解析、类型转换及本地存储格式由特征测试固定，屏蔽用户、屏蔽词、浏览历史、版块收藏缓存等既有本地数据可直接读取。说明见 [fastjson 替换说明](docs/fastjson-migration.md)。
+- **异步任务**：RxJava 与 `AsyncTask` 替换为 Kotlin 协程与 Flow。网络接口改为挂起函数 `NgaApi`，Java 调用方继续使用原有回调；请求随页面销毁取消，页面事件通过 `SharedFlow` 投递。说明见 [RxJava 替换说明](docs/rxjava-migration.md)。
+- **网络与图片**：Retrofit 升级至 3.0.0，OkHttp 升级至 4.12.0，Glide 升级至 4.16.0。
+- **图片浏览**：图片浏览页改用 Compose 实现分页与缩放，移除 PhotoView 及 jitpack 仓库。
+- **其他**：移除 Guava、commons-io、load-toast 及未使用的代码。
+
+改造过程中修正了个人资料加载无法取消、签名与保存图片可重复提交、登录对话框事件订阅未释放等问题。登录、发帖、上传、短消息、点赞、收藏、举报、签名、通知及保存图片等服务端操作无法在自动化测试中提交，发布前需使用测试账号人工检查。
 
 ## 参考资料
 
