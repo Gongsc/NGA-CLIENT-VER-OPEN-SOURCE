@@ -212,16 +212,16 @@ fun GlideGalleryImage(url: String, state: GalleryZoomState) {
                     view.tag = key
                     Glide.with(view).load(url).override(Target.SIZE_ORIGINAL)
                         .listener(object : RequestListener<Drawable> {
-                            override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?,
+                            override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>,
                                                       isFirstResource: Boolean): Boolean {
                                 status = ImageStatus.Failed
                                 return false
                             }
 
-                            override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?,
-                                                         dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                            override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?,
+                                                         dataSource: DataSource, isFirstResource: Boolean): Boolean {
                                 if (resource is GifDrawable) resource.setLoopCount(GifDrawable.LOOP_FOREVER)
-                                resource?.let { state.setIntrinsicSize(it.intrinsicWidth, it.intrinsicHeight) }
+                                state.setIntrinsicSize(resource.intrinsicWidth, resource.intrinsicHeight)
                                 status = ImageStatus.Ready
                                 return false
                             }
