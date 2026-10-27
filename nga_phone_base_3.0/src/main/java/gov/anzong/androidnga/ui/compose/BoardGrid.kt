@@ -27,9 +27,12 @@ data class BoardTile(val fid: Int, val stid: Int, val name: String, val head: St
 data class BoardSection(val title: String, val boards: List<BoardTile>)
 fun Board.toTile() = BoardTile(fid, stid, name.orEmpty(), boardHead)
 
+// 分类数据可能在同一分组里重复列出同一版面（如游戏专版的魔力宝贝），重复 key 会让 LazyGrid 滚动到该处时崩溃。
+internal fun List<BoardSection>.withUniqueBoards() = map { it.copy(boards = it.boards.distinctBy(BoardTile::key)) }
+
 @Composable
 fun BoardGrid(
-    sections: List<BoardSection>,
+    allSections: List<BoardSection>,
     onBoard: (BoardTile) -> Unit,
     modifier: Modifier = Modifier,
     editing: Boolean = false,
@@ -39,6 +42,7 @@ fun BoardGrid(
     compact: Boolean = LocalAppearance.current.compact,
     onControlsExpandedChange: (Boolean) -> Unit = {}
 ) {
+    val sections = remember(allSections) { allSections.withUniqueBoards() }
     if (sections.all { it.boards.isEmpty() }) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(emptyMessage, modifier = Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)

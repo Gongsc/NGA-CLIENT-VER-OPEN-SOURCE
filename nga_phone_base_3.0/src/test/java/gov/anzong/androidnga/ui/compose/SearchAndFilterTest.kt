@@ -28,4 +28,12 @@ class SearchAndFilterTest {
     @Test fun forumAndCollectionWithSameIdHaveDistinctKeys() {
         assertNotEquals(BoardTile(1, 0, "版块").key, BoardTile(1, 1, "合集").key)
     }
+
+    @Test fun duplicateBoardsInSectionAreDroppedSoGridKeysStayUnique() {
+        val sections = listOf(BoardSection("网游", listOf(BoardTile(453, 0, "魔力宝贝"), BoardTile(534, 0, "率土之滨"), BoardTile(453, 0, "魔力宝贝"))),
+            BoardSection("单机", listOf(BoardTile(453, 0, "魔力宝贝"))))
+        val unique = sections.withUniqueBoards()
+        assertEquals(listOf("453:0", "534:0"), unique[0].boards.map { it.key })
+        assertEquals(1, unique[1].boards.size)
+    }
 }
