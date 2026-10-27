@@ -1,34 +1,22 @@
 package sp.phone.json;
 
+import gov.anzong.androidnga.base.json.NgaJson;
+import gov.anzong.androidnga.base.json.NgaJsonArray;
+import gov.anzong.androidnga.base.json.NgaJsonObject;
+
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 特征测试：记录 fastjson 取值方法对各类原始值的类型转换结果。
+ * 约束 {@link NgaJsonObject} 取值方法对各类原始值的类型转换，转换表由 fastjson 1.1 实测得到。
  *
- * <p>替换 fastjson 时，新实现须逐格保持一致；"!" 表示抛出异常（不限定异常类型）。结果前缀：s 字符串、I Integer、
- * L Long、B Boolean、D Double、O 对象、A 数组。每个用例同时针对 fastjson 与 {@code NgaJson} 运行。
+ * <p>"!" 表示抛出异常（不限定异常类型）。结果前缀：s 字符串、I Integer、L Long、B Boolean、D Double、O 对象、A 数组。
  */
-@RunWith(Parameterized.class)
-public class FastjsonCoercionCharacterizationTest {
-
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> backends() {
-        return JsonBackend.all();
-    }
-
-    private final JsonBackend json;
-
-    public FastjsonCoercionCharacterizationTest(JsonBackend json) {
-        this.json = json;
-    }
+public class NgaJsonCoercionTest {
 
     private static final String[] GETTERS = {
         "getString", "getIntValue", "getInteger", "getLongValue", "getLong", "getBoolean",
@@ -72,10 +60,10 @@ public class FastjsonCoercionCharacterizationTest {
     public void gettersCoerceRawValuesAsRecorded() {
         StringBuilder mismatches = new StringBuilder();
         for (String[] row : TABLE) {
-            Map<String, Object> object = json.parseObject(row[0] == null ? "{}" : "{\"v\":" + row[0] + "}");
+            Map<String, Object> object = NgaJson.parseObject(row[0] == null ? "{}" : "{\"v\":" + row[0] + "}");
             for (int i = 0; i < GETTERS.length; i++) {
                 String getter = GETTERS[i];
-                String actual = describe(() -> json.get(object, getter, "v"));
+                String actual = describe(() -> get(object, getter, "v"));
                 if (!row[i + 1].equals(actual)) {
                     mismatches.append(row[0]).append(' ').append(GETTERS[i]).append(": 期望 ")
                             .append(row[i + 1]).append("，实际 ").append(actual).append('\n');
@@ -87,34 +75,34 @@ public class FastjsonCoercionCharacterizationTest {
 
     @Test
     public void arrayGettersDoNotParseStringElements() {
-        List<Object> array = json.parseArray("[{\"a\":1},2,\"x\",null,\"3\",\"{\\\"b\\\":2}\"]");
-        assertEquals("{\"a\":1}", json.get(array, "getString", 0));
-        assertEquals("2", json.get(array, "getString", 1));
-        assertEquals("x", json.get(array, "getString", 2));
-        assertEquals(null, json.get(array, "getString", 3));
-        assertEquals(3, json.get(array, "getIntValue", 4));
-        assertEquals(0, json.get(array, "getIntValue", 3));
-        assertEquals("!", describe(() -> json.get(array, "getJSONObject", 5)));
+        List<Object> array = NgaJson.parseArray("[{\"a\":1},2,\"x\",null,\"3\",\"{\\\"b\\\":2}\"]");
+        assertEquals("{\"a\":1}", get(array, "getString", 0));
+        assertEquals("2", get(array, "getString", 1));
+        assertEquals("x", get(array, "getString", 2));
+        assertEquals(null, get(array, "getString", 3));
+        assertEquals(3, get(array, "getIntValue", 4));
+        assertEquals(0, get(array, "getIntValue", 3));
+        assertEquals("!", describe(() -> get(array, "getJSONObject", 5)));
     }
 
     @Test
     public void additionalCoercions() {
         Map<String, Object> o =
-                json.parseObject(
+                NgaJson.parseObject(
                         "{\"d\":1e3,\"t\":\"TRUE\",\"n\":\"null\",\"l\":4294967297,\"f\":1.9,\"z\":{\"a\":[1,{\"b\":null}]}}");
-        assertEquals("1000.0", json.get(o, "getString", "d"));
-        assertEquals(true, json.get(o, "getBoolean", "t"));
-        assertEquals(null, json.get(o, "getInteger", "n"));
-        assertEquals(true, json.get(o, "getBoolean", "l"));
-        assertEquals(1L, json.get(o, "getLongValue", "f"));
-        assertEquals("{\"a\":[1,{}]}", json.get(o, "getJSONObject", "z").toString());
+        assertEquals("1000.0", get(o, "getString", "d"));
+        assertEquals(true, get(o, "getBoolean", "t"));
+        assertEquals(null, get(o, "getInteger", "n"));
+        assertEquals(true, get(o, "getBoolean", "l"));
+        assertEquals(1L, get(o, "getLongValue", "f"));
+        assertEquals("{\"a\":[1,{}]}", get(o, "getJSONObject", "z").toString());
     }
 
     private interface Call {
         Object run();
     }
 
-    private String describe(Call call) {
+    private static String describe(Call call) {
         Object value;
         try {
             value = call.run();
@@ -127,8 +115,37 @@ public class FastjsonCoercionCharacterizationTest {
         if (value instanceof Long) return "L:" + value;
         if (value instanceof Boolean) return "B:" + value;
         if (value instanceof Double) return "D:" + value;
-        if (value instanceof Map) return "O:" + json.toJSONString(value);
-        if (value instanceof List) return "A:" + json.toJSONString(value);
+        if (value instanceof Map) return "O:" + NgaJson.toJSONString(value);
+        if (value instanceof List) return "A:" + NgaJson.toJSONString(value);
         return value.getClass().getSimpleName() + ":" + value;
+    }
+
+    /** 调用对象的取值方法，如 getIntValue、getJSONObject。 */
+    private static Object get(Map<String, Object> map, String getter, String key) {
+        NgaJsonObject o = (NgaJsonObject) map;
+        switch (getter) {
+            case "getString": return o.getString(key);
+            case "getIntValue": return o.getIntValue(key);
+            case "getInteger": return o.getInteger(key);
+            case "getLongValue": return o.getLongValue(key);
+            case "getLong": return o.getLong(key);
+            case "getBoolean": return o.getBoolean(key);
+            case "getBooleanValue": return o.getBooleanValue(key);
+            case "getDoubleValue": return o.getDoubleValue(key);
+            case "getJSONObject": return o.getJSONObject(key);
+            case "getJSONArray": return o.getJSONArray(key);
+            case "containsKey": return o.containsKey(key);
+            default: throw new IllegalArgumentException(getter);
+        }
+    }
+
+    private static Object get(List<Object> list, String getter, int index) {
+        NgaJsonArray a = (NgaJsonArray) list;
+        switch (getter) {
+            case "getString": return a.getString(index);
+            case "getIntValue": return a.getIntValue(index);
+            case "getJSONObject": return a.getJSONObject(index);
+            default: throw new IllegalArgumentException(getter);
+        }
     }
 }

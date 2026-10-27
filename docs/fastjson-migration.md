@@ -2,7 +2,7 @@
 
 ## 背景
 
-项目使用 `com.alibaba:fastjson:1.1.71.android`。该版本已停止维护，1.x 系列有反序列化安全问题的历史。依赖由 `lib_common` 以 `api` 方式暴露，app 模块 37 个文件直接引用。
+项目曾使用 `com.alibaba:fastjson:1.1.71.android`。该版本已停止维护，1.x 系列有反序列化安全问题的历史。依赖由 `lib_common` 以 `api` 方式暴露，app 模块 37 个文件直接引用。现已全部替换为 `lib_common` 中的 `NgaJson`，依赖已删除。
 
 NGA 接口返回的 JSON 并不规范，业务代码隐式依赖 fastjson 的宽松解析和类型转换。替换的核心风险不在接口调用，而在这些未写明的行为，以及本地已保存数据的格式兼容。
 
@@ -21,13 +21,13 @@ NGA 接口返回的 JSON 并不规范，业务代码隐式依赖 fastjson 的宽
 
 ## 特征测试
 
-`nga_phone_base_3.0/src/test/java/sp/phone/json/` 下的三个测试类记录了 fastjson 的实际行为，数据均为合成数据。每个用例通过 `JsonBackend` 同时针对 fastjson 与 `NgaJson` 运行：
+`nga_phone_base_3.0/src/test/java/sp/phone/json/` 下的三个测试类记录了 fastjson 的实际行为，数据均为合成数据。迁移期间每个用例同时针对 fastjson 与 `NgaJson` 运行；删除 fastjson 后只约束 `NgaJson`，期望值保持不变：
 
-- `FastjsonParsingCharacterizationTest`：宽松输入、拒绝的输入、空文档、数字类型、键顺序、序列化转义。
-- `FastjsonCoercionCharacterizationTest`：11 个取值方法对 29 种原始值的转换结果表。
-- `FastjsonBindingCharacterizationTest`：实体绑定规则，以及本地持久化格式的写出与读取。
+- `NgaJsonParsingTest`：宽松输入、拒绝的输入、空文档、数字类型、键顺序、序列化转义。
+- `NgaJsonCoercionTest`：11 个取值方法对 29 种原始值的转换结果表。
+- `NgaJsonBindingTest`：实体绑定规则，以及本地持久化格式的写出与读取。
 
-删除 fastjson 时移除 `JsonBackend.FASTJSON`，测试继续约束 `NgaJson`。
+迁移校验的期望值均在删除 fastjson 前由 fastjson 实测生成：`BeanBindingGoldenTest`（接口实体、内置版面列表、本地记录）、`ConverterGoldenTest`（接口树形取值）、`ArticleDecodeGoldenTest`（主题响应解码）。
 
 ### 需要保留的行为
 
@@ -107,9 +107,9 @@ NGA 接口返回的 JSON 并不规范，业务代码隐式依赖 fastjson 的宽
 
 1. 编写特征测试，记录 fastjson 当前行为（已完成）。
 2. 加入兼容层，让特征测试同时针对兼容层运行并全部通过（已完成）。
-3. 迁移本地持久化（D）与实体绑定（C），补充“旧版本写入的数据可被读取”的测试（已完成）。`BeanBindingEquivalenceTest` 用 fastjson 与 `NgaJson` 分别绑定接口实体、内置版面列表 `assets/json/category*.json` 与本地记录，结果一致。`TopicPostModel` 与 `NavigationDrawerFragment` 中少量树形取值随文件一并迁移；`ForumFavorites.kt` 只迁移离线缓存，接口解析依赖 `ArticleResponse.businessError`，随第 5 步迁移。
+3. 迁移本地持久化（D）与实体绑定（C），补充“旧版本写入的数据可被读取”的测试（已完成）。迁移期间用 fastjson 与 `NgaJson` 分别绑定接口实体、内置版面列表 `assets/json/category*.json` 与本地记录，结果一致；删除 fastjson 前将结果固定为 `BeanBindingGoldenTest` 的期望值。`TopicPostModel` 与 `NavigationDrawerFragment` 中少量树形取值随文件一并迁移；`ForumFavorites.kt` 只迁移离线缓存，接口解析依赖 `ArticleResponse.businessError`，随第 5 步迁移。
 4. 迁移其他接口的树形取值（B）（已完成）。迁移前用 fastjson 生成 `ConverterGoldenTest` 的期望值，覆盖回复通知、提示消息与首页回复错误，迁移后结果不变。`MessageConvertFactory`、`MessageUtil`、`JsonProfileLoadTask` 依赖 Android 初始化，无法在 JVM 中运行，依靠转换表约束。`JsonProfileLoadTask` 遍历 `adminForums` 的键，fastjson 按哈希顺序，`NgaJson` 按服务端顺序，管理版面列表的顺序可能变化。
 5. 迁移主题加载链路（A），运行全部单元测试，并在设备上运行 `IncompleteTopicTest`、`WebViewRoutingTest`（已完成）。设备测试另含 `HotRepliesTest` 与 `ForumFavoriteTransportTest`，四个类共 15 个用例在 Android 16 设备上通过；MIUI 设备运行 Compose 界面测试前需允许调试版“后台弹出界面”。迁移前用 fastjson 生成 `ArticleDecodeGoldenTest` 的期望值，覆盖 JSON（前导零、BOM、`/*error fill content`、热点回复、空容器、无 `data` 根）、XML（索引集合、用户映射、负数分组）、网页（附件、编辑提示、热点回复）与三种业务错误，迁移后解码结果一致。网页解析中原本无序的对象现在保持插入顺序。`ForumFavorites.kt` 的接口解析一并迁移，业务代码中已无 fastjson。
-6. 删除 fastjson 依赖，确认代码中不再出现 `com.alibaba.fastjson`；删除只针对 fastjson 的测试分支。
+6. 删除 fastjson 依赖，确认代码中不再出现 `com.alibaba.fastjson`；删除只针对 fastjson 的测试分支（已完成）。同时从应用内开源许可列表 `assets/OSLICENSE.TXT` 中移除 FastJSON。
 
 第 5 步完成后，建议使用测试账号实际浏览主题，覆盖普通楼层、热点回复、附件、投票与匿名楼层。

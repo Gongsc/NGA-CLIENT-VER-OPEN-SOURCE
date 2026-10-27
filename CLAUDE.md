@@ -34,7 +34,7 @@ Tests live almost entirely in the app module (`nga_phone_base_3.0/src/test` and 
 
 - `nga_phone_base_3.0` — the application (`gov.anzong.androidnga`); depends on all libs. The only module with Compose enabled.
 - `lib_core` — content decoding: `HtmlConvertFactory` and `core/decode` turn NGA post markup (BBCode-ish) into HTML for the article WebView, image URL normalization, etc. Has `compileOnly` on `lib_common`.
-- `lib_common` — shared base classes, utils, RxJava helpers, `PreferenceKey` (setting keys — keep existing keys compatible).
+- `lib_common` — shared base classes, utils, RxJava helpers, `PreferenceKey` (setting keys — keep existing keys compatible), and `base/json` (`NgaJson`, the in-house JSON parser/binder that replaced fastjson; its lenient parsing, coercion and stored-data formats are pinned by tests in `sp/phone/json` — see `docs/fastjson-migration.md` before changing it).
 - `lib_network` — thin HTTP callback interfaces.
 - `lib_cloud` — cloud/update integration.
 
@@ -53,8 +53,8 @@ Key patterns:
 - **Topic loading**: detail pages try sources in order JSON → plain web page (parsed with jsoup) → XML → backup XML, at most one request each, normalizing all of them into the common `__T`/`__R`/`__U` structure before conversion and caching. Truncated responses are detected and skipped; auth/forum/network errors are surfaced in-app and must not fall through to other sources, switch accounts, or open a browser. See `docs/topic-opening-fix.md` before touching this path.
 - **Forum favorites** on the home screen are server-side and cached per account; account switches must not leak another account's cache or let stale requests overwrite current state (`docs/forum-favorites-sync.md`).
 
-Removed and should not be reintroduced: Kotlin Android Extensions, ButterKnife, ARouter, Jetifier, legacy Support libraries, `WRITE_EXTERNAL_STORAGE` (use MediaStore / system document picker), full-screen swipe-back (use `OnBackPressedDispatcher`). Windows are edge-to-edge; handle insets.
+Removed and should not be reintroduced: fastjson (use `NgaJson`), Kotlin Android Extensions, ButterKnife, ARouter, Jetifier, legacy Support libraries, `WRITE_EXTERNAL_STORAGE` (use MediaStore / system document picker), full-screen swipe-back (use `OnBackPressedDispatcher`). Windows are edge-to-edge; handle insets.
 
 ## Further docs
 
-`docs/compose-migration.md` (migration scope), `docs/interface-redesign.md`, `docs/topic-scrolling-performance.md` (WebView reuse/height caching in the reader list), `docs/topic-opening-fix.md`, `docs/forum-favorites-sync.md`.
+`docs/compose-migration.md` (migration scope), `docs/interface-redesign.md`, `docs/topic-scrolling-performance.md` (WebView reuse/height caching in the reader list), `docs/topic-opening-fix.md`, `docs/forum-favorites-sync.md`, `docs/fastjson-migration.md`.
