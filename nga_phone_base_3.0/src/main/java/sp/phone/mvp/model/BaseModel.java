@@ -2,9 +2,6 @@ package sp.phone.mvp.model;
 
 import androidx.lifecycle.LifecycleOwner;
 
-import com.trello.rxlifecycle2.LifecycleProvider;
-import com.trello.rxlifecycle2.android.FragmentEvent;
-
 import sp.phone.util.ForumUtils;
 
 /**
@@ -13,9 +10,7 @@ import sp.phone.util.ForumUtils;
 
 public abstract class BaseModel  {
 
-    private volatile LifecycleProvider<FragmentEvent> mProvider;
-
-    /** 协程请求随该页面销毁取消；迁移完成后取代 {@link #mProvider}。 */
+    /** 请求随该页面销毁取消（见 gov.anzong.androidnga.coroutines.scopeOf）；未绑定页面时为 null。 */
     private volatile LifecycleOwner mLifecycleOwner;
 
     private String mDomain;
@@ -25,7 +20,6 @@ public abstract class BaseModel  {
     }
 
     public void detach() {
-        mProvider = null;
         mLifecycleOwner = null;
     }
 
@@ -37,13 +31,6 @@ public abstract class BaseModel  {
         return mLifecycleOwner;
     }
 
-    public void setLifecycleProvider(LifecycleProvider<FragmentEvent> provider) {
-        mProvider = provider;
-    }
-
-    protected LifecycleProvider<FragmentEvent> getLifecycleProvider() {
-        return mProvider;
-    }
 
     protected String getAvailableDomain() {
         return mDomain;

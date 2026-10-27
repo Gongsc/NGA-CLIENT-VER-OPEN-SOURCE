@@ -37,7 +37,7 @@
 3. 后台任务：`BaseRxTask` 与 8 个任务、`SaveImageTask` 改为 Kotlin，保留“正在下载时不重复下载”“多张图片依次保存”等行为，每个任务补充合成响应测试。（已完成）`BaseRxTask` 无调用方，直接删除。个人资料解析原样拆入 Java 类 `ProfileParser`，只把请求部分改为 Kotlin。解析放在后台执行，解析失败与 RxJava 时一样走失败回调；原先只记录日志的任务（收藏、清空通知、点赞的请求失败）仍只记录日志。`TaskCoroutinesTest` 用 `FakeNgaApi` 覆盖举报、签名、子版块、通知、点赞。
 
    修正一处原有问题：`BaseSubscriber` 只在 `onSubscribe(Subscription)` 中记录订阅，而 `Observable` 调用的是 `onSubscribe(Disposable)`，因此个人资料的 `cancel()`、签名与保存图片的“进行中不重复提交”从未生效。改用 `Job` 后这些行为按原意生效。个人资料的失败提示改为取自本次异常，不再沿用上次失败遗留的文字。
-4. MVP Model：`BaseModel` 改为持有协程作用域，替代 rxlifecycle；其余 5 个 Model 逐个改为 Kotlin。
+4. MVP Model：`BaseModel` 改为持有协程作用域，替代 rxlifecycle；其余 5 个 Model 逐个改为 Kotlin。（已完成）`BaseModel` 只保留 `LifecycleOwner`，请求通过 `scopeOf` 随页面销毁取消。登录的验证码与登录请求沿用不带公共拦截器的独立实例（`RetrofitHelper.getAuthCodeApi`、`getDefaultApi`）；发帖相关请求沿用连接超时 5 分钟的实例。这些 Model 构造时读取论坛域名、转换时依赖 Android 环境，无法在 JVM 中测试，由设备上的 `ActivityHostTest`、`ReaderHostTest` 覆盖，其余操作需人工检查。
 5. 界面基础设施：`RxBus` 唯一订阅方改用 `SharedFlow`；点击防抖与延迟执行改为普通实现；删除 `RxLifecycleProvider`、两个 `BaseSubscriber` 及 `BaseRxFragment` 中的 Rx 部分。
 6. 收尾：删除 `RetrofitService` 与 `adapter-rxjava2`，删除 RxJava2、rxandroid、rxlifecycle、rxbinding 依赖；迁移剩余测试，确认代码中不再出现 `io.reactivex`。
 

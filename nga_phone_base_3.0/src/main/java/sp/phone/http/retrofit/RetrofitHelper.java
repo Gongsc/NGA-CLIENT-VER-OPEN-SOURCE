@@ -138,6 +138,23 @@ public class RetrofitHelper {
                 .create(RetrofitService.class);
     }
 
+    /** 与 {@link #getAuthCodeService()} 相同的实例配置：不带公共拦截器，响应原样返回。 */
+    public static NgaApi getAuthCodeApi() {
+        return new Retrofit.Builder()
+                .baseUrl(URL_NGA_BASE_CC)
+                .build()
+                .create(NgaApi.class);
+    }
+
+    /** 与 {@link #getDefault()} 相同的实例配置：不带公共拦截器，字符串按 GBK 解码。 */
+    public static NgaApi getDefaultApi() {
+        return new Retrofit.Builder()
+                .baseUrl(URL_NGA_BASE_CC)
+                .addConverterFactory(JsonStringConvertFactory.create())
+                .build()
+                .create(NgaApi.class);
+    }
+
     private static class SingleTonHolder {
 
         static final RetrofitHelper sInstance = new RetrofitHelper();
