@@ -28,6 +28,11 @@ import gov.anzong.androidnga.ui.compose.*
 import sp.phone.common.User
 import sp.phone.common.UserManagerImpl
 import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.Utils
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
+import sp.phone.http.retrofit.RetrofitHelper
 import sp.phone.mvp.contract.BoardContract
 import sp.phone.mvp.model.entity.Board
 import sp.phone.mvp.presenter.BoardPresenter
@@ -41,6 +46,8 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
     private lateinit var inbox: HomeInboxViewModel
     private var history by mutableStateOf(emptyList<ThreadPageInfo>(), neverEqualPolicy())
     private lateinit var favorites: ForumFavoritesViewModel
+    private val avatarRequests = mutableSetOf<String>()
+    private val avatarDisposables = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -177,8 +184,36 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
         if (state.account?.uid != account?.uid) state.replyCount = 0
         state.account = account
         inbox.selectAccount(account?.uid.orEmpty())
+        fetchMissingAvatar(active)
         state.otherAccounts = users.userList.orEmpty().filter { it.userId != active?.userId }.map { it.toHomeAccount() }
     }
+    /** 账号头像只在浏览到自己的帖子时才会记录；缺失时从个人资料补取一次并写回账号。 */
+    private fun fetchMissingAvatar(user: User?) {
+        val uid = user?.userId?.takeIf { it.isNotEmpty() } ?: return
+        if (!user.avatarUrl.isNullOrBlank() || !avatarRequests.add(uid)) return
+        val users = UserManagerImpl.getInstance()
+        val cached = users.getAvatarUrl(uid)
+        if (cached.isNotBlank()) { applyAvatar(uid, cached); return }
+        val headers = mapOf("Cookie" to users.getCookie(user).orEmpty(),
+            "Referer" to Utils.getNGAHost() + "nuke.php?func=ucp&lite=jsx&uid=$uid")
+        avatarDisposables.add(RetrofitHelper.getInstance().service
+            .get(Utils.getNGAHost() + "nuke.php?__lib=ucp&__act=get&lite=js&noprefix&uid=$uid", headers)
+            .subscribeOn(Schedulers.io()).map(::parseProfileAvatar).observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ url -> if (url.isNotBlank()) applyAvatar(uid, url) }, { avatarRequests.remove(uid) }))
+    }
+
+    private fun applyAvatar(uid: String, url: String) {
+        val users = UserManagerImpl.getInstance()
+        users.putAvatarUrl(uid, url)
+        uid.toIntOrNull()?.let { users.setAvatarUrl(it, url) }
+        if (users.activeUser?.userId == uid) updateHeaderView()
+    }
+
+    override fun onDestroy() {
+        avatarDisposables.dispose()
+        super.onDestroy()
+    }
+
     private fun User.toHomeAccount() = HomeAccount(userId, nickName.orEmpty(), FunctionUtils.parseAvatarUrl(avatarUrl))
     override fun jumpToLogin() = mPresenter.startLogin()
     override fun switchToNextUser(): Int {
@@ -198,4 +233,15 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
             favorites.refresh(force = true)
         } else if (requestCode == ActivityUtils.REQUEST_CODE_SETTING) refreshState()
     }
+}
+
+/** 从个人资料响应中取头像原始值；解析失败返回空串，由调用方保留默认头像。 */
+internal fun parseProfileAvatar(js: String): String {
+    val body = js.removePrefix("window.script_muti_get_var_store=").replace("/*\$js\$*/", "")
+        .let { if (it.contains("/*error fill content")) it.substringBefore("/*error fill content") else it }
+    val avatar = runCatching {
+        JSON.parseObject(body)?.getJSONObject("data")?.getJSONObject("0")?.getString(PreferenceKey.PREFERENCE_AVATAR)
+    }.getOrNull().orEmpty()
+    val url = FunctionUtils.parseAvatarUrl(avatar).orEmpty()
+    return if (url.startsWith("//")) "https:$url" else url
 }

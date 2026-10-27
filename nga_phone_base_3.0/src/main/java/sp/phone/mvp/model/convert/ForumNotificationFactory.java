@@ -23,13 +23,19 @@ public class ForumNotificationFactory {
 
         try {
             JSONObject obj = JSONObject.parseObject(content);
-            obj = obj.getJSONObject("data").getJSONObject("0");
+            JSONObject data = obj == null ? null : obj.getJSONObject("data");
+            obj = data == null ? null : data.getJSONObject("0");
+            if (obj == null) {
+                // 没有任何通知时服务端不返回 data.0。
+                return infoList;
+            }
             JSONArray array = obj.getJSONArray("0");
-            int unread = obj.getInteger("unread");
+            // 部分响应不带 unread 字段，按无未读处理，避免整个列表解析失败。
+            Integer unread = obj.getInteger("unread");
             if (array != null) {
                 for (int i = 0; i < array.size(); i++) {
                     RecentReplyInfo info = buildRecentReplyInfo(array.getJSONObject(i));
-                    info.setUnread(unread > 0);
+                    info.setUnread(unread != null && unread > 0);
                     infoList.add(info);
                 }
             }

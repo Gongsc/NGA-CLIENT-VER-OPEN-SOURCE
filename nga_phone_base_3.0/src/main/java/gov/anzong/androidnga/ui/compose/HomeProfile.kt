@@ -44,7 +44,8 @@ internal fun HomeProfileContent(
     val login = { onAction(R.id.menu_login) }
     val list = rememberLazyListState()
     val scroll = rememberScrollControlsConnection(list, onControlsExpandedChange)
-    LazyColumn(Modifier.fillMaxSize().nestedScroll(scroll).testTag("home_navigation"), state = list) {
+    LazyColumn(Modifier.fillMaxSize().nestedScroll(scroll).testTag("home_navigation"), state = list,
+        contentPadding = PaddingValues(bottom = LocalHomeBottomPadding.current)) {
         item("account_header") { AccountHeader(state, onProfile, onSwitchUser, login) }
         if (account == null || accountGroups.isNotEmpty()) {
             item("tier_account") { TierHeading("账号", Icons.Default.Person, MaterialTheme.colorScheme.primary) }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +51,8 @@ fun BoardGrid(
     LazyVerticalGrid(
         state = gridState,
         columns = GridCells.Adaptive(maxOf(if (compact) 144.dp else 160.dp, (120 * scale).dp)),
-        modifier = modifier.fillMaxSize().nestedScroll(scrollConnection), contentPadding = PaddingValues(16.dp),
+        modifier = modifier.fillMaxSize().nestedScroll(scrollConnection),
+        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp + LocalHomeBottomPadding.current),
         horizontalArrangement = Arrangement.spacedBy(if (compact) 16.dp else 8.dp),
         verticalArrangement = Arrangement.spacedBy(if (compact) 0.dp else 8.dp)
     ) {
@@ -91,15 +93,27 @@ fun BoardGrid(
 
 @Composable
 private fun BoardIcon(board: BoardTile, size: androidx.compose.ui.unit.Dp) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val model = remember(board.fid, board.stid) { boardIconModel(context, board) }
     AndroidView(
         factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER; importantForAccessibility = ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO } },
         modifier = Modifier.size(size),
         update = { image ->
-            val resourceName = if (board.fid > 0) "p${board.fid}" else "p_${kotlin.math.abs(board.fid)}"
-            val resource = if (board.stid == 0) image.resources.getIdentifier(resourceName, "drawable", image.context.packageName) else 0
-            val url = if (board.stid != 0) String.format(ApiConstants.URL_BOARD_ICON_STID, board.stid) else String.format(ApiConstants.URL_BOARD_ICON, board.fid)
-            Glide.with(image).load(if (resource != 0) resource else url)
-                .placeholder(R.drawable.default_board_icon).into(image)
+            // 重组或复用时图标不变就不再发起加载，滚动时避免重复的 Glide 请求。
+            if (image.tag != model) {
+                image.tag = model
+                Glide.with(image).load(model).placeholder(R.drawable.default_board_icon).into(image)
+            }
         }
     )
+}
+
+private val boardIconResources = java.util.concurrent.ConcurrentHashMap<String, Int>()
+
+/** 内置图标优先；资源查找较慢，按名称缓存结果。 */
+private fun boardIconModel(context: android.content.Context, board: BoardTile): Any {
+    if (board.stid != 0) return String.format(ApiConstants.URL_BOARD_ICON_STID, board.stid)
+    val name = if (board.fid > 0) "p${board.fid}" else "p_${kotlin.math.abs(board.fid)}"
+    val resource = boardIconResources.getOrPut(name) { context.resources.getIdentifier(name, "drawable", context.packageName) }
+    return if (resource != 0) resource else String.format(ApiConstants.URL_BOARD_ICON, board.fid)
 }

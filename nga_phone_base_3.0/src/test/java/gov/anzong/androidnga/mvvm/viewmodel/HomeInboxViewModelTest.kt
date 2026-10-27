@@ -77,4 +77,18 @@ class HomeInboxViewModelTest {
         vm.loadMessages()
         assertEquals(listOf(2), vm.messages.map { it.mid })
     }
+
+    @Test fun replyResponseWithoutNotificationsIsEmptyNotError() {
+        val prefix = "window.script_muti_get_var_store="
+        assertNull(homeReplyError(prefix + "{\"data\":{},\"time\":1}"))
+        assertNull(homeReplyError("{\"data\":{\"0\":{\"0\":[]}}}"))
+        assertTrue(sp.phone.mvp.model.convert.ForumNotificationFactory.buildRecentReplyList(prefix + "{\"data\":{}}").isEmpty())
+        val reply = "{\"0\":1,\"1\":\"7\",\"2\":\"示例\",\"5\":\"主题\",\"6\":\"100\",\"7\":\"200\",\"9\":\"1\"}"
+        assertEquals(1, sp.phone.mvp.model.convert.ForumNotificationFactory.buildRecentReplyList("{\"data\":{\"0\":{\"0\":[$reply]}}}").size)
+    }
+
+    @Test fun replyResponseWithServerErrorFails() {
+        assertEquals("你需要登录", homeReplyError("{\"error\":{\"0\":\"你需要登录\"}}"))
+        assertNotNull(homeReplyError(""))
+    }
 }

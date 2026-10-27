@@ -69,7 +69,10 @@ class HomeInboxViewModel(
             if (current(token, uid)) {
                 replies = data; repliesLoaded = true; repliesLoading = false; onRead()
             }
-        }, { error -> if (current(token, uid)) { repliesLoading = false; replyError = error.message ?: "回复通知加载失败" } }))
+        }, { error ->
+            runCatching { sp.phone.util.NLog.e("HomeInbox", "回复通知加载失败", error) }
+            if (current(token, uid)) { repliesLoading = false; replyError = error.message ?: "回复通知加载失败" }
+        }))
     }
 
     fun loadMessages(force: Boolean = false, more: Boolean = false) {
@@ -94,10 +97,19 @@ class HomeInboxViewModel(
 private fun requestHomeReplies(cookie: String): Observable<List<RecentReplyInfo>> =
     RetrofitHelper.getInstance().service.get(Utils.getNGAHost() + "nuke.php?__lib=noti&__output=8&__act=get_all", mapOf("Cookie" to cookie))
         .map { content ->
-            val json = JSON.parseObject(content.removePrefix("window.script_muti_get_var_store="))
-            check(json?.getJSONObject("data")?.getJSONObject("0") != null) { "回复通知加载失败，请稍后重试" }
+            // 没有通知时服务端不一定返回 data.0，与旧通知页一致按空列表处理；只有明确的错误信息才视为失败。
+            homeReplyError(content)?.let { throw IllegalStateException(it) }
             ForumNotificationFactory.buildRecentReplyList(content)
         }
+
+internal fun homeReplyError(content: String): String? {
+    val json = runCatching { JSON.parseObject(content.removePrefix("window.script_muti_get_var_store=")) }.getOrNull()
+        ?: return if (content.isBlank()) "回复通知加载失败，请稍后重试" else null
+    val error = json["error"] ?: return null
+    return (error as? com.alibaba.fastjson.JSONObject)?.getString("0")
+        ?: (error as? com.alibaba.fastjson.JSONArray)?.getString(0)
+        ?: error.toString()
+}
 
 private fun requestHomeMessages(cookie: String, page: Int): Observable<MessageListInfo> =
     RetrofitHelper.getInstance().service.get(Utils.getNGAHost() + "nuke.php?__lib=message&__act=message&act=list&lite=js&page=$page", mapOf("Cookie" to cookie))

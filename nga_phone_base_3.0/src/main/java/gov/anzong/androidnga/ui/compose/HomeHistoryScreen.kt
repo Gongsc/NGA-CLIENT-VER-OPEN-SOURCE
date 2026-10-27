@@ -33,7 +33,7 @@ fun HomeHistoryScreen(rows: List<ThreadPageInfo>, onOpen: (ThreadPageInfo) -> Un
     var clear by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<ThreadPageInfo?>(null) }
     LazyColumn(Modifier.fillMaxSize().nestedScroll(scroll).testTag("home_history"), state = list,
-        contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp + LocalHomeBottomPadding.current), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("本地浏览记录", Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -75,7 +75,7 @@ fun HomeMessagesScreen(account: HomeAccount?, inbox: HomeInboxViewModel, replyCo
             PullToRefreshBox(isRefreshing = loading, onRefresh = refresh,
                 modifier = Modifier.fillMaxSize().nestedScroll(scroll)) {
                 LazyColumn(state = list, modifier = Modifier.fillMaxSize().testTag("home_messages"),
-                    contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp + LocalHomeBottomPadding.current), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     item {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text(if (tab == 0) "最近的回复" else "短消息会话", style = MaterialTheme.typography.labelLarge)
