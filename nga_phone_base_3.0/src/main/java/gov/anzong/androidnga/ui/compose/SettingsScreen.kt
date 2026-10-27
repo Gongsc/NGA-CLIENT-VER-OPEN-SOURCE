@@ -56,7 +56,6 @@ fun SettingsScreen(preferences: SharedPreferences, onBack: () -> Unit, onNavigat
     }) {padding->
         LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("settings_list"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(24.dp)) {
             item {Group("阅读与浏览") {
-                Entry("字体与阅读大小","调整正文、标题、头像和表情大小"){onNavigate("reading")}
                 Toggle("左手模式",Keys.LEFT_HAND)
                 Entry("帖子图片",imageOptions.getOrElse((values[Keys.KEY_LOAD_IMAGE_STRATEGY] as? String ?: "0").toIntOrNull()?:0){imageOptions[0]}){choice=Keys.KEY_LOAD_IMAGE_STRATEGY}
                 Entry("用户头像",imageOptions.getOrElse((values[Keys.KEY_LOAD_AVATAR_STRATEGY] as? String ?: "0").toIntOrNull()?:0){imageOptions[0]}){choice=Keys.KEY_LOAD_AVATAR_STRATEGY}

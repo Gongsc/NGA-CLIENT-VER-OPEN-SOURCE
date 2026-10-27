@@ -50,6 +50,7 @@ public class TopicHistoryManager {
         } else if (mTopicList.size() >= MAX_HISTORY_TOPIC_COUNT){
             mTopicList.remove(mTopicList.size() - 1);
         }
+        topic.setHistoryVisitedAt(System.currentTimeMillis());
         mTopicList.add(0,topic);
         commit();
     }

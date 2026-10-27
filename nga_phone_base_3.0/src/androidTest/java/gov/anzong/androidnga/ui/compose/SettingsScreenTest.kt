@@ -27,7 +27,7 @@ class SettingsScreenTest {
         }
         compose.onNodeWithText("外观与布局").assertDoesNotExist()
         compose.onNodeWithText("关于").assertDoesNotExist()
-        compose.onNodeWithText("字体与阅读大小").assertIsDisplayed()
+        compose.onNodeWithText("字体与阅读大小").assertDoesNotExist()
     }
 
     @Test fun togglesPersistAndNotificationSoundDependsOnReminder() {
@@ -48,8 +48,6 @@ class SettingsScreenTest {
         var clear=0
         var destination=""
         compose.setContent {NgaTheme {SettingsScreen(prefs,{}, {destination=it},{clear++})}}
-        compose.onNodeWithText("字体与阅读大小").performClick()
-        compose.runOnIdle {assertEquals("reading",destination)}
         compose.onNodeWithTag("settings_list").performScrollToNode(hasText("帖子图片"))
         compose.onNodeWithText("帖子图片").performClick()
         compose.onNodeWithText("始终关闭").performClick()
@@ -63,11 +61,11 @@ class SettingsScreenTest {
         compose.runOnIdle {assertEquals(1,clear)}
     }
 
-    @Test fun drawerGroupsActionsAndAppEntriesAppearOnlyOnce() {
+    @Test fun profileGroupsActionsAndAppEntriesAppearOnlyOnce() {
         val actions=listOf(gov.anzong.androidnga.R.id.menu_post to "我的主题",gov.anzong.androidnga.R.id.menu_msg to "短消息",gov.anzong.androidnga.R.id.menu_appearance to "外观与布局",gov.anzong.androidnga.R.id.menu_setting to "设置",gov.anzong.androidnga.R.id.menu_about to "关于").map{HomeAction(it.first,it.second)}
         val state=HomeState().apply{account=HomeAccount("42","测试账号")}
         compose.setContent {NgaTheme{HomeScreen(state,actions,{},{},{},{},{},onRemove={})}}
-        compose.onNodeWithContentDescription("打开导航").performClick()
+        compose.onNodeWithTag("home_tab_3").performClick()
         compose.onNodeWithText("测试账号").assertIsDisplayed()
         compose.onNodeWithText("UID 42").assertIsDisplayed()
         compose.onNodeWithText("账号").assertIsDisplayed()
@@ -79,11 +77,11 @@ class SettingsScreenTest {
         compose.onAllNodesWithText("关于").assertCountEquals(1)
     }
 
-    @Test fun loggedOutDrawerFoldsAccountEntriesIntoLogin() {
+    @Test fun loggedOutProfileFoldsAccountEntriesIntoLogin() {
         val actions=listOf(gov.anzong.androidnga.R.id.menu_post to "我的主题",gov.anzong.androidnga.R.id.menu_msg to "短消息",gov.anzong.androidnga.R.id.menu_download to "我的缓存").map{HomeAction(it.first,it.second)}
         val clicked=mutableListOf<Int>()
         compose.setContent {NgaTheme{HomeScreen(HomeState(),actions,{clicked+=it},{},{},{},{},onRemove={})}}
-        compose.onNodeWithContentDescription("打开导航").performClick()
+        compose.onNodeWithTag("home_tab_3").performClick()
         compose.onNodeWithText("未登录").assertIsDisplayed()
         compose.onNodeWithText("我的缓存").assertIsDisplayed()
         compose.onAllNodesWithText("我的主题").assertCountEquals(0)

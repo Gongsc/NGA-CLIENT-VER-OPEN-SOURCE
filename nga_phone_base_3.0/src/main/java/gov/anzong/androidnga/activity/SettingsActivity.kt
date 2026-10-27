@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.*
-import androidx.activity.compose.BackHandler
 import com.bumptech.glide.Glide
 import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.base.util.ThreadUtils
@@ -20,19 +18,13 @@ class SettingsActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         val preferences=getSharedPreferences(PreferenceKey.PERFERENCE,Context.MODE_PRIVATE)
         setContent {NgaTheme {
-            var reading by remember {mutableStateOf(false)}
-            BackHandler(reading){reading=false}
-            if(reading) ReadingSettingsScreen {reading=false}
-            else SettingsScreen(preferences,{finish()}, {destination->
-                if(destination=="reading") reading=true
-                else {
-                    val fragment=when(destination) {
-                        "accounts"->"sp.phone.ui.fragment.SettingsUserFragment"
-                        "blacklist"->"sp.phone.ui.fragment.SettingsBlackListFragment"
-                        else->"sp.phone.ui.fragment.FilterKeywordsFragment"
-                    }
-                    startActivity(Intent(this,LauncherSubActivity::class.java).putExtra("fragment",fragment))
+            SettingsScreen(preferences,{finish()}, {destination->
+                val fragment=when(destination) {
+                    "accounts"->"sp.phone.ui.fragment.SettingsUserFragment"
+                    "blacklist"->"sp.phone.ui.fragment.SettingsBlackListFragment"
+                    else->"sp.phone.ui.fragment.FilterKeywordsFragment"
                 }
+                startActivity(Intent(this,LauncherSubActivity::class.java).putExtra("fragment",fragment))
             },::clearCache)
         }}
     }

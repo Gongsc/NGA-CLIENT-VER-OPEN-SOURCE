@@ -1,0 +1,80 @@
+package gov.anzong.androidnga.mvvm.viewmodel
+
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.PublishSubject
+import org.junit.Assert.*
+import org.junit.Test
+import sp.phone.http.bean.MessageListInfo
+import sp.phone.http.bean.MessageThreadPageInfo
+import sp.phone.mvp.model.entity.RecentReplyInfo
+
+class HomeInboxViewModelTest {
+    private fun page(number: Int, next: Int, vararg mids: Int) = MessageListInfo().apply {
+        set__currentPage(number); set__nextPage(next)
+        messageEntryList = mids.map { mid -> MessageThreadPageInfo().apply { this.mid = mid } }
+    }
+
+    @Test fun accountSwitchCancelsOldRequestsAndClearsData() {
+        var account = "a"
+        val pending = PublishSubject.create<MessageListInfo>()
+        val vm = HomeInboxViewModel({ account }, { "cookie-$account" }, { Observable.just(emptyList()) },
+            { cookie, _ -> if (cookie == "cookie-a") pending else Observable.just(page(1, 0, 2)) },
+            Schedulers.trampoline(), Schedulers.trampoline())
+        vm.selectAccount("a"); vm.loadMessages()
+        account = "b"; vm.selectAccount("b")
+        assertFalse(pending.hasObservers())
+        assertTrue(vm.messages.isEmpty())
+        pending.onNext(page(1, 0, 1))
+        vm.loadMessages()
+        assertEquals(listOf(2), vm.messages.map { it.mid })
+        account = ""; vm.selectAccount("")
+        assertTrue(vm.messages.isEmpty())
+        assertEquals(0, vm.nextPage)
+    }
+
+    @Test fun paginationDeduplicatesAndFailedRefreshPreservesRows() {
+        var fail = false
+        val vm = HomeInboxViewModel({ "a" }, { "cookie" }, { Observable.just(emptyList()) },
+            { _, number -> if (fail) Observable.error(IllegalStateException("离线")) else Observable.just(if (number == 1) page(1, 2, 1, 2) else page(2, 0, 2, 3)) },
+            Schedulers.trampoline(), Schedulers.trampoline())
+        vm.selectAccount("a"); vm.loadMessages(); vm.loadMessages(more = true)
+        assertEquals(listOf(1, 2, 3), vm.messages.map { it.mid })
+        assertEquals(0, vm.nextPage)
+        fail = true; vm.loadMessages(force = true)
+        assertEquals("离线", vm.messageError)
+        assertEquals(3, vm.messages.size)
+        assertFalse(vm.messagesLoading)
+        fail = false; vm.retryMessages()
+        assertNull(vm.messageError)
+        assertEquals(listOf(1, 2), vm.messages.map { it.mid })
+    }
+
+    @Test fun unreadRepliesTriggerOnlyOneFollowupAndMergeDuplicates() {
+        var calls = 0
+        var read = 0
+        fun reply(pid: String, unread: Boolean) = RecentReplyInfo(1, "示例", "主题", pid, "100").apply { isUnread = unread }
+        val vm = HomeInboxViewModel({ "a" }, { "cookie" }, {
+            calls++
+            Observable.just(if (calls == 1) listOf(reply("1", true)) else listOf(reply("1", false), reply("2", false)))
+        }, { _, _ -> Observable.just(page(1, 0)) }, Schedulers.trampoline(), Schedulers.trampoline())
+        vm.selectAccount("a"); vm.loadReplies(onRead = { read++ })
+        assertEquals(2, calls)
+        assertEquals(2, vm.replies.size)
+        assertEquals(1, read)
+        vm.loadReplies()
+        assertEquals(2, calls)
+    }
+
+    @Test fun renewedSessionForSameUserInvalidatesCachedMessages() {
+        var cookie = "old"
+        var calls = 0
+        val vm = HomeInboxViewModel({ "a" }, { cookie }, { Observable.just(emptyList()) },
+            { _, _ -> calls++; Observable.just(page(1, 0, calls)) }, Schedulers.trampoline(), Schedulers.trampoline())
+        vm.selectAccount("a"); vm.loadMessages()
+        cookie = "new"; vm.selectAccount("a")
+        assertTrue(vm.messages.isEmpty())
+        vm.loadMessages()
+        assertEquals(listOf(2), vm.messages.map { it.mid })
+    }
+}

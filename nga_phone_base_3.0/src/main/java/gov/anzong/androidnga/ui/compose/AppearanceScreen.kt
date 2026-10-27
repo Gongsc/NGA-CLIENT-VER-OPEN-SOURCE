@@ -1,5 +1,7 @@
 package gov.anzong.androidnga.ui.compose
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -35,6 +37,12 @@ fun DensityToggle(compact: Boolean, onChange: (Boolean) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceScreen(onBack: () -> Unit) {
+    var reading by rememberSaveable { mutableStateOf(false) }
+    BackHandler(reading) { reading = false }
+    if (reading) {
+        ReadingSettingsScreen { reading = false }
+        return
+    }
     val settings = LocalAppearance.current
     var modeMenu by remember { mutableStateOf(false) }
     var resetDialog by remember { mutableStateOf(false) }
@@ -93,6 +101,11 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         Text("随主题配色", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+            }
+            Surface(onClick = { reading = true }, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface) {
+                ListItem(headlineContent = { Text("字体与阅读大小") },
+                    supportingContent = { Text("调整正文、标题、头像和表情大小") },
+                    trailingContent = { Icon(ActionIcons.Right, null) })
             }
             Text("列表显示", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface) {

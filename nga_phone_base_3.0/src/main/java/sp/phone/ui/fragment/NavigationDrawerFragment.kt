@@ -1,5 +1,15 @@
 package sp.phone.ui.fragment
 
+import androidx.compose.runtime.*
+import com.alibaba.fastjson.JSON
+import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
+import gov.anzong.androidnga.arouter.AppNavigator
+import gov.anzong.androidnga.arouter.ARouterConstants
+import sp.phone.common.TopicHistoryManager
+import sp.phone.common.PhoneConfiguration
+import sp.phone.mvp.model.entity.ThreadPageInfo
+import sp.phone.param.ArticleListParam
+import sp.phone.param.ParamKey
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -28,11 +38,14 @@ import sp.phone.util.ActivityUtils
 /** Compose owns the UI; the existing presenter continues to own forum/account actions. */
 class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContract.View {
     private val state = HomeState()
+    private lateinit var inbox: HomeInboxViewModel
+    private var history by mutableStateOf(emptyList<ThreadPageInfo>(), neverEqualPolicy())
     private lateinit var favorites: ForumFavoritesViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerRxBus()
+        inbox = ViewModelProvider(this)[HomeInboxViewModel::class.java]
         favorites = ViewModelProvider(this)[ForumFavoritesViewModel::class.java]
         state.selected = savedInstanceState?.getInt("selected_category")
             ?: if (mPresenter.bookmarkCategory.size() == 0 && !UserManagerImpl.getInstance().hasValidUser()) 1 else 0
@@ -71,10 +84,43 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
                                     sp.phone.http.favorites.ForumFavoriteBoard(board.fid, board.stid, board.name, board.head), false)
                                 }.show()
                         },
-                        favorites = favorites.snapshot)
+                        favorites = favorites.snapshot,
+                        historyContent = { onControls ->
+                            HomeHistoryScreen(history, ::openHistory,
+                                onRemove = { TopicHistoryManager.getInstance().removeTopicHistory(it); refreshHistory() },
+                                onClear = { TopicHistoryManager.getInstance().removeAllTopicHistory(); refreshHistory() },
+                                onControlsExpandedChange = onControls)
+                        },
+                        messagesContent = { onControls ->
+                            HomeMessagesScreen(state.account, inbox, state.replyCount, ::jumpToLogin,
+                                onReply = { reply ->
+                                    val tid = reply.tidStr?.toIntOrNull()
+                                    val pid = reply.pidStr?.toIntOrNull()
+                                    if (tid != null && pid != null) startActivity(Intent(requireContext(), PhoneConfiguration.getInstance().articleActivityClass)
+                                        .putExtra(ParamKey.KEY_TID, tid).putExtra(ParamKey.KEY_PID, pid)
+                                        .putExtra(ParamKey.KEY_TITLE, reply.title).putExtra(ParamKey.KEY_SEARCH_POST, 1))
+                                },
+                                onMessage = { message -> startActivity(Intent(requireContext(), PhoneConfiguration.getInstance().messageDetialActivity).putExtra("mid", message.mid)) },
+                                onCompose = { AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_MESSAGE_POST).withString("action", "new").navigation(requireContext()) },
+                                onRead = {
+                                    state.replyCount = 0
+                                    requireContext().getSharedPreferences(requireContext().packageName + "_preferences", android.content.Context.MODE_PRIVATE)
+                                        .edit().putInt(PreferenceKey.KEY_REPLY_COUNT, 0).apply()
+                                }, onControlsExpandedChange = onControls)
+                        })
                 }
             }
         }
+    }
+
+    private fun refreshHistory() { history = TopicHistoryManager.getInstance().topicHistoryList.toList() }
+
+    private fun openHistory(topic: ThreadPageInfo) {
+        val param = ArticleListParam().apply {
+            tid = topic.tid; page = topic.page.coerceAtLeast(1); title = topic.subject
+            topicInfo = JSON.toJSONString(topic)
+        }
+        startActivity(Intent(requireContext(), PhoneConfiguration.getInstance().articleActivityClass).putExtra(ParamKey.KEY_PARAM, param))
     }
 
     private fun navigationActions(): List<HomeAction> {
@@ -112,6 +158,7 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
     override fun onResume() {
         super.onResume()
         refreshState()
+        refreshHistory()
         favorites.refresh()
         state.replyCount = requireContext().getSharedPreferences(requireContext().packageName + "_preferences", android.content.Context.MODE_PRIVATE).getInt(PreferenceKey.KEY_REPLY_COUNT, 0)
     }
@@ -126,7 +173,10 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
     override fun updateHeaderView() {
         val users = UserManagerImpl.getInstance()
         val active = users.activeUser
-        state.account = active?.toHomeAccount()
+        val account = active?.toHomeAccount()
+        if (state.account?.uid != account?.uid) state.replyCount = 0
+        state.account = account
+        inbox.selectAccount(account?.uid.orEmpty())
         state.otherAccounts = users.userList.orEmpty().filter { it.userId != active?.userId }.map { it.toHomeAccount() }
     }
     private fun User.toHomeAccount() = HomeAccount(userId, nickName.orEmpty(), FunctionUtils.parseAvatarUrl(avatarUrl))

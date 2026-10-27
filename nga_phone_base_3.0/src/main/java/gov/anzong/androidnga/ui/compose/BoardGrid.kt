@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,7 +35,8 @@ fun BoardGrid(
     onRemove: (BoardTile) -> Unit = {},
     enabled: Boolean = true,
     emptyMessage: String = "暂无版块",
-    compact: Boolean = LocalAppearance.current.compact
+    compact: Boolean = LocalAppearance.current.compact,
+    onControlsExpandedChange: (Boolean) -> Unit = {}
 ) {
     if (sections.all { it.boards.isEmpty() }) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -42,10 +44,13 @@ fun BoardGrid(
         }
         return
     }
+    val gridState = rememberLazyGridState()
+    val scrollConnection = rememberScrollControlsConnection({ gridState.canScrollBackward }, onControlsExpandedChange)
     val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale
     LazyVerticalGrid(
+        state = gridState,
         columns = GridCells.Adaptive(maxOf(if (compact) 144.dp else 160.dp, (120 * scale).dp)),
-        modifier = modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp),
+        modifier = modifier.fillMaxSize().nestedScroll(scrollConnection), contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(if (compact) 16.dp else 8.dp),
         verticalArrangement = Arrangement.spacedBy(if (compact) 0.dp else 8.dp)
     ) {

@@ -6,6 +6,12 @@ public class ThreadPageInfo {
 
     private int mTid;
 
+    private long historyVisitedAt;
+
+    public long getHistoryVisitedAt() { return historyVisitedAt; }
+
+    public void setHistoryVisitedAt(long value) { historyVisitedAt = value; }
+
     private String mAuthor;
 
     private int mFid;

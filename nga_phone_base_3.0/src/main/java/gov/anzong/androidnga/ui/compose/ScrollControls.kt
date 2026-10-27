@@ -14,6 +14,15 @@ internal fun rememberScrollControlsConnection(
     list: LazyListState,
     onControlsExpandedChange: (Boolean) -> Unit,
 ): NestedScrollConnection {
+    return rememberScrollControlsConnection({ list.canScrollBackward }, onControlsExpandedChange)
+}
+
+@Composable
+internal fun rememberScrollControlsConnection(
+    canScrollBackward: () -> Boolean,
+    onControlsExpandedChange: (Boolean) -> Unit,
+): NestedScrollConnection {
+    val canScrollBack by rememberUpdatedState(canScrollBackward)
     val onExpandedChange by rememberUpdatedState(onControlsExpandedChange)
     val threshold = with(LocalDensity.current) { 12.dp.toPx() }
     val scrollConnection = remember(threshold) {
@@ -32,8 +41,8 @@ internal fun rememberScrollControlsConnection(
             }
         }
     }
-    LaunchedEffect(list) {
-        snapshotFlow { !list.canScrollBackward }.collect { atTop ->
+    LaunchedEffect(scrollConnection) {
+        snapshotFlow { !canScrollBack() }.collect { atTop ->
             if (atTop) onExpandedChange(true)
         }
     }

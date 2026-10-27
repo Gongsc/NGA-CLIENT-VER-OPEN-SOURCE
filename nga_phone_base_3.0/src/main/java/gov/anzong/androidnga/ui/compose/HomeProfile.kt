@@ -1,12 +1,12 @@
 package gov.anzong.androidnga.ui.compose
 
 import android.widget.ImageView
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,51 +33,44 @@ import sp.phone.common.PhoneConfiguration
 import sp.phone.util.ImageUtils
 
 @Composable
-internal fun HomeDrawerContent(
+internal fun HomeProfileContent(
     state: HomeState, actions: List<HomeAction>, onAction: (Int) -> Unit,
-    onProfile: () -> Unit, onSwitchUser: () -> Unit
+    onProfile: () -> Unit, onSwitchUser: () -> Unit,
+    onControlsExpandedChange: (Boolean) -> Unit = {}
 ) {
     val account = state.account
-    val groups = homeNavigationGroups(actions, loggedIn = account != null)
+    val groups = homeNavigationGroups(actions.filter { it.id != R.id.menu_gun && it.id != R.id.menu_msg }, loggedIn = account != null)
     val accountGroups = groups.filter { it.tier == HomeNavigationTier.ACCOUNT }
     val login = { onAction(R.id.menu_login) }
-    LazyColumn(Modifier.widthIn(max = 360.dp).testTag("home_navigation")) {
+    val list = rememberLazyListState()
+    val scroll = rememberScrollControlsConnection(list, onControlsExpandedChange)
+    LazyColumn(Modifier.fillMaxSize().nestedScroll(scroll).testTag("home_navigation"), state = list) {
         item("account_header") { AccountHeader(state, onProfile, onSwitchUser, login) }
         if (account == null || accountGroups.isNotEmpty()) {
             item("tier_account") { TierHeading("账号", Icons.Default.Person, MaterialTheme.colorScheme.primary) }
             item("account_card") {
-                Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
-                    Column(Modifier.padding(vertical = 6.dp)) {
-                        if (account == null) DrawerEntry("消息、我的主题与收藏需登录", Icons.Default.Lock, login, muted = true)
-                        accountGroups.forEach { group ->
-                            if (group.title.isNotEmpty()) GroupHeading(group.title)
-                            group.actions.forEach { action ->
-                                DrawerEntry(action.label, drawerIcon(action.id), { if (action.enabled) onAction(action.id) },
-                                    badge = if (action.id == R.id.menu_gun) state.replyCount else 0)
+                Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    Column(Modifier.padding(vertical = 8.dp)) {
+                        if (account == null) ProfileEntry("我的主题与收藏需登录", Icons.Default.Lock, login, muted = true)
+                        accountGroups.flatMap { it.actions }.chunked(4).forEach { row ->
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+                                row.forEach { action -> AppTile(action, profileIcon(action.id), Modifier.weight(1f)) { if (action.enabled) onAction(action.id) } }
+                                repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
                             }
                         }
                     }
                 }
             }
         }
-        groups.filter { it.tier == HomeNavigationTier.TOOLS }.forEach { group ->
-            item("tier_${group.title}") { TierHeading(group.title, Icons.Default.Build, MaterialTheme.colorScheme.onSurfaceVariant) }
-            items(group.actions, key = { it.id }) { action ->
-                Box(Modifier.padding(horizontal = 4.dp)) {
-                    DrawerEntry(action.label, drawerIcon(action.id), { if (action.enabled) onAction(action.id) })
-                }
-            }
-        }
-        groups.filter { it.tier == HomeNavigationTier.APP }.forEach { group ->
-            item("tier_${group.title}") {
-                Column(Modifier.padding(top = 8.dp)) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    GroupHeading(group.title, Modifier.padding(start = 16.dp, top = 12.dp, bottom = 8.dp))
-                    group.actions.chunked(3).forEach { row ->
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 3.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            row.forEach { action -> AppTile(action, drawerIcon(action.id), Modifier.weight(1f)) { if (action.enabled) onAction(action.id) } }
-                            repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+        groups.filter { it.tier != HomeNavigationTier.ACCOUNT }.forEach { group ->
+            item("tier_${group.title}") { GroupHeading(group.title, Modifier.padding(start = 20.dp, top = 20.dp, bottom = 8.dp)) }
+            item("group_${group.title}") {
+                Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Column {
+                        group.actions.forEachIndexed { index, action ->
+                            if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                            ProfileEntry(action.label, profileIcon(action.id), { onAction(action.id) }, enabled = action.enabled)
                         }
                     }
                 }
@@ -127,17 +120,12 @@ private fun AccountHeader(state: HomeState, onProfile: () -> Unit, onSwitchUser:
 }
 
 @Composable
-private fun AccountAvatar(account: HomeAccount?, size: Dp, modifier: Modifier = Modifier) {
+internal fun AccountAvatar(account: HomeAccount?, size: Dp, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
     val shape = Modifier.size(size).then(modifier).clip(CircleShape)
     when {
-        account == null -> Surface(shape, color = scheme.outlineVariant, contentColor = scheme.onSurfaceVariant) {
-            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Person, null, Modifier.size(size / 2)) }
-        }
-        account.avatarUrl.isNullOrBlank() -> Surface(shape, color = scheme.primary, contentColor = scheme.onPrimary) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(accountInitial(account.name), style = if (size >= 40.dp) MaterialTheme.typography.titleLarge else MaterialTheme.typography.labelSmall)
-            }
+        account?.avatarUrl.isNullOrBlank() -> Surface(shape, color = scheme.outlineVariant, contentColor = scheme.onSurfaceVariant) {
+            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Person, null, Modifier.size(if (size <= 32.dp) size else size / 2)) }
         }
         else -> AndroidView(factory = { ImageView(it).apply { importantForAccessibility = ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO } },
             modifier = shape, update = { image ->
@@ -163,20 +151,18 @@ private fun GroupHeading(title: String, modifier: Modifier = Modifier.padding(st
 }
 
 @Composable
-private fun DrawerEntry(label: String, icon: ImageVector, onClick: () -> Unit, badge: Int = 0, muted: Boolean = false) {
-    NavigationDrawerItem(
-        label = { Text(label, color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else Color.Unspecified) },
-        selected = false, onClick = onClick,
-        icon = { Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-        badge = if (badge > 0) ({ Badge { Text(if (badge > 99) "99+" else badge.toString()) } }) else null,
-        modifier = Modifier.padding(horizontal = 6.dp).height(48.dp)
-    )
+private fun ProfileEntry(label: String, icon: ImageVector, onClick: () -> Unit, muted: Boolean = false, enabled: Boolean = true) {
+    ListItem(headlineContent = { Text(label, color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else Color.Unspecified) },
+        leadingContent = { Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+        trailingContent = { Icon(ActionIcons.Right, null, Modifier.size(16.dp)) },
+        modifier = Modifier.clickable(enabled = enabled, onClick = onClick).heightIn(min = 56.dp),
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface))
 }
 
 @Composable
 private fun AppTile(action: HomeAction, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = modifier.heightIn(min = 64.dp), shape = RoundedCornerShape(12.dp),
-        color = Color.Transparent, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        color = Color.Transparent) {
         Column(Modifier.padding(vertical = 8.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
             Icon(icon, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -186,7 +172,7 @@ private fun AppTile(action: HomeAction, icon: ImageVector, modifier: Modifier, o
     }
 }
 
-private fun drawerIcon(id: Int): ImageVector = when (id) {
+private fun profileIcon(id: Int): ImageVector = when (id) {
     R.id.menu_gun -> Icons.Default.Notifications
     R.id.menu_msg -> Icons.Default.Email
     R.id.menu_post -> Icons.AutoMirrored.Filled.List
