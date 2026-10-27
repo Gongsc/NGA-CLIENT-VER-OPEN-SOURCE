@@ -41,7 +41,7 @@ public class BoardSubListFragment extends BaseRxFragment implements View.OnClick
         Bundle bundle = getArguments();
         setTitle(String.format("%s - 子板块", bundle.getString(ParamKey.KEY_TITLE)));
         mBoardList = bundle.getParcelableArrayList("subBoard");
-        mSubscribeTask = new SubscribeSubBoardTask(getLifecycleProvider());
+        mSubscribeTask = new SubscribeSubBoardTask(this);
         super.onCreate(savedInstanceState);
     }
 

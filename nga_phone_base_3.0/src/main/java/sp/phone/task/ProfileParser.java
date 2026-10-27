@@ -1,92 +1,31 @@
 package sp.phone.task;
 
+import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
-
-import org.reactivestreams.Subscription;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import gov.anzong.androidnga.R;
-import gov.anzong.androidnga.Utils;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.common.PreferenceKey;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.schedulers.Schedulers;
-import gov.anzong.androidnga.http.OnHttpCallBack;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import sp.phone.http.bean.AdminForumsData;
 import sp.phone.http.bean.ProfileData;
 import sp.phone.http.bean.ReputationData;
-import sp.phone.http.retrofit.RetrofitHelper;
-import sp.phone.http.retrofit.RetrofitService;
-import sp.phone.rxjava.BaseSubscriber;
-import sp.phone.util.ActivityUtils;
 import sp.phone.util.NLog;
 import sp.phone.util.StringUtils;
 
-public class JsonProfileLoadTask {
+/** 个人资料响应解析，自 JsonProfileLoadTask 原样拆出。 */
+final class ProfileParser {
 
     private static final String TAG = JsonProfileLoadTask.class.getSimpleName();
 
-    private OnHttpCallBack<ProfileData> mCallback;
+    private ProfileParser() {}
 
-    private String mErrorMsg;
-
-    private RetrofitService mService = RetrofitHelper.getInstance().getService();
-
-    private Subscription mSubscription;
-
-    public JsonProfileLoadTask(OnHttpCallBack<ProfileData> callback) {
-        mCallback = callback;
-    }
-
-    public void execute(String url) {
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Referer",Utils.getNGAHost() + "nuke.php?func=ucp&lite=jsx&" + url);
-        url = Utils.getNGAHost() + "nuke.php?__lib=ucp&__act=get&lite=js&noprefix&" + url;
-        mService.get(url, headers)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .map(this::parseJsonPage)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new BaseSubscriber<ProfileData>() {
-
-                    @Override
-                    public void onNext(@NonNull ProfileData profileData) {
-                        ActivityUtils.getInstance().dismiss();
-                        mCallback.onSuccess(profileData);
-                        mSubscription = null;
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable throwable) {
-                        ActivityUtils.getInstance().dismiss();
-                        mCallback.onError(StringUtils.isEmpty(mErrorMsg) ? throwable.getMessage() : mErrorMsg);
-                        mSubscription = null;
-                    }
-
-                    @Override
-                    public void onSubscribe(@NonNull Subscription subscription) {
-                        mSubscription = subscription;
-                        super.onSubscribe(subscription);
-                    }
-                });
-    }
-
-    public void cancel() {
-        if (mSubscription != null) {
-            mSubscription.cancel();
-        }
-    }
-
-    private ProfileData parseJsonPage(String js) {
+    /** 解析个人资料响应；失败时抛出带提示文字的 IllegalStateException。 */
+    static ProfileData parse(String js) {
         if (StringUtils.isEmpty(js)) {
-            mErrorMsg = ContextUtils.getString(R.string.network_error);
-            throw new IllegalStateException();
+            throw new IllegalStateException(ContextUtils.getString(R.string.network_error));
         }
         js = js.replaceAll("window.script_muti_get_var_store=", "");
         if (js.contains("/*error fill content")) {
@@ -110,11 +49,10 @@ public class JsonProfileLoadTask {
             }
         }
         obj = obj.getJSONObject("error");
-        mErrorMsg = obj == null ? "二哥玩坏了或者你需要重新登录" : obj.getString("0");
-        throw new IllegalStateException();
+        throw new IllegalStateException(obj == null ? "二哥玩坏了或者你需要重新登录" : obj.getString("0"));
     }
 
-    private void buildAdminForums(ProfileData ret, NgaJsonObject obj) {
+    private static void buildAdminForums(ProfileData ret, NgaJsonObject obj) {
         if (obj != null) {
             List<AdminForumsData> entryList = new ArrayList<>();
             for (String key : obj.keySet()) {
@@ -125,7 +63,7 @@ public class JsonProfileLoadTask {
         }
     }
 
-    private void buildReputation(ProfileData ret, NgaJsonObject obj) {
+    private static void buildReputation(ProfileData ret, NgaJsonObject obj) {
         if (obj != null) {
             List<ReputationData> entryList = new ArrayList<>();
             for (int i = 0; i < obj.size(); i++) {
@@ -139,7 +77,7 @@ public class JsonProfileLoadTask {
         }
     }
 
-    private void buildBasicInfo(ProfileData ret, NgaJsonObject obj) {
+    private static void buildBasicInfo(ProfileData ret, NgaJsonObject obj) {
         String defaultValue = "N/A";
 
         String money = obj.getString("money");

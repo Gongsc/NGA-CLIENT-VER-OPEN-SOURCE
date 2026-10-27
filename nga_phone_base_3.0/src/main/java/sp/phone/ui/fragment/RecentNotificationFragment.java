@@ -49,7 +49,7 @@ public class RecentNotificationFragment extends BaseRxFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        mNotificationTask = new ForumNotificationTask(getLifecycleProvider());
+        mNotificationTask = new ForumNotificationTask(this);
         mNotificationAdapter = new RecentNotificationAdapter(getContext());
         mNotificationAdapter.setClickListener(this);
         Bundle bundle = getArguments();

@@ -34,7 +34,9 @@
 0. 基础：显式依赖 `kotlinx-coroutines-android` 与 `kotlinx-coroutines-test`；新增 `NgaApi`；新增回调桥与调度器，先补单元测试（回调线程、取消不回调、错误信息）。（已完成）
 1. 已是 Kotlin 的 4 个文件改用 `viewModelScope`、`lifecycleScope` 与 Flow，同步更新 `HomeInboxViewModelTest` 与版面收藏测试。（已完成）另含订阅收藏变化的 `ForumFavoritesViewModel`；`changes` 由 `BehaviorSubject` 改为 `StateFlow`。`NavigationDrawerFragment` 仅剩 RxBus 订阅，随第 5 步处理。测试以 `PendingResponse` 替代 `PublishSubject`，主调度器换成 `UnconfinedTestDispatcher` 以保持原先的立即执行语义。
 2. 主题加载链路：`ArticlePageLoader` 改为 Kotlin 挂起函数，保持来源顺序、每个来源至多请求一次及错误处理规则（见 `docs/topic-opening-fix.md`），连同 `ArticleListModel`；运行解码基准测试与设备上的 `IncompleteTopicTest`、`WebViewRoutingTest`、`HotRepliesTest`。（已完成）`ArticleListModel` 改为 Kotlin，`BaseModel` 暂时增加 `LifecycleOwner`，请求随页面销毁取消（第 4 步统一替换 rxlifecycle）。`ArticlePageLoaderTest` 改为 Kotlin，16 项用例逐条保留，并迁入 `ArticleHtmlResponseTest` 中 3 项加载用例。顺带修正 `FileUtils.write` 写入 null 时的行为，与 commons-io 一致写入空文件。设备上另运行了覆盖加载错误展示的 `ReaderHostTest`。
-3. 后台任务：`BaseRxTask` 与 8 个任务、`SaveImageTask` 改为 Kotlin，保留“正在下载时不重复下载”“多张图片依次保存”等行为，每个任务补充合成响应测试。
+3. 后台任务：`BaseRxTask` 与 8 个任务、`SaveImageTask` 改为 Kotlin，保留“正在下载时不重复下载”“多张图片依次保存”等行为，每个任务补充合成响应测试。（已完成）`BaseRxTask` 无调用方，直接删除。个人资料解析原样拆入 Java 类 `ProfileParser`，只把请求部分改为 Kotlin。解析放在后台执行，解析失败与 RxJava 时一样走失败回调；原先只记录日志的任务（收藏、清空通知、点赞的请求失败）仍只记录日志。`TaskCoroutinesTest` 用 `FakeNgaApi` 覆盖举报、签名、子版块、通知、点赞。
+
+   修正一处原有问题：`BaseSubscriber` 只在 `onSubscribe(Subscription)` 中记录订阅，而 `Observable` 调用的是 `onSubscribe(Disposable)`，因此个人资料的 `cancel()`、签名与保存图片的“进行中不重复提交”从未生效。改用 `Job` 后这些行为按原意生效。个人资料的失败提示改为取自本次异常，不再沿用上次失败遗留的文字。
 4. MVP Model：`BaseModel` 改为持有协程作用域，替代 rxlifecycle；其余 5 个 Model 逐个改为 Kotlin。
 5. 界面基础设施：`RxBus` 唯一订阅方改用 `SharedFlow`；点击防抖与延迟执行改为普通实现；删除 `RxLifecycleProvider`、两个 `BaseSubscriber` 及 `BaseRxFragment` 中的 Rx 部分。
 6. 收尾：删除 `RetrofitService` 与 `adapter-rxjava2`，删除 RxJava2、rxandroid、rxlifecycle、rxbinding 依赖；迁移剩余测试，确认代码中不再出现 `io.reactivex`。
