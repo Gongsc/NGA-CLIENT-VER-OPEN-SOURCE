@@ -2,18 +2,23 @@ package gov.anzong.androidnga.mvvm.viewmodel
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.base.json.NgaJsonArray
 import gov.anzong.androidnga.base.json.NgaJsonObject
 import gov.anzong.androidnga.Utils
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import gov.anzong.androidnga.coroutines.NgaDispatchers
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 import sp.phone.common.UserManagerImpl
 import sp.phone.http.bean.MessageListInfo
 import sp.phone.http.bean.MessageThreadPageInfo
-import sp.phone.http.retrofit.RetrofitHelper
+import sp.phone.http.retrofit.NgaApi
 import sp.phone.mvp.model.convert.ForumNotificationFactory
 import sp.phone.mvp.model.convert.MessageConvertFactory
 import sp.phone.mvp.model.entity.RecentReplyInfo
@@ -22,10 +27,9 @@ import sp.phone.mvp.model.entity.RecentReplyInfo
 class HomeInboxViewModel(
     private val currentAccount: () -> String = { UserManagerImpl.getInstance().userId.orEmpty() },
     private val currentCookie: () -> String = { UserManagerImpl.getInstance().cookie.orEmpty() },
-    private val replyRequest: (String) -> Observable<List<RecentReplyInfo>> = ::requestHomeReplies,
-    private val messageRequest: (String, Int) -> Observable<MessageListInfo> = ::requestHomeMessages,
-    private val delivery: io.reactivex.Scheduler = AndroidSchedulers.mainThread(),
-    private val worker: io.reactivex.Scheduler = Schedulers.io(),
+    private val replyRequest: suspend (String) -> List<RecentReplyInfo> = ::requestHomeReplies,
+    private val messageRequest: suspend (String, Int) -> MessageListInfo = ::requestHomeMessages,
+    private val worker: CoroutineDispatcher = NgaDispatchers.io,
 ) : ViewModel() {
     var replies by mutableStateOf(emptyList<RecentReplyInfo>()); private set
     var messages by mutableStateOf(emptyList<MessageThreadPageInfo>()); private set
@@ -40,7 +44,8 @@ class HomeInboxViewModel(
     private var repliesLoaded = false
     private var messagesLoaded = false
     private var retryMore = false
-    private val requests = CompositeDisposable()
+    /** 当前账号的请求；切换账号时整体取消。 */
+    private var requests = SupervisorJob(viewModelScope.coroutineContext[Job])
 
     fun selectAccount(uid: String) {
         val cookie = if (uid.isEmpty()) "" else currentCookie()
@@ -48,7 +53,8 @@ class HomeInboxViewModel(
         session = cookie
         account = uid
         generation++
-        requests.clear()
+        requests.cancel()
+        requests = SupervisorJob(viewModelScope.coroutineContext[Job])
         replies = emptyList(); messages = emptyList()
         replyError = null; messageError = null
         repliesLoading = false; messagesLoading = false
@@ -62,19 +68,31 @@ class HomeInboxViewModel(
         val token = generation; val uid = account; val cookie = session
         repliesLoading = true; replyError = null
         // 首次可能仅返回未读通知；再读取一次历史，合并时保留未读标记，不无限重试。
-        fun query() = replyRequest(cookie)
-        requests.add(query().subscribeOn(worker).flatMap { unread ->
-            if (unread.any { it.isUnread } && current(token, uid)) query().map { history ->
-                (unread + history).distinctBy { "${it.tidStr}:${it.pidStr}" }
-            }.onErrorReturnItem(unread) else Observable.just(unread)
-        }.observeOn(delivery).subscribe({ data ->
+        viewModelScope.launch(requests) {
+            val data = try {
+                withContext(worker) {
+                    val unread = replyRequest(cookie)
+                    if (unread.any { it.isUnread } && current(token, uid)) {
+                        try {
+                            (unread + replyRequest(cookie)).distinctBy { "${it.tidStr}:${it.pidStr}" }
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            unread
+                        }
+                    } else unread
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (error: Exception) {
+                runCatching { sp.phone.util.NLog.e("HomeInbox", "回复通知加载失败", error) }
+                if (current(token, uid)) { repliesLoading = false; replyError = error.message ?: "回复通知加载失败" }
+                return@launch
+            }
             if (current(token, uid)) {
                 replies = data; repliesLoaded = true; repliesLoading = false; onRead()
             }
-        }, { error ->
-            runCatching { sp.phone.util.NLog.e("HomeInbox", "回复通知加载失败", error) }
-            if (current(token, uid)) { repliesLoading = false; replyError = error.message ?: "回复通知加载失败" }
-        }))
+        }
     }
 
     fun loadMessages(force: Boolean = false, more: Boolean = false) {
@@ -83,26 +101,33 @@ class HomeInboxViewModel(
         val page = if (more) nextPage else 1
         retryMore = more
         messagesLoading = true; messageError = null
-        requests.add(messageRequest(cookie, page).subscribeOn(worker).observeOn(delivery).subscribe({ data: MessageListInfo ->
+        viewModelScope.launch(requests) {
+            val data = try {
+                withContext(worker) { messageRequest(cookie, page) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (error: Exception) {
+                if (current(token, uid)) { messagesLoading = false; messageError = error.message ?: "短消息加载失败" }
+                return@launch
+            }
             if (current(token, uid)) {
                 messages = ((if (more) messages else emptyList()) + data.messageEntryList.orEmpty()).distinctBy { it.mid }
                 nextPage = data.get__nextPage().takeIf { it > page } ?: 0
                 messagesLoaded = true; messagesLoading = false
             }
-        }, { error -> if (current(token, uid)) { messagesLoading = false; messageError = error.message ?: "短消息加载失败" } }))
+        }
     }
     fun retryMessages() = loadMessages(force = true, more = retryMore)
 
-    override fun onCleared() { generation++; requests.dispose() }
+    override fun onCleared() { generation++; requests.cancel() }
 }
 
-private fun requestHomeReplies(cookie: String): Observable<List<RecentReplyInfo>> =
-    RetrofitHelper.getInstance().service.get(Utils.getNGAHost() + "nuke.php?__lib=noti&__output=8&__act=get_all", mapOf("Cookie" to cookie))
-        .map { content ->
-            // 没有通知时服务端不一定返回 data.0，与旧通知页一致按空列表处理；只有明确的错误信息才视为失败。
-            homeReplyError(content)?.let { throw IllegalStateException(it) }
-            ForumNotificationFactory.buildRecentReplyList(content)
-        }
+private suspend fun requestHomeReplies(cookie: String): List<RecentReplyInfo> {
+    val content = NgaApi.get().get(Utils.getNGAHost() + "nuke.php?__lib=noti&__output=8&__act=get_all", mapOf("Cookie" to cookie))
+    // 没有通知时服务端不一定返回 data.0，与旧通知页一致按空列表处理；只有明确的错误信息才视为失败。
+    homeReplyError(content)?.let { throw IllegalStateException(it) }
+    return ForumNotificationFactory.buildRecentReplyList(content)
+}
 
 internal fun homeReplyError(content: String): String? {
     val json = runCatching { NgaJson.parseObject(content.removePrefix("window.script_muti_get_var_store=")) }.getOrNull()
@@ -113,9 +138,8 @@ internal fun homeReplyError(content: String): String? {
         ?: error.toString()
 }
 
-private fun requestHomeMessages(cookie: String, page: Int): Observable<MessageListInfo> =
-    RetrofitHelper.getInstance().service.get(Utils.getNGAHost() + "nuke.php?__lib=message&__act=message&act=list&lite=js&page=$page", mapOf("Cookie" to cookie))
-        .map { body ->
-            val factory = MessageConvertFactory()
-            factory.getMessageListInfo(body) ?: throw IllegalStateException(factory.errorMsg ?: "短消息加载失败")
-        }
+private suspend fun requestHomeMessages(cookie: String, page: Int): MessageListInfo {
+    val body = NgaApi.get().get(Utils.getNGAHost() + "nuke.php?__lib=message&__act=message&act=list&lite=js&page=$page", mapOf("Cookie" to cookie))
+    val factory = MessageConvertFactory()
+    return factory.getMessageListInfo(body) ?: throw IllegalStateException(factory.errorMsg ?: "短消息加载失败")
+}

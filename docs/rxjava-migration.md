@@ -31,8 +31,8 @@
 
 每一步单独提交，测试全部通过后再进行下一步。
 
-0. 基础：显式依赖 `kotlinx-coroutines-android` 与 `kotlinx-coroutines-test`；新增 `NgaApi`；新增回调桥与调度器，先补单元测试（回调线程、取消不回调、错误信息）。
-1. 已是 Kotlin 的 4 个文件改用 `viewModelScope`、`lifecycleScope` 与 Flow，同步更新 `HomeInboxViewModelTest` 与版面收藏测试。
+0. 基础：显式依赖 `kotlinx-coroutines-android` 与 `kotlinx-coroutines-test`；新增 `NgaApi`；新增回调桥与调度器，先补单元测试（回调线程、取消不回调、错误信息）。（已完成）
+1. 已是 Kotlin 的 4 个文件改用 `viewModelScope`、`lifecycleScope` 与 Flow，同步更新 `HomeInboxViewModelTest` 与版面收藏测试。（已完成）另含订阅收藏变化的 `ForumFavoritesViewModel`；`changes` 由 `BehaviorSubject` 改为 `StateFlow`。`NavigationDrawerFragment` 仅剩 RxBus 订阅，随第 5 步处理。测试以 `PendingResponse` 替代 `PublishSubject`，主调度器换成 `UnconfinedTestDispatcher` 以保持原先的立即执行语义。
 2. 主题加载链路：`ArticlePageLoader` 改为 Kotlin 挂起函数，保持来源顺序、每个来源至多请求一次及错误处理规则（见 `docs/topic-opening-fix.md`），连同 `ArticleListModel`；运行解码基准测试与设备上的 `IncompleteTopicTest`、`WebViewRoutingTest`、`HotRepliesTest`。
 3. 后台任务：`BaseRxTask` 与 8 个任务、`SaveImageTask` 改为 Kotlin，保留“正在下载时不重复下载”“多张图片依次保存”等行为，每个任务补充合成响应测试。
 4. MVP Model：`BaseModel` 改为持有协程作用域，替代 rxlifecycle；其余 5 个 Model 逐个改为 Kotlin。

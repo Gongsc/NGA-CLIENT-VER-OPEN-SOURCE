@@ -17,6 +17,8 @@ import android.view.*
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import gov.anzong.androidnga.coroutines.launchWithCallback
 import sp.phone.mvp.viewmodel.ForumFavoritesViewModel
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -29,10 +31,7 @@ import sp.phone.common.User
 import sp.phone.common.UserManagerImpl
 import sp.phone.util.FunctionUtils
 import gov.anzong.androidnga.Utils
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
-import sp.phone.http.retrofit.RetrofitHelper
+import sp.phone.http.retrofit.NgaApi
 import sp.phone.mvp.contract.BoardContract
 import sp.phone.mvp.model.entity.Board
 import sp.phone.mvp.presenter.BoardPresenter
@@ -47,7 +46,6 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
     private var history by mutableStateOf(emptyList<ThreadPageInfo>(), neverEqualPolicy())
     private lateinit var favorites: ForumFavoritesViewModel
     private val avatarRequests = mutableSetOf<String>()
-    private val avatarDisposables = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -196,10 +194,10 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
         if (cached.isNotBlank()) { applyAvatar(uid, cached); return }
         val headers = mapOf("Cookie" to users.getCookie(user).orEmpty(),
             "Referer" to Utils.getNGAHost() + "nuke.php?func=ucp&lite=jsx&uid=$uid")
-        avatarDisposables.add(RetrofitHelper.getInstance().service
-            .get(Utils.getNGAHost() + "nuke.php?__lib=ucp&__act=get&lite=js&noprefix&uid=$uid", headers)
-            .subscribeOn(Schedulers.io()).map(::parseProfileAvatar).observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ url -> if (url.isNotBlank()) applyAvatar(uid, url) }, { avatarRequests.remove(uid) }))
+        // 随页面销毁取消，与原先在 onDestroy 中释放订阅一致。
+        lifecycleScope.launchWithCallback({ url -> if (url.isNotBlank()) applyAvatar(uid, url) }, { avatarRequests.remove(uid) }) {
+            parseProfileAvatar(NgaApi.get().get(Utils.getNGAHost() + "nuke.php?__lib=ucp&__act=get&lite=js&noprefix&uid=$uid", headers))
+        }
     }
 
     private fun applyAvatar(uid: String, url: String) {
@@ -209,10 +207,6 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
         if (users.activeUser?.userId == uid) updateHeaderView()
     }
 
-    override fun onDestroy() {
-        avatarDisposables.dispose()
-        super.onDestroy()
-    }
 
     private fun User.toHomeAccount() = HomeAccount(userId, nickName.orEmpty(), FunctionUtils.parseAvatarUrl(avatarUrl))
     override fun jumpToLogin() = mPresenter.startLogin()

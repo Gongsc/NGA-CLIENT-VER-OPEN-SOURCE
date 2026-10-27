@@ -3,20 +3,21 @@ package sp.phone.http.favorites
 import android.content.Context
 import gov.anzong.androidnga.base.util.ContextUtils
 import gov.anzong.androidnga.base.util.ToastUtils
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.BehaviorSubject
+import gov.anzong.androidnga.coroutines.NgaDispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import java.nio.charset.Charset
 import sp.phone.common.UserManagerImpl
 import sp.phone.util.ForumUtils
-import sp.phone.http.retrofit.RetrofitHelper
+import sp.phone.http.retrofit.NgaApi
 
 /** 首页、目录和版块菜单共享同一份论坛收藏状态。 */
 class ForumFavoritesRepository private constructor() {
     private val preferences = ContextUtils.getContext().getSharedPreferences("forum_favorites", Context.MODE_PRIVATE)
-    private val updates = BehaviorSubject.createDefault(ForumFavoritesSnapshot())
-    val changes: Observable<ForumFavoritesSnapshot> get() = updates.hide()
+    private val updates = MutableStateFlow(ForumFavoritesSnapshot())
+    val changes: StateFlow<ForumFavoritesSnapshot> get() = updates.asStateFlow()
     private val cache = object : ForumFavoritesCache {
         override fun read(uid: String): List<ForumFavoriteBoard> = runCatching {
             ForumFavoritesParser.parseCache(preferences.getString("boards_$uid", "[]")!!)
@@ -26,27 +27,23 @@ class ForumFavoritesRepository private constructor() {
         }
     }
     private val sync = ForumFavoriteSync(fetch = { cookie ->
-        request(cookie, mapOf("action" to "get")).map(ForumFavoritesParser::parseResponse)
-            .observeOn(AndroidSchedulers.mainThread())
-    }, cache = cache, onState = updates::onNext, write = { cookie, board, add ->
-        request(cookie, ForumFavoritesParser.mutationFields(board, add)).map {
-            ForumFavoritesParser.parseMutationResponse(it)
-            Unit
-        }.observeOn(AndroidSchedulers.mainThread())
+        request(cookie, mapOf("action" to "get"), ForumFavoritesParser::parseResponse)
+    }, cache = cache, onState = { updates.value = it }, write = { cookie, board, add ->
+        request(cookie, ForumFavoritesParser.mutationFields(board, add), ForumFavoritesParser::parseMutationResponse)
     })
 
-    private fun request(cookie: String, fields: Map<String, String>): Observable<String> {
-        val domain = ForumUtils.getAvailableDomain().trimEnd('/')
-        return RetrofitHelper.getInstance().service.forumFavorites(
-            "$domain/nuke.php?__lib=forum_favor2&__act=forum_favor&__output=8",
-            mapOf("Cookie" to cookie, "Referer" to "$domain/"), fields
-        ).subscribeOn(Schedulers.io()).map { response ->
-            response.use { body ->
+    /** 请求与解析都在后台线程执行。 */
+    private suspend fun <T> request(cookie: String, fields: Map<String, String>, parse: (String) -> T): T =
+        withContext(NgaDispatchers.io) {
+            val domain = ForumUtils.getAvailableDomain().trimEnd('/')
+            NgaApi.get().forumFavorites(
+                "$domain/nuke.php?__lib=forum_favor2&__act=forum_favor&__output=8",
+                mapOf("Cookie" to cookie, "Referer" to "$domain/"), fields
+            ).use { body ->
                 val charset = body.contentType()?.charset(Charset.forName("GB18030")) ?: Charset.forName("GB18030")
-                String(body.bytes(), charset)
+                parse(String(body.bytes(), charset))
             }
         }
-    }
 
     fun current(): ForumFavoritesSnapshot {
         val uid = UserManagerImpl.getInstance().userId.orEmpty()

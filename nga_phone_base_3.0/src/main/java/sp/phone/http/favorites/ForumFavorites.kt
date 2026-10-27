@@ -3,8 +3,11 @@ package sp.phone.http.favorites
 import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.base.json.NgaJsonArray
 import gov.anzong.androidnga.base.json.NgaJsonObject
-import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
+import gov.anzong.androidnga.coroutines.AppScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 import sp.phone.http.article.ArticleResponse
 
 /** 论坛端版块收藏及其按账号保存的离线缓存。 */
@@ -83,30 +86,35 @@ data class ForumFavoritesSnapshot(
     val mutating: Boolean = false
 )
 
-/** 账号切换会立即取消旧请求，失败时保留该账号的上次同步结果。 */
+/**
+ * 账号切换会立即取消旧请求，失败时保留该账号的上次同步结果。
+ *
+ * 请求在 [scope] 中启动，结果在其调度器上处理；[fetch] 与 [write] 自行切换到后台线程。
+ */
 class ForumFavoriteSync(
-    private val fetch: (String) -> Observable<List<ForumFavoriteBoard>>,
+    private val fetch: suspend (String) -> List<ForumFavoriteBoard>,
     private val cache: ForumFavoritesCache,
     private val onState: (ForumFavoritesSnapshot) -> Unit,
     private val clock: () -> Long = System::currentTimeMillis,
-    private val write: (String, ForumFavoriteBoard, Boolean) -> Observable<Unit> = { _, _, _ ->
-        Observable.error(IllegalStateException("收藏写入不可用。"))
-    }
+    private val write: suspend (String, ForumFavoriteBoard, Boolean) -> Unit = { _, _, _ ->
+        throw IllegalStateException("收藏写入不可用。")
+    },
+    private val scope: CoroutineScope = AppScope,
 ) {
     var state = ForumFavoritesSnapshot()
         private set
     private var cookie = ""
-    private var request: Disposable? = null
-    private var mutation: Disposable? = null
+    private var request: Job? = null
+    private var mutation: Job? = null
     private var generation = 0
     private var lastSuccess = 0L
 
     fun refresh(uid: String, currentCookie: String, force: Boolean = false) {
         if (uid != state.accountId || currentCookie != cookie) {
             generation++
-            request?.dispose()
+            request?.cancel()
             request = null
-            mutation?.dispose()
+            mutation?.cancel()
             mutation = null
             cookie = currentCookie
             lastSuccess = 0
@@ -115,19 +123,25 @@ class ForumFavoriteSync(
         if (uid.isEmpty() || state.mutating) return
         if (!force && (state.loading || (lastSuccess != 0L && clock() - lastSuccess < 60_000))) return
         val ticket = ++generation
-        request?.dispose()
+        request?.cancel()
         publish(state.copy(loading = true, error = null))
-        request = Observable.defer { fetch(currentCookie) }.subscribe({ boards ->
+        request = scope.launch {
+            val boards = try {
+                fetch(currentCookie)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (failure: Exception) {
+                if (ticket == generation && state.accountId == uid) {
+                    publish(state.copy(loading = false, error = failure.message ?: "论坛收藏同步失败，请稍后重试。"))
+                }
+                return@launch
+            }
             if (ticket == generation && state.accountId == uid) {
                 cache.write(uid, boards)
                 lastSuccess = clock()
                 publish(state.copy(boards = boards, loading = false, error = null))
             }
-        }, { failure ->
-            if (ticket == generation && state.accountId == uid) {
-                publish(state.copy(loading = false, error = failure.message ?: "论坛收藏同步失败，请稍后重试。"))
-            }
-        })
+        }
     }
 
     fun change(uid: String, currentCookie: String, board: ForumFavoriteBoard, add: Boolean,
@@ -136,18 +150,30 @@ class ForumFavoriteSync(
         runCatching { board.serverId }.onFailure { onError(it.message ?: "版块编号无效。"); return }
         if (uid != state.accountId || currentCookie != cookie) {
             generation++
-            request?.dispose()
-            mutation?.dispose()
+            request?.cancel()
+            mutation?.cancel()
             cookie = currentCookie
             lastSuccess = 0
             publish(ForumFavoritesSnapshot(uid, cache.read(uid)))
         }
         if (state.mutating) { onError("收藏操作正在处理中，请稍候。"); return }
         val ticket = ++generation
-        request?.dispose()
+        request?.cancel()
         lastSuccess = 0
         publish(state.copy(loading = false, error = null, mutating = true))
-        mutation = Observable.defer { write(currentCookie, board, add) }.subscribe({
+        mutation = scope.launch {
+            try {
+                write(currentCookie, board, add)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (failure: Exception) {
+                if (ticket == generation && state.accountId == uid) {
+                    val message = failure.message ?: "论坛收藏操作失败，请重试。"
+                    publish(state.copy(mutating = false, error = message))
+                    onError(message)
+                }
+                return@launch
+            }
             if (ticket == generation && state.accountId == uid) {
                 val boards = if (add) (state.boards + board).distinctBy { it.key }
                     else state.boards.filterNot { it.key == board.key }
@@ -155,15 +181,9 @@ class ForumFavoriteSync(
                 publish(state.copy(boards = boards, mutating = false, error = null))
                 onSuccess()
             }
-        }, { failure ->
-            if (ticket == generation && state.accountId == uid) {
-                val message = failure.message ?: "论坛收藏操作失败，请重试。"
-                publish(state.copy(mutating = false, error = message))
-                onError(message)
-            }
-        })
+        }
     }
 
-    fun close() { generation++; request?.dispose(); mutation?.dispose() }
+    fun close() { generation++; request?.cancel(); mutation?.cancel() }
     private fun publish(value: ForumFavoritesSnapshot) { state = value; onState(value) }
 }

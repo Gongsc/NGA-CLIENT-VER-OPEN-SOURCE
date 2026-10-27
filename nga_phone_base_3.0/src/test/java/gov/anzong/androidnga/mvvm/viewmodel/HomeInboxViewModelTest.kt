@@ -1,15 +1,24 @@
 package gov.anzong.androidnga.mvvm.viewmodel
 
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.PublishSubject
+import gov.anzong.androidnga.coroutines.PendingResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
 import org.junit.Assert.*
 import org.junit.Test
 import sp.phone.http.bean.MessageListInfo
 import sp.phone.http.bean.MessageThreadPageInfo
 import sp.phone.mvp.model.entity.RecentReplyInfo
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class HomeInboxViewModelTest {
+    private val main = UnconfinedTestDispatcher()
+    @Before fun setMain() = Dispatchers.setMain(main)
+    @After fun resetMain() = Dispatchers.resetMain()
     private fun page(number: Int, next: Int, vararg mids: Int) = MessageListInfo().apply {
         set__currentPage(number); set__nextPage(next)
         messageEntryList = mids.map { mid -> MessageThreadPageInfo().apply { this.mid = mid } }
@@ -17,15 +26,15 @@ class HomeInboxViewModelTest {
 
     @Test fun accountSwitchCancelsOldRequestsAndClearsData() {
         var account = "a"
-        val pending = PublishSubject.create<MessageListInfo>()
-        val vm = HomeInboxViewModel({ account }, { "cookie-$account" }, { Observable.just(emptyList()) },
-            { cookie, _ -> if (cookie == "cookie-a") pending else Observable.just(page(1, 0, 2)) },
-            Schedulers.trampoline(), Schedulers.trampoline())
+        val pending = PendingResponse<MessageListInfo>()
+        val vm = HomeInboxViewModel({ account }, { "cookie-$account" }, { emptyList() },
+            { cookie, _ -> if (cookie == "cookie-a") pending.await() else page(1, 0, 2) },
+            main)
         vm.selectAccount("a"); vm.loadMessages()
         account = "b"; vm.selectAccount("b")
-        assertFalse(pending.hasObservers())
+        assertTrue(pending.cancelled)
         assertTrue(vm.messages.isEmpty())
-        pending.onNext(page(1, 0, 1))
+        pending.complete(page(1, 0, 1))
         vm.loadMessages()
         assertEquals(listOf(2), vm.messages.map { it.mid })
         account = ""; vm.selectAccount("")
@@ -35,9 +44,9 @@ class HomeInboxViewModelTest {
 
     @Test fun paginationDeduplicatesAndFailedRefreshPreservesRows() {
         var fail = false
-        val vm = HomeInboxViewModel({ "a" }, { "cookie" }, { Observable.just(emptyList()) },
-            { _, number -> if (fail) Observable.error(IllegalStateException("离线")) else Observable.just(if (number == 1) page(1, 2, 1, 2) else page(2, 0, 2, 3)) },
-            Schedulers.trampoline(), Schedulers.trampoline())
+        val vm = HomeInboxViewModel({ "a" }, { "cookie" }, { emptyList() },
+            { _, number -> if (fail) throw IllegalStateException("离线") else if (number == 1) page(1, 2, 1, 2) else page(2, 0, 2, 3) },
+            main)
         vm.selectAccount("a"); vm.loadMessages(); vm.loadMessages(more = true)
         assertEquals(listOf(1, 2, 3), vm.messages.map { it.mid })
         assertEquals(0, vm.nextPage)
@@ -56,8 +65,8 @@ class HomeInboxViewModelTest {
         fun reply(pid: String, unread: Boolean) = RecentReplyInfo(1, "示例", "主题", pid, "100").apply { isUnread = unread }
         val vm = HomeInboxViewModel({ "a" }, { "cookie" }, {
             calls++
-            Observable.just(if (calls == 1) listOf(reply("1", true)) else listOf(reply("1", false), reply("2", false)))
-        }, { _, _ -> Observable.just(page(1, 0)) }, Schedulers.trampoline(), Schedulers.trampoline())
+            if (calls == 1) listOf(reply("1", true)) else listOf(reply("1", false), reply("2", false))
+        }, { _, _ -> page(1, 0) }, main)
         vm.selectAccount("a"); vm.loadReplies(onRead = { read++ })
         assertEquals(2, calls)
         assertEquals(2, vm.replies.size)
@@ -69,8 +78,8 @@ class HomeInboxViewModelTest {
     @Test fun renewedSessionForSameUserInvalidatesCachedMessages() {
         var cookie = "old"
         var calls = 0
-        val vm = HomeInboxViewModel({ "a" }, { cookie }, { Observable.just(emptyList()) },
-            { _, _ -> calls++; Observable.just(page(1, 0, calls)) }, Schedulers.trampoline(), Schedulers.trampoline())
+        val vm = HomeInboxViewModel({ "a" }, { cookie }, { emptyList() },
+            { _, _ -> calls++; page(1, 0, calls) }, main)
         vm.selectAccount("a"); vm.loadMessages()
         cookie = "new"; vm.selectAccount("a")
         assertTrue(vm.messages.isEmpty())

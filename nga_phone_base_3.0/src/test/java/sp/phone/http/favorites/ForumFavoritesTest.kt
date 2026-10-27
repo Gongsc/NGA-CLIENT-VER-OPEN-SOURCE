@@ -1,11 +1,21 @@
 package sp.phone.http.favorites
 
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
+import gov.anzong.androidnga.coroutines.PendingResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
 import org.junit.Assert.*
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ForumFavoritesTest {
+    private val main = UnconfinedTestDispatcher()
+    @Before fun setMain() = Dispatchers.setMain(main)
+    @After fun resetMain() = Dispatchers.resetMain()
     private val first = ForumFavoriteBoard(-7, 0, "论坛版块", "123")
     private val second = ForumFavoriteBoard(0, 42, "合集")
 
@@ -45,24 +55,24 @@ class ForumFavoritesTest {
 
     @Test fun accountSwitchRestoresOnlyThatAccountsCacheAndIgnoresOldResponses() {
         val cache = MemoryCache().apply { entries["A"] = listOf(first); entries["B"] = listOf(second) }
-        val requests = mutableMapOf<String, PublishSubject<List<ForumFavoriteBoard>>>()
-        val sync = ForumFavoriteSync({ cookie -> PublishSubject.create<List<ForumFavoriteBoard>>().also { requests[cookie] = it } }, cache, {})
+        val requests = mutableMapOf<String, PendingResponse<List<ForumFavoriteBoard>>>()
+        val sync = ForumFavoriteSync({ cookie -> PendingResponse<List<ForumFavoriteBoard>>().also { requests[cookie] = it }.await() }, cache, {})
         sync.refresh("A", "cookie-A")
         assertEquals(listOf(first), sync.state.boards)
         sync.refresh("B", "cookie-B")
         assertEquals(listOf(second), sync.state.boards)
-        requests.getValue("cookie-A").onNext(emptyList())
+        requests.getValue("cookie-A").complete(emptyList())
         assertEquals("B", sync.state.accountId)
         assertEquals(listOf(second), sync.state.boards)
         assertEquals(listOf(first), cache.entries["A"])
-        requests.getValue("cookie-B").onNext(listOf(second, first))
+        requests.getValue("cookie-B").complete(listOf(second, first))
         assertEquals(listOf(second, first), cache.entries["B"])
     }
 
     @Test fun failureRetainsLastKnownFavoritesAndAllowsRetry() {
         val cache = MemoryCache().apply { entries["A"] = listOf(first) }
         var attempt = 0
-        val sync = ForumFavoriteSync({ if (++attempt == 1) Observable.error(IllegalStateException("网络不可用")) else Observable.just(listOf(second)) }, cache, {})
+        val sync = ForumFavoriteSync({ if (++attempt == 1) throw IllegalStateException("网络不可用") else listOf(second) }, cache, {})
         sync.refresh("A", "cookie-A")
         assertEquals(listOf(first), sync.state.boards)
         assertEquals("网络不可用", sync.state.error)
@@ -74,19 +84,19 @@ class ForumFavoritesTest {
 
     @Test fun successfulEmptyResponseClearsOnlyCurrentAccountsServerCache() {
         val cache = MemoryCache().apply { entries["A"] = listOf(first); entries["B"] = listOf(second) }
-        val sync = ForumFavoriteSync({ Observable.just(emptyList()) }, cache, {})
+        val sync = ForumFavoriteSync({ emptyList() }, cache, {})
         sync.refresh("A", "cookie-A")
         assertTrue(cache.entries.getValue("A").isEmpty())
         assertEquals(listOf(second), cache.entries["B"])
     }
 
     @Test fun logoutClearsDisplayedServerFavoritesAndCancelsPendingSync() {
-        val response = PublishSubject.create<List<ForumFavoriteBoard>>()
+        val response = PendingResponse<List<ForumFavoriteBoard>>()
         val cache = MemoryCache().apply { entries["A"] = listOf(first) }
-        val sync = ForumFavoriteSync({ response }, cache, {})
+        val sync = ForumFavoriteSync({ response.await() }, cache, {})
         sync.refresh("A", "cookie-A")
         sync.refresh("", "")
-        response.onNext(listOf(second))
+        response.complete(listOf(second))
         assertEquals(ForumFavoritesSnapshot(), sync.state)
         assertEquals(listOf(first), cache.entries["A"])
     }
@@ -94,7 +104,7 @@ class ForumFavoritesTest {
     @Test fun manualRefreshBypassesAutomaticThrottle() {
         var count = 0
         var now = 1000L
-        val sync = ForumFavoriteSync({ count++; Observable.just(listOf(first)) }, MemoryCache(), {}, { now })
+        val sync = ForumFavoriteSync({ count++; listOf(first) }, MemoryCache(), {}, { now })
         sync.refresh("A", "cookie-A")
         sync.refresh("A", "cookie-A")
         assertEquals(1, count)
@@ -106,15 +116,15 @@ class ForumFavoritesTest {
     }
 
     @Test fun refreshedSessionForSameAccountCancelsOldSession() {
-        val old = PublishSubject.create<List<ForumFavoriteBoard>>()
-        val fresh = PublishSubject.create<List<ForumFavoriteBoard>>()
+        val old = PendingResponse<List<ForumFavoriteBoard>>()
+        val fresh = PendingResponse<List<ForumFavoriteBoard>>()
         val cache = MemoryCache()
-        val sync = ForumFavoriteSync({ if (it == "old") old else fresh }, cache, {})
+        val sync = ForumFavoriteSync({ (if (it == "old") old else fresh).await() }, cache, {})
         sync.refresh("A", "old")
         sync.refresh("A", "fresh")
-        old.onNext(listOf(first))
+        old.complete(listOf(first))
         assertTrue(sync.state.boards.isEmpty())
-        fresh.onNext(listOf(second))
+        fresh.complete(listOf(second))
         assertEquals(listOf(second), cache.entries["A"])
     }
 }

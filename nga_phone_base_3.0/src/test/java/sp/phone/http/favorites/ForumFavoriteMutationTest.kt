@@ -1,11 +1,21 @@
 package sp.phone.http.favorites
 
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
+import gov.anzong.androidnga.coroutines.PendingResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
 import org.junit.Assert.*
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ForumFavoriteMutationTest {
+    private val main = UnconfinedTestDispatcher()
+    @Before fun setMain() = Dispatchers.setMain(main)
+    @After fun resetMain() = Dispatchers.resetMain()
     private val board = ForumFavoriteBoard(-7, 0, "版块")
     private class Cache : ForumFavoritesCache {
         val data = mutableMapOf<String, List<ForumFavoriteBoard>>()
@@ -28,17 +38,17 @@ class ForumFavoriteMutationTest {
     }
 
     @Test fun addUpdatesCacheOnlyAfterServerAcknowledges() {
-        val ack = PublishSubject.create<Unit>()
+        val ack = PendingResponse<Unit>()
         val cache = Cache()
         var done = 0
-        val sync = ForumFavoriteSync({ Observable.just(emptyList()) }, cache, {}, write = { cookie, item, add ->
-            assertEquals("cookie-A", cookie); assertEquals(board, item); assertTrue(add); ack
+        val sync = ForumFavoriteSync({ emptyList() }, cache, {}, write = { cookie, item, add ->
+            assertEquals("cookie-A", cookie); assertEquals(board, item); assertTrue(add); ack.await()
         })
         sync.change("A", "cookie-A", board, true, { done++ }, { fail(it) })
         assertTrue(sync.state.boards.isEmpty())
         assertNull(cache.data["A"])
         assertTrue(sync.state.mutating)
-        ack.onNext(Unit)
+        ack.complete(Unit)
         assertEquals(listOf(board), cache.data["A"])
         assertEquals(listOf(board), sync.state.boards)
         assertFalse(sync.state.mutating)
@@ -49,9 +59,9 @@ class ForumFavoriteMutationTest {
         val cache = Cache().apply { data["A"] = listOf(board) }
         var count = 0
         var message: String? = null
-        val sync = ForumFavoriteSync({ Observable.just(listOf(board)) }, cache, {}, write = { _, _, add ->
+        val sync = ForumFavoriteSync({ listOf(board) }, cache, {}, write = { _, _, add ->
             assertFalse(add)
-            if (++count == 1) Observable.error(IllegalStateException("无权限")) else Observable.just(Unit)
+            if (++count == 1) throw IllegalStateException("无权限") else Unit
         })
         sync.change("A", "cookie-A", board, false, {}, { message = it })
         assertEquals("无权限", message)
@@ -62,13 +72,13 @@ class ForumFavoriteMutationTest {
     }
 
     @Test fun accountSwitchCannotApplyPendingMutationToAnotherAccount() {
-        val ack = PublishSubject.create<Unit>()
+        val ack = PendingResponse<Unit>()
         val cache = Cache()
         var callbacks = 0
-        val sync = ForumFavoriteSync({ Observable.just(emptyList()) }, cache, {}, write = { _, _, _ -> ack })
+        val sync = ForumFavoriteSync({ emptyList() }, cache, {}, write = { _, _, _ -> ack.await() })
         sync.change("A", "cookie-A", board, true, { callbacks++ }, { callbacks++ })
         sync.refresh("B", "cookie-B")
-        ack.onNext(Unit)
+        ack.complete(Unit)
         assertEquals("B", sync.state.accountId)
         assertTrue(sync.state.boards.isEmpty())
         assertNull(cache.data["A"])
@@ -76,25 +86,25 @@ class ForumFavoriteMutationTest {
     }
 
     @Test fun pendingMutationBlocksDuplicateWritesAndConflictingRefresh() {
-        val ack = PublishSubject.create<Unit>()
+        val ack = PendingResponse<Unit>()
         var writes = 0
         var reads = 0
         var errors = 0
-        val sync = ForumFavoriteSync({ reads++; Observable.just(emptyList()) }, Cache(), {}, write = { _, _, _ -> writes++; ack })
+        val sync = ForumFavoriteSync({ reads++; emptyList() }, Cache(), {}, write = { _, _, _ -> writes++; ack.await() })
         sync.change("A", "cookie-A", board, true, {}, { fail(it) })
         sync.refresh("A", "cookie-A", force = true)
         sync.change("A", "cookie-A", board, false, {}, { errors++ })
         assertEquals(1, writes)
         assertEquals(0, reads)
         assertEquals(1, errors)
-        ack.onNext(Unit)
+        ack.complete(Unit)
         assertEquals(listOf(board), sync.state.boards)
     }
 
     @Test fun signedOutAndInvalidBoardsDoNotReachServer() {
         var writes = 0
         var errors = 0
-        val sync = ForumFavoriteSync({ Observable.just(emptyList()) }, Cache(), {}, write = { _, _, _ -> writes++; Observable.just(Unit) })
+        val sync = ForumFavoriteSync({ emptyList() }, Cache(), {}, write = { _, _, _ -> writes++; Unit })
         sync.change("", "", board, true, { fail() }, { errors++ })
         sync.change("A", "cookie-A", ForumFavoriteBoard(0, 0, ""), true, { fail() }, { errors++ })
         assertEquals(0, writes)
