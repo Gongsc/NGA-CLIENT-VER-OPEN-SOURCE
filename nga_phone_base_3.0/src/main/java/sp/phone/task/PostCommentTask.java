@@ -6,7 +6,7 @@ import androidx.fragment.app.FragmentActivity;
 import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
 
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +64,7 @@ public class PostCommentTask extends AsyncTask<String, Integer, String> {
                 input = conn.getInputStream();
 
             if (input != null) {
-                String html = IOUtils.toString(input, "gbk");
+                String html = StreamUtils.toString(input, "gbk");
                 ret = getPostResult(html);
 
             }

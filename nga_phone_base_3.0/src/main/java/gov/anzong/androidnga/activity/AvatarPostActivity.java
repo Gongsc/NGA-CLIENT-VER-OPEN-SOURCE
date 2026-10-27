@@ -25,7 +25,7 @@ import android.widget.TextView;
 import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
 
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -380,7 +380,7 @@ public class AvatarPostActivity extends BaseActivity implements
                     keepActivity = true;
 
                 if (input != null) {
-                    String html = IOUtils.toString(input, "gbk");
+                    String html = StreamUtils.toString(input, "gbk");
                     ret = getReplyResult(html);
                 } else
                     keepActivity = true;

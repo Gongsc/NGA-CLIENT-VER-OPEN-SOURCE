@@ -3,7 +3,7 @@ package sp.phone.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,7 +88,7 @@ public class TopicPostTask extends AsyncTask<String, Integer, String> {
                 mHasError = true;
 
             if (input != null) {
-                String html = IOUtils.toString(input, "gbk");
+                String html = StreamUtils.toString(input, "gbk");
                 ret = getReplyResult(html);
             } else
                 mHasError = true;

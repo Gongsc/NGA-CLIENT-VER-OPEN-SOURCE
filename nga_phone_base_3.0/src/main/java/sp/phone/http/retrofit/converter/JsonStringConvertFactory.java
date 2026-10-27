@@ -1,6 +1,6 @@
 package sp.phone.http.retrofit.converter;
 
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +37,7 @@ public class JsonStringConvertFactory extends Converter.Factory {
         @Override
         public String convert(ResponseBody responseBody) {
             try (InputStream is = responseBody.byteStream()) {
-                String body = IOUtils.toString(is, "GBK");
+                String body = StreamUtils.toString(is, "GBK");
                 Debugger.collectBody(body);
                 return body;
             } catch (IOException e) {

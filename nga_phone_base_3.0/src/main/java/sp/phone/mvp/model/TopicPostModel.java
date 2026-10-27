@@ -10,7 +10,7 @@ import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
 import com.trello.rxlifecycle2.android.FragmentEvent;
 
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -173,11 +173,11 @@ public class TopicPostModel extends BaseModel implements TopicPostContract.Model
                         }
                         String fileName = contentType.replace('/', '.');
                         long fileSize = pfd.getStatSize();
-                        byte[] img;// = IOUtils.toByteArray(cr.openInputStream(uri));
+                        byte[] img;// = StreamUtils.toByteArray(cr.openInputStream(uri));
                         if (compress && fileSize >= 1024 * 1024) {
                             img = ImageUtils.fitImageToUpload(cr.openInputStream(uri), cr.openInputStream(uri));
                         } else {
-                            img = IOUtils.toByteArray(cr.openInputStream(uri));
+                            img = StreamUtils.toByteArray(cr.openInputStream(uri));
                         }
 
                         return buildMultipartBody(fileName, img, postParam);

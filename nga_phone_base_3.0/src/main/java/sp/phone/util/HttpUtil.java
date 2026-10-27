@@ -4,8 +4,8 @@ import android.graphics.Bitmap;
 
 import gov.anzong.androidnga.common.util.AppEnvironment;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.FileUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -106,7 +106,7 @@ public class HttpUtil {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            IOUtils.closeQuietly(is);
+            StreamUtils.closeQuietly(is);
         }
     }
 
@@ -157,13 +157,13 @@ public class HttpUtil {
             if ("gzip".equals(conn.getHeaderField("Content-Encoding")))
                 is = new GZIPInputStream(is);
             String encoding = getCharset(conn, "GBK");
-            return IOUtils.toString(is, encoding);
+            return StreamUtils.toString(is, encoding);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            IOUtils.closeQuietly(is);
+            StreamUtils.closeQuietly(is);
         }
         return null;
     }

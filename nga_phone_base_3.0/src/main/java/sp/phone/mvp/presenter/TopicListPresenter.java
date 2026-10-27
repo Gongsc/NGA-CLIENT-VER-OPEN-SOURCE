@@ -316,7 +316,7 @@ public class TopicListPresenter extends ViewModel implements LifecycleObserver {
             if (is == null) {
                 return;
             }
-            org.apache.commons.io.FileUtils.copyInputStreamToFile(is, tempZipFile);
+            FileUtils.copyInputStreamToFile(is, tempZipFile);
             FileUtils.unzip(tempZipFile.getAbsolutePath(), destDir);
             loadCachePage();
             ToastUtils.success("导入成功！！");

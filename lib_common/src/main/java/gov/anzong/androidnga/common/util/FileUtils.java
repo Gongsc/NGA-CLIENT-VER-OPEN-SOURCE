@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -20,6 +22,83 @@ import gov.anzong.androidnga.base.util.ContextUtils;
  * @author yangyihang
  */
 public class FileUtils {
+
+    /** 以 UTF-8 读取整个文件。 */
+    public static String readFileToString(File file) throws IOException {
+        try (InputStream input = new FileInputStream(file)) {
+            return new String(StreamUtils.toByteArray(input), StandardCharsets.UTF_8);
+        }
+    }
+
+    /** 以 UTF-8 覆盖写入，自动创建上级目录。 */
+    public static void write(File file, CharSequence content) throws IOException {
+        write(file, content, false);
+    }
+
+    /** 以 UTF-8 写入，自动创建上级目录。 */
+    public static void write(File file, CharSequence content, boolean append) throws IOException {
+        try (OutputStream output = openOutputStream(file, append)) {
+            output.write(String.valueOf(content).getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    /** 递归删除目录；目录不存在时直接返回，任一文件删除失败时抛出 IOException。 */
+    public static void deleteDirectory(File directory) throws IOException {
+        if (!directory.exists()) {
+            return;
+        }
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException(directory + " 不是目录");
+        }
+        File[] children = directory.listFiles();
+        if (children == null) {
+            throw new IOException("无法列出目录 " + directory);
+        }
+        for (File child : children) {
+            if (child.isDirectory()) {
+                deleteDirectory(child);
+            } else if (!child.delete()) {
+                throw new IOException("无法删除文件 " + child);
+            }
+        }
+        if (!directory.delete()) {
+            throw new IOException("无法删除目录 " + directory);
+        }
+    }
+
+    /** 下载地址内容到文件，自动创建上级目录。超时单位为毫秒。 */
+    public static void copyURLToFile(URL source, File destination, int connectTimeout, int readTimeout)
+            throws IOException {
+        URLConnection connection = source.openConnection();
+        connection.setConnectTimeout(connectTimeout);
+        connection.setReadTimeout(readTimeout);
+        try (InputStream input = connection.getInputStream();
+                OutputStream output = openOutputStream(destination, false)) {
+            StreamUtils.copy(input, output);
+        }
+    }
+
+    /** 写入流的全部内容并关闭该流，自动创建上级目录。 */
+    public static void copyInputStreamToFile(InputStream source, File destination) throws IOException {
+        try (InputStream input = source;
+                OutputStream output = openOutputStream(destination, false)) {
+            StreamUtils.copy(input, output);
+        }
+    }
+
+    private static OutputStream openOutputStream(File file, boolean append) throws IOException {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                throw new IOException(file + " 是目录");
+            }
+        } else {
+            File parent = file.getParentFile();
+            if (parent != null && !parent.mkdirs() && !parent.isDirectory()) {
+                throw new IOException("无法创建目录 " + parent);
+            }
+        }
+        return new FileOutputStream(file, append);
+    }
 
     public static String readAssetToString(String path) {
         AssetManager assetManager = ContextUtils.getContext().getAssets();

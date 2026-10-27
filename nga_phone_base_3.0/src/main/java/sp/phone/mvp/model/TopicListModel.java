@@ -4,7 +4,7 @@ import gov.anzong.androidnga.base.json.NgaJson;
 import com.justwen.androidnga.cloud.CloudServerManager;
 import com.trello.rxlifecycle2.android.FragmentEvent;
 
-import org.apache.commons.io.FileUtils;
+import gov.anzong.androidnga.common.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;

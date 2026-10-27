@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import gov.anzong.androidnga.base.json.NgaJson;
 
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -189,7 +189,7 @@ public class AvatarFileUploadTask extends AsyncTask<String, Integer, String> {
 
             is.close();
             InputStream httpInputStream = conn.getInputStream();
-            html = IOUtils.toString(httpInputStream, "gbk");
+            html = StreamUtils.toString(httpInputStream, "gbk");
             out.close();
             publishProgress(100);
 

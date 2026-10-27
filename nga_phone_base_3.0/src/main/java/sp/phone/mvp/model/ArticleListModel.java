@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import com.trello.rxlifecycle2.android.FragmentEvent;
 
-import org.apache.commons.io.FileUtils;
+import gov.anzong.androidnga.common.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;

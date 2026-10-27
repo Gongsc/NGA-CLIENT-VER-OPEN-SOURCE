@@ -22,7 +22,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
-import org.apache.commons.io.FilenameUtils;
+import gov.anzong.androidnga.common.util.FileNameUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -153,8 +153,8 @@ public class ImageUtils {
     }
 
     public static String newImage(String oldImage, String userId) {
-        String extension = FilenameUtils.getExtension(oldImage);
-        String path = FilenameUtils.getPath(oldImage);
+        String extension = FileNameUtils.getExtension(oldImage);
+        String path = FileNameUtils.getPath(oldImage);
         String newName;
         if (extension != null) {
             if (path == null || "".equals(path)) {
@@ -198,7 +198,7 @@ public class ImageUtils {
 
     public static String getImageType(String uri) {
 
-        String extension = FilenameUtils.getExtension(uri);
+        String extension = FileNameUtils.getExtension(uri);
         if (extension.length() > 3 && extension.indexOf("?") == 3) {
             extension = extension.substring(0, 3);
         }
@@ -212,7 +212,7 @@ public class ImageUtils {
     static public String getImageName(String uri) {
         if (StringUtils.isEmpty(uri))
             return null;
-        String ret = FilenameUtils.getName(uri);
+        String ret = FileNameUtils.getName(uri);
         if (StringUtils.isEmpty(ret))
             return null;
         int pos = ret.indexOf("?");

@@ -8,7 +8,7 @@ import android.widget.Toast;
 import gov.anzong.androidnga.base.json.NgaJson;
 import gov.anzong.androidnga.base.json.NgaJsonObject;
 
-import org.apache.commons.io.IOUtils;
+import gov.anzong.androidnga.common.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,7 +81,7 @@ public final class ProxyBridge {
                     }
 
                     if (input != null) {
-                        String js = IOUtils.toString(input, "gbk");
+                        String js = StreamUtils.toString(input, "gbk");
                         if (null == js) {
                             return context.getString(R.string.network_error);
                         }

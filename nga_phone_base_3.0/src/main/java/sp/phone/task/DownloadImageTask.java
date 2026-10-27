@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import org.apache.commons.io.FilenameUtils;
+import gov.anzong.androidnga.common.util.FileNameUtils;
 
 import java.io.File;
 
@@ -72,8 +72,8 @@ public class DownloadImageTask extends AsyncTask<String, Integer, String> {
             return invalidURI;
         int i = 0;
         fullPath = path + "/" + name;
-        String extension = FilenameUtils.getExtension(name);
-        String baseName = FilenameUtils.getBaseName(name);
+        String extension = FileNameUtils.getExtension(name);
+        String baseName = FileNameUtils.getBaseName(name);
         do {
             f = new File(fullPath);
             if (!f.exists())

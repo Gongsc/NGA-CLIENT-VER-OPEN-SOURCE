@@ -1,6 +1,5 @@
 package gov.anzong.androidnga.common.util;
 
-import org.apache.commons.io.FilenameUtils;
 
 /**
  * Created by Justwen on 2018/6/8.
@@ -367,6 +366,6 @@ public class EmoticonUtils {
 
     private static String getFilePath(int category, int position) {
         String httpUri = EMOTICON_URL[category][position];
-        return EMOTICON_LABEL[category][0] + "/" + FilenameUtils.getName(httpUri);
+        return EMOTICON_LABEL[category][0] + "/" + FileNameUtils.getName(httpUri);
     }
 }

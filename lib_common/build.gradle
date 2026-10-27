@@ -42,7 +42,6 @@ dependencies {
 
     api "io.reactivex.rxjava2:rxandroid:${rootProject.ext.rxAndroid}"
 
-    api files('libs/commons-io-2.4.jar')
 
     // kotlin
     implementation "androidx.core:core-ktx:1.17.0"
