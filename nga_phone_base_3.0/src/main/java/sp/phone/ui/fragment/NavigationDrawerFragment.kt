@@ -3,7 +3,9 @@ package sp.phone.ui.fragment
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import gov.anzong.androidnga.base.json.NgaJson
+import gov.anzong.androidnga.mvvm.viewmodel.BoardViewModel
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
+import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.arouter.ARouterConstants
 import sp.phone.common.TopicHistoryManager
@@ -18,8 +20,6 @@ import android.view.*
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import gov.anzong.androidnga.coroutines.launchWithCallback
 import sp.phone.mvp.viewmodel.ForumFavoritesViewModel
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -31,37 +31,32 @@ import gov.anzong.androidnga.ui.compose.*
 import sp.phone.common.User
 import sp.phone.common.UserManagerImpl
 import sp.phone.util.FunctionUtils
-import gov.anzong.androidnga.Utils
-import sp.phone.http.retrofit.NgaApi
-import sp.phone.mvp.contract.BoardContract
 import sp.phone.mvp.model.entity.Board
-import sp.phone.mvp.presenter.BoardPresenter
 import gov.anzong.androidnga.coroutines.UiEvent
 import sp.phone.ui.fragment.dialog.AddBoardDialogFragment
 import sp.phone.util.ActivityUtils
 
-/** Compose owns the UI; the existing presenter continues to own forum/account actions. */
-class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContract.View {
+/** 首页：界面由 Compose 绘制，版块收藏与账号由 [BoardViewModel] 处理，论坛收藏与消息各有 ViewModel。 */
+class NavigationDrawerFragment : BaseEventFragment() {
     private val state = HomeState()
     private lateinit var inbox: HomeInboxViewModel
     private var history by mutableStateOf(emptyList<ThreadPageInfo>(), neverEqualPolicy())
     private lateinit var favorites: ForumFavoritesViewModel
-    private val avatarRequests = mutableSetOf<String>()
+    private lateinit var boards: BoardViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerUiEvents()
         inbox = ViewModelProvider(this)[HomeInboxViewModel::class.java]
         favorites = ViewModelProvider(this)[ForumFavoritesViewModel::class.java]
-        state.selected = savedInstanceState?.getInt("selected_category")
-            ?: if (mPresenter.bookmarkCategory.size() == 0 && !UserManagerImpl.getInstance().hasValidUser()) 1 else 0
+        boards = ViewModelProvider(this)[BoardViewModel::class.java]
+        boards.avatarUpdated.observe(this) { uid -> if (UserManagerImpl.getInstance().activeUser?.userId == uid) updateHeaderView() }
+        state.selected = savedInstanceState?.getInt("selected_category") ?: boards.defaultCategory
         refreshState()
     }
 
-    override fun onCreatePresenter() = BoardPresenter()
-
     override fun onUiEvent(event: UiEvent) {
-        if (event.what == UiEvent.EVENT_SHOW_TOPIC_LIST) mPresenter.showTopicList(event.obj as Board)
+        if (event.what == UiEvent.EVENT_SHOW_TOPIC_LIST) showTopicList(event.obj as Board)
         else super.onUiEvent(event)
     }
 
@@ -73,13 +68,13 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
             setContent {
                 NgaTheme {
                     HomeScreen(state, actions, ::handleAction,
-                        onBoard = { mPresenter.showTopicList(it.toBoard()) },
+                        onBoard = { showTopicList(it.toBoard()) },
                         onSearch = { (requireActivity() as MainActivity).handleNavigation(R.id.menu_search) },
                         onProfile = {
                             val user = UserManagerImpl.getInstance().activeUser
-                            if (user == null) jumpToLogin() else mPresenter.startUserProfile(user.userId)
+                            if (user == null) jumpToLogin() else startUserProfile(user.userId)
                         },
-                        onSwitchUser = { mPresenter.toggleUser(UserManagerImpl.getInstance().userList) },
+                        onSwitchUser = ::switchToNextUser,
                         onSyncFavorites = {
                             if (UserManagerImpl.getInstance().hasValidUser()) favorites.refresh(force = true) else jumpToLogin()
                         },
@@ -144,7 +139,7 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
         when (id) {
             R.id.menu_add -> startActivity(Intent(requireContext(), ForumListActivity::class.java))
             R.id.menu_add_id -> AddBoardDialogFragment()
-                .setOnAddBookmarkListener { fid, stid -> mPresenter.addBoard(fid, stid) }
+                .setOnAddBookmarkListener(::addBoard)
                 .show(childFragmentManager)
             R.id.menu_login -> jumpToLogin()
             else -> (requireActivity() as MainActivity).handleNavigation(id)
@@ -152,7 +147,7 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
     }
 
     private fun refreshState() {
-        state.categories = mPresenter.boardCategories.map { category ->
+        state.categories = boards.categories.map { category ->
             val sections = category.subCategoryList?.map { BoardSection(it.name.orEmpty(), it.boardList.map(Board::toTile)) }
                 ?: listOf(BoardSection("", category.boardList.map(Board::toTile)))
             HomeCategory(category.name.orEmpty(), category.isBookmarkCategory, sections)
@@ -174,41 +169,16 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
         super.onSaveInstanceState(outState)
     }
 
-    override fun notifyDataSetChanged() = refreshState()
-    override fun getCurrentItem() = state.selected
-    override fun updateHeaderView() {
+    private fun updateHeaderView() {
         val users = UserManagerImpl.getInstance()
         val active = users.activeUser
         val account = active?.toHomeAccount()
         if (state.account?.uid != account?.uid) state.replyCount = 0
         state.account = account
         inbox.selectAccount(account?.uid.orEmpty())
-        fetchMissingAvatar(active)
+        boards.fetchMissingAvatar(active)
         state.otherAccounts = users.userList.orEmpty().filter { it.userId != active?.userId }.map { it.toHomeAccount() }
     }
-    /** 账号头像只在浏览到自己的帖子时才会记录；缺失时从个人资料补取一次并写回账号。 */
-    private fun fetchMissingAvatar(user: User?) {
-        val uid = user?.userId?.takeIf { it.isNotEmpty() } ?: return
-        if (!user.avatarUrl.isNullOrBlank() || !avatarRequests.add(uid)) return
-        val users = UserManagerImpl.getInstance()
-        val cached = users.getAvatarUrl(uid)
-        if (cached.isNotBlank()) { applyAvatar(uid, cached); return }
-        val headers = mapOf("Cookie" to users.getCookie(user).orEmpty(),
-            "Referer" to Utils.getNGAHost() + "nuke.php?func=ucp&lite=jsx&uid=$uid")
-        // 随页面销毁取消，与原先在 onDestroy 中释放订阅一致。
-        lifecycleScope.launchWithCallback({ url -> if (url.isNotBlank()) applyAvatar(uid, url) }, { avatarRequests.remove(uid) }) {
-            parseProfileAvatar(NgaApi.get().get(Utils.getNGAHost() + "nuke.php?__lib=ucp&__act=get&lite=js&noprefix&uid=$uid", headers))
-        }
-    }
-
-    private fun applyAvatar(uid: String, url: String) {
-        val users = UserManagerImpl.getInstance()
-        users.putAvatarUrl(uid, url)
-        uid.toIntOrNull()?.let { users.setAvatarUrl(it, url) }
-        if (users.activeUser?.userId == uid) updateHeaderView()
-    }
-
-
     private fun User.toHomeAccount() = HomeAccount(userId, nickName.orEmpty(), FunctionUtils.parseAvatarUrl(avatarUrl))
     /** 登录成功后回到首个页签并强制同步当前账号的论坛收藏。 */
     private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -219,16 +189,39 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
         }
     }
 
-    override fun jumpToLogin() {
+    private fun jumpToLogin() {
         loginLauncher.launch(AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_LOGIN).intent(requireContext()))
     }
-    override fun switchToNextUser(): Int {
-        val users = UserManagerImpl.getInstance()
-        val next = (users.activeUserIndex + 1) % users.userSize.coerceAtLeast(1)
-        users.setActiveUser(next)
+    private fun switchToNextUser() {
+        val user = boards.switchToNextAccount() ?: return jumpToLogin()
         updateHeaderView()
         favorites.refresh()
-        return next
+        ToastUtils.showToast("切换账户成功,当前账户名:" + user.nickName)
+    }
+
+    private fun addBoard(fid: String, stid: String) {
+        when (val result = boards.addBoard(fid, stid)) {
+            BoardViewModel.AddBoardResult.Added -> refreshState()
+            BoardViewModel.AddBoardResult.Exists -> ToastUtils.showToast("该版面已存在")
+            BoardViewModel.AddBoardResult.NeedLogin -> jumpToLogin()
+            is BoardViewModel.AddBoardResult.Invalid -> ToastUtils.error(result.message)
+        }
+    }
+
+    private fun showTopicList(board: Board) {
+        AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_TOPIC_LIST)
+            .withInt(ParamKey.KEY_FID, board.fid)
+            .withInt(ParamKey.KEY_STID, board.stid)
+            .withString(ParamKey.KEY_TITLE, board.name)
+            .withString(ParamKey.BOARD_HEAD, board.boardHead)
+            .navigation(requireContext())
+    }
+
+    private fun startUserProfile(uid: String) {
+        AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_PROFILE)
+            .withString("mode", "uid")
+            .withString("uid", uid)
+            .navigation(requireContext())
     }
 
 }

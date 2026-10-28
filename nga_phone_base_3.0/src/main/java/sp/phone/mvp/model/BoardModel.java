@@ -7,7 +7,6 @@ import gov.anzong.androidnga.base.json.NgaJson;
 import sp.phone.http.bean.CategoryBean;
 import sp.phone.http.favorites.ForumFavoriteBoard;
 import sp.phone.http.favorites.ForumFavoritesRepository;
-import sp.phone.mvp.contract.BoardContract;
 import sp.phone.mvp.model.entity.Board;
 import sp.phone.mvp.model.entity.BoardCategory;
 import sp.phone.util.StringUtils;
@@ -16,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Created by Justwen on 2019/6/23. */
-public class BoardModel extends BaseModel implements BoardContract.Model {
+public class BoardModel extends BaseModel implements BoardStore {
 
     private List<BoardCategory> mBoardCategoryList = new ArrayList<>();
 
