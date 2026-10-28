@@ -1,21 +1,14 @@
 package gov.anzong.androidnga;
 
 import android.app.Application;
-import android.os.Process;
-import android.webkit.WebView;
 
 import gov.anzong.androidnga.arouter.AppNavigator;
 
-import gov.anzong.androidnga.common.util.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
 
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.base.util.PreferenceUtils;
-import gov.anzong.androidnga.base.util.ThreadUtils;
 import gov.anzong.androidnga.common.PreferenceKey;
-import gov.anzong.androidnga.common.util.ReflectUtils;
 import gov.anzong.androidnga.db.AppDatabase;
 import sp.phone.common.FilterKeywordsManagerImpl;
 import sp.phone.common.UserManagerImpl;
@@ -38,43 +31,8 @@ public class NgaClientApp extends Application {
         initCoreModule();
         super.onCreate();
 
-        // fixWebViewMultiProcessException();
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandlerProxy(Thread.getDefaultUncaughtExceptionHandler()));
     }
-
-    private void fixWebViewMultiProcessException() {
-        try {
-            File dataDir = getDataDir();
-            File[] dirs = dataDir.listFiles();
-
-            Object ppidObj = ReflectUtils.invokeMethod(Process.class, "myPpid");
-
-            int ppid = ppidObj != null ? (int) ppidObj : Process.myPid();
-
-            if (dirs != null) {
-                for (File dir : dirs) {
-                    if (dir.getName().contains("webview")) {
-                        if (!dir.getName().contains("webview_" + ppid)){
-                            ThreadUtils.postOnSubThread(() -> {
-                                try {
-                                    FileUtils.deleteDirectory(dir);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            });
-
-                        }
-                    }
-                }
-            }
-
-            WebView.setDataDirectorySuffix(String.valueOf(ppid));
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-
-    }
-
 
     private void initCoreModule() {
         UserManagerImpl.getInstance().initialize(this);

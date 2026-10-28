@@ -14,8 +14,8 @@ import java.util.Collections;
 import java.util.List;
 
 import gov.anzong.androidnga.base.util.PreferenceUtils;
-import gov.anzong.androidnga.base.util.ThreadUtils;
 import gov.anzong.androidnga.common.PreferenceKey;
+import gov.anzong.androidnga.coroutines.BackgroundTask;
 import gov.anzong.androidnga.db.AppDatabase;
 import sp.phone.http.bean.ThreadData;
 import sp.phone.http.bean.ThreadRowInfo;
@@ -88,12 +88,10 @@ public class UserManagerImpl implements UserManager {
         }
     }
 
+    /** 在调用时取账号列表的快照，按顺序在后台写入数据库，较早的快照不会覆盖较新的。 */
     private void saveUsers() {
-        ThreadUtils.postOnSubThread(() -> {
-            synchronized (this) {
-                AppDatabase.getInstance().userDao().updateUsers(mUserList.toArray(new User[0]));
-            }
-        });
+        User[] users = mUserList.toArray(new User[0]);
+        BackgroundTask.runSerially(() -> AppDatabase.getInstance().userDao().updateUsers(users));
     }
 
     @Override
