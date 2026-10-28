@@ -11,9 +11,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri('https://maven.aliyun.com/repository/public') }
     }
 }
 
 rootProject.name = 'NGAClient'
-include ':lib_cloud', ':lib_common', ':nga_phone_base_3.0', ':lib_core', ':lib_network'
+include ':lib_common', ':nga_phone_base_3.0', ':lib_core', ':lib_network'

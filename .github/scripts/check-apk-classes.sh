@@ -7,7 +7,6 @@ apk="$1"
 dexdump="$2"
 required=(
   "Lgov/anzong/androidnga/NgaClientApp;"
-  "Lcom/justwen/androidnga/cloud/CloudServerManager;"
   "Lgov/anzong/androidnga/core/HtmlConvertFactory;"
   "Lgov/anzong/androidnga/http/OnHttpCallBack;"
   "Lgov/anzong/androidnga/base/json/NgaJson;"

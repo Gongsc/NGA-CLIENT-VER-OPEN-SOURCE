@@ -63,7 +63,7 @@ NGA Android 客户端开源项目，提供版块浏览、主题阅读、内容�
 
 Kotlin 编译采用 AGP 内置支持，Compose Compiler 使用独立插件配置。SDK 版本与公共依赖版本集中定义于根目录 `build.gradle`，依赖仓库统一配置于 `settings.gradle`。
 
-项目已移除 Kotlin Android Extensions、ButterKnife、ARouter 及其编译器、Jetifier、旧 Android Support 库，以及旧滑动返回和悬浮菜单依赖。4.2.0 起另移除 fastjson、RxJava 系列（RxJava 2、rxandroid、rxlifecycle、rxbinding）、Guava、commons-io、PhotoView、load-toast 与 jitpack 仓库，`AsyncTask` 亦不再使用，详见[依赖与异步改造](#依赖与异步改造)。
+项目已移除 Kotlin Android Extensions、ButterKnife、ARouter 及其编译器、Jetifier、旧 Android Support 库，以及旧滑动返回和悬浮菜单依赖。4.2.0 起另移除 fastjson、RxJava 系列（RxJava 2、rxandroid、rxlifecycle、rxbinding）、Guava、commons-io、PhotoView、load-toast 与 jitpack 仓库，`AsyncTask` 亦不再使用，详见[依赖与异步改造](#依赖与异步改造)。腾讯 Bugly 崩溃上报、友盟统计及 `lib_cloud` 模块已移除，应用不再接入第三方统计或崩溃上报服务；依赖仓库仅使用 Google 与 Maven Central。
 
 ## 获取与构建
 
@@ -91,6 +91,8 @@ sdk.dir=/path/to/android-sdk
 ```
 
 Windows 环境应使用 `gradlew.bat` 执行相同任务。
+
+调试版的包名为 `gov.anzong.androidnga.debug`，桌面名称为“NGA测试版”，可与正式版同时安装，数据互不影响。
 
 调试 APK 输出目录为：
 
@@ -167,7 +169,6 @@ Lint 保持错误阻断。由于当前 AGP 的 SARIF 报告器存在数组越界
 ├── lib_common/          # 公共组件与工具
 ├── lib_core/            # 核心功能模块
 ├── lib_network/         # 网络功能模块
-├── lib_cloud/           # 云服务集成模块
 ├── docs/                # 重构与迁移文档
 ├── gradle/              # Gradle Wrapper
 ├── build.gradle         # 构建插件、SDK 与公共版本配置

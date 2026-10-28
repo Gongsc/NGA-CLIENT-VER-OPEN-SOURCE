@@ -19,7 +19,6 @@ import gov.anzong.androidnga.http.OnHttpCallBack;
 import sp.phone.mvp.contract.TopicPostContract;
 import sp.phone.mvp.model.TopicPostModel;
 import sp.phone.param.PostParam;
-import sp.phone.task.TopicPostTask;
 import sp.phone.ui.fragment.TopicPostFragment;
 import sp.phone.util.FunctionUtils;
 
@@ -28,7 +27,7 @@ import java.io.InputStream;
 import java.util.List;
 
 public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPostModel>
-        implements TopicPostContract.Presenter, TopicPostTask.CallBack {
+        implements TopicPostContract.Presenter {
 
     private boolean mLoading;
 
@@ -143,7 +142,19 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
         mPostParam.setAnonymous(isAnony);
         mPostParam.setPostSubject(title);
         mPostParam.setPostContent(FunctionUtils.ColorTxtCheck(body));
-        mBaseModel.post(mPostParam, this);
+        mBaseModel.post(
+                mPostParam,
+                new OnHttpCallBack<String>() {
+                    @Override
+                    public void onError(String text) {
+                        onPostFinished(false, text);
+                    }
+
+                    @Override
+                    public void onSuccess(String data) {
+                        onPostFinished(true, data);
+                    }
+                });
     }
 
     @Override
@@ -237,8 +248,7 @@ public class TopicPostPresenter extends BasePresenter<TopicPostFragment, TopicPo
         mBaseModel.loadTopicCategory(mPostParam, callBack);
     }
 
-    @Override
-    public void onArticlePostFinished(boolean isSuccess, String result) {
+    private void onPostFinished(boolean isSuccess, String result) {
         if (mBaseView != null) {
             mBaseView.setSubmitting(false);
             if (!isSuccess) mBaseView.setEditorError(result == null ? "提交失败，请稍后重试。" : result);

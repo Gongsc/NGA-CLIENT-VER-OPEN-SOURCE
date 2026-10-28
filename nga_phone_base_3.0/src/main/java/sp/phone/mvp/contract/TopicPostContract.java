@@ -6,7 +6,6 @@ import java.util.List;
 
 import sp.phone.param.PostParam;
 import gov.anzong.androidnga.http.OnHttpCallBack;
-import sp.phone.task.TopicPostTask.CallBack;
 
 public interface TopicPostContract {
 
@@ -33,7 +32,7 @@ public interface TopicPostContract {
 
         void loadTopicCategory(PostParam postParam, OnHttpCallBack<List<String>> callBack);
 
-        void post(PostParam postParam, CallBack callBack);
+        void post(PostParam postParam, OnHttpCallBack<String> callBack);
 
         void uploadFile(Uri uri, PostParam postParam, OnHttpCallBack<String> callBack);
     }

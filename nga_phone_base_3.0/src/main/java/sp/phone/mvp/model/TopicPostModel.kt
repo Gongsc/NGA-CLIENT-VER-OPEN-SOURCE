@@ -13,14 +13,15 @@ import gov.anzong.androidnga.http.OnHttpCallBack
 import gov.anzong.androidnga.util.ToastUtils
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
-import sp.phone.http.bean.TopicPostBean
+import sp.phone.common.UserManagerImpl
+import sp.phone.http.post.TopicPostClient
 import sp.phone.http.retrofit.NgaApi
 import sp.phone.http.retrofit.RetrofitHelper
 import sp.phone.mvp.contract.TopicPostContract
 import sp.phone.param.ParamKey
 import sp.phone.param.PostParam
-import sp.phone.task.TopicPostTask
 import sp.phone.util.ImageUtils
 import sp.phone.util.NLog
 import sp.phone.util.StringUtils
@@ -29,11 +30,10 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by Justwen on 2017/6/10.
  *
- * 发帖相关请求使用连接超时 5 分钟的独立实例；附件上传随页面销毁取消，其余请求不随页面取消。
+ * 发帖、回复与编辑经 [TopicPostClient] 预检取得 auth 后提交；附件上传使用连接超时 5 分钟的独立实例。
+ * 附件上传随页面销毁取消，其余请求不随页面取消。
  */
 class TopicPostModel : BaseModel(), TopicPostContract.Model {
-
-    private val hostUrl = Utils.getNGAHost() + "post.php?"
 
     private val api: NgaApi = run {
         val builder = RetrofitHelper.getInstance().createOkHttpClientBuilder()
@@ -41,18 +41,23 @@ class TopicPostModel : BaseModel(), TopicPostContract.Model {
         RetrofitHelper.getInstance().createRetrofit(builder).create(NgaApi::class.java)
     }
 
+    private val postClient = TopicPostClient(
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(40, TimeUnit.SECONDS)
+            .build(),
+        Utils.getNGAHost(),
+    ) {
+        val user = UserManagerImpl.getInstance()
+        val uid = user.userId
+        val cid = user.cid
+        if (uid.isNullOrEmpty() || cid.isNullOrEmpty()) null else TopicPostClient.Credentials(uid, cid)
+    }
+
     override fun getPostInfo(postParam: PostParam, callBack: OnHttpCallBack<PostParam>) {
-        val builder = StringBuilder(hostUrl).append("fid=").append(postParam.postFid).append("&lite=js")
-        if (postParam.postAction != null) builder.append("&action=").append(postParam.postAction)
-        if (postParam.postPid != null) builder.append("&pid=").append(postParam.postPid)
-        if (postParam.postTid != null) builder.append("&tid=").append(postParam.postTid)
-        if (postParam.stid != null) builder.append("&stid=").append(postParam.stid)
-        val url = builder.toString()
         AppScope.launchWithCallback({ param: PostParam -> callBack.onSuccess(param) },
-            { callBack.onError("获取附件验证码失败，将无法上传附件！！") }) {
-            val s = api.post(url).replace("window.script_muti_get_var_store=", "")
-            val bean = NgaJson.parseObject(s, TopicPostBean::class.java)
-            postParam.authCode = bean.data.auth
+            { callBack.onError(it.message ?: "无法获取发帖信息，请稍后重试") }) {
+            postParam.authCode = postClient.prepare(postParam)
             postParam
         }
     }
@@ -74,8 +79,11 @@ class TopicPostModel : BaseModel(), TopicPostContract.Model {
         }
     }
 
-    override fun post(postParam: PostParam, callBack: TopicPostTask.CallBack) {
-        TopicPostTask(ContextUtils.getContext(), callBack).execute(postParam.toString())
+    override fun post(postParam: PostParam, callBack: OnHttpCallBack<String>) {
+        AppScope.launchWithCallback({ message: String -> callBack.onSuccess(message) },
+            { callBack.onError(it.message ?: "提交失败，请稍后重试") }) {
+            postClient.submit(postParam)
+        }
     }
 
     override fun uploadFile(uri: Uri, postParam: PostParam, callBack: OnHttpCallBack<String>) {

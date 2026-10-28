@@ -3,7 +3,6 @@ package gov.anzong.androidnga.activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.justwen.androidnga.cloud.CloudServerManager;
 
 import gov.anzong.androidnga.R;
 
@@ -42,9 +41,6 @@ public class PostActivity extends BaseActivity {
     }
 
     private int getTitleResId(String action) {
-        if (action == null) {
-            CloudServerManager.putCrashData(this, "post_intent", getIntent().toString());
-        }
         switch (action) {
             case "reply":
                 return R.string.reply_thread;

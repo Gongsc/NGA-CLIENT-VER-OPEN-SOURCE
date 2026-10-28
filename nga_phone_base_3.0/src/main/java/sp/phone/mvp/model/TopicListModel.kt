@@ -1,6 +1,5 @@
 package sp.phone.mvp.model
 
-import com.justwen.androidnga.cloud.CloudServerManager
 import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.base.util.ContextUtils
 import gov.anzong.androidnga.base.util.ThreadUtils
@@ -48,7 +47,7 @@ open class TopicListModel @JvmOverloads constructor(private val api: () -> NgaAp
                 val rawData = FileUtils.readFileToString(infoFile)
                 val pageInfo = NgaJson.parseObject(rawData, ThreadPageInfo::class.java)
                 if (pageInfo == null) {
-                    CloudServerManager.putCrashData(ContextUtils.getContext(), "rawData", rawData)
+                    NLog.e("TopicListModel", "缓存解析失败：" + infoFile.path)
                 } else {
                     listInfo.addThreadPage(pageInfo)
                 }

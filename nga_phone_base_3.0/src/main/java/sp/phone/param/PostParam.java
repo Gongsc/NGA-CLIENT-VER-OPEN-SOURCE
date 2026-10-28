@@ -6,7 +6,6 @@ import android.os.Parcelable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import sp.phone.util.StringUtils;
 
 public class PostParam implements Parcelable {
 
@@ -101,6 +100,19 @@ public class PostParam implements Parcelable {
         mAnonymous = anonymous;
     }
 
+    public boolean isAnonymous() {
+        return mAnonymous;
+    }
+
+    /** 已表单编码的附件字段，多个附件以 %09 分隔；没有附件时为 null。 */
+    public String getAttachments() {
+        return mAttachments != null ? mAttachments.toString() : null;
+    }
+
+    public String getAttachmentsCheck() {
+        return mAttachmentsCheck != null ? mAttachmentsCheck.toString() : null;
+    }
+
     public String getPostSubject() {
         return mPostSubject;
     }
@@ -135,38 +147,6 @@ public class PostParam implements Parcelable {
 
     public String getPostTid() {
         return mPostTid;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder("step=2");
-        builder.append("&post_content=").append(StringUtils.encodeUrl(mPostContent, "GBK"));
-        if (mPostPid != null) {
-            builder.append("&pid=").append(mPostPid);
-        }
-        if (mPostTid != null) {
-            builder.append("&tid=").append(mPostTid);
-        }
-        if (mPostAction != null) {
-            builder.append("&action=").append(mPostAction);
-        }
-        if (mPostSubject != null) {
-            builder.append("&post_subject=").append(StringUtils.encodeUrl(mPostSubject, "GBK"));
-        }
-        if (mPostFid != 0) {
-            builder.append("&fid=").append(mPostFid);
-        }
-        if (mAnonymous) {
-            builder.append("&anony=1");
-        }
-        if (mAttachments != null) {
-            builder.append("&attachments=").append(mAttachments).append("&attachments_check=").append(mAttachmentsCheck);
-        }
-
-        if (mStid != null) {
-            builder.append("&stid=").append(mStid);
-        }
-        return builder.toString();
     }
 
     public String getStid() {

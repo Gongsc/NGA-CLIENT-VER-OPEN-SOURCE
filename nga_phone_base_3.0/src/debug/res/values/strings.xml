@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 调试版与正式版同时安装时便于区分 -->
+    <string name="app_name">NGA测试版</string>
+    <string name="label_activity_main">NGA测试版</string>
+</resources>
