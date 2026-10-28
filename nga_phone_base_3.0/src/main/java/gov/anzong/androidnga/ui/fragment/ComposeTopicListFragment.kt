@@ -22,40 +22,37 @@ import gov.anzong.androidnga.ui.compose.*
 import sp.phone.mvp.model.entity.Board
 import sp.phone.mvp.model.entity.ThreadPageInfo
 import sp.phone.mvp.model.entity.TopicListInfo
-import sp.phone.mvp.presenter.TopicListPresenter
+import gov.anzong.androidnga.mvvm.viewmodel.TopicListViewModel
 import sp.phone.param.ParamKey
 import sp.phone.param.TopicListParam
 import sp.phone.param.TopicTitleHelper
 import sp.phone.ui.fragment.BaseFragment
 import sp.phone.ui.fragment.BoardSubListFragment
-import sp.phone.ui.fragment.TopicSearchFragment
+import gov.anzong.androidnga.arouter.TopicNavigation
 import sp.phone.util.ActivityUtils
 
-/** Retains the existing request and routing contracts while Compose renders the feed. */
+/** 主题列表：Compose 绘制，请求由 [TopicListViewModel] 负责，已加载的条目保存在 [FeedStore]。 */
 class ComposeTopicListFragment : BaseFragment() {
     class FeedStore : ViewModel() {
         val ui = TopicFeedState()
         var entries = emptyList<ThreadPageInfo>()
         var info: TopicListInfo? = null
         var page = 0
-        var started = false
         var lastFirst: TopicListInfo? = null
         var lastNext: TopicListInfo? = null
-        var lastNextCount = -1
     }
     private lateinit var store: FeedStore
-    private lateinit var presenter: TopicListPresenter
+    private lateinit var viewModel: TopicListViewModel
     private lateinit var favorites: ForumFavoritesViewModel
     private lateinit var param: TopicListParam
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        param = androidx.core.os.BundleCompat.getParcelable(requireArguments(), ParamKey.KEY_PARAM, TopicListParam::class.java)!!
         val provider = ViewModelProvider(this)
         store = provider[FeedStore::class.java]
-        presenter = provider[TopicListPresenter::class.java]
+        viewModel = provider[TopicListViewModel::class.java]
         favorites = provider[ForumFavoritesViewModel::class.java]
-        presenter.setRequestParam(param)
+        param = viewModel.param
         store.ui.favorite = param.favor != 0
         store.ui.canPost = param.fid != 0 && param.favor == 0 && param.key.isNullOrBlank() && param.authorId == 0 && param.searchPost == 0
         store.ui.title = when {
@@ -77,8 +74,8 @@ class ComposeTopicListFragment : BaseFragment() {
                     LaunchedEffect(favorites.snapshot) { updateActions() }
                     TopicFeedScreen(store.ui, onBack = { requireActivity().finish() }, onRefresh = ::refresh,
                         onNext = ::nextPage, onTopic = { index ->
-                            store.entries.getOrNull(index)?.let { TopicSearchFragment.handleClickEvent(requireContext(), it, param) }
-                        }, onDelete = { index -> store.entries.getOrNull(index)?.let { presenter.removeTopic(it, index) } },
+                            store.entries.getOrNull(index)?.let { TopicNavigation.open(requireContext(), it, param) }
+                        }, onDelete = { index -> store.entries.getOrNull(index)?.let(viewModel::removeFavorite) },
                         onPost = {
                             AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_POST)
                                 .withInt(ParamKey.KEY_FID, param.fid)
@@ -91,7 +88,8 @@ class ComposeTopicListFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        presenter.firstTopicList.observe(viewLifecycleOwner) { result ->
+        // 页面重建时 LiveData 会重发最后一次结果，已处理过的结果按对象判断跳过
+        viewModel.firstPage.observe(viewLifecycleOwner) { result ->
             if (result != null && result !== store.lastFirst) {
                 store.lastFirst = result
                 store.entries = emptyList()
@@ -100,21 +98,19 @@ class ComposeTopicListFragment : BaseFragment() {
                 store.ui.refreshGeneration++
             }
         }
-        presenter.nextTopicList.observe(viewLifecycleOwner) { result ->
-            // The hot-topic presenter reuses the same response object for subsequent pages.
-            if (result != null && (result !== store.lastNext || result.threadPageList.size != store.lastNextCount)) {
+        viewModel.nextPage.observe(viewLifecycleOwner) { result ->
+            if (result != null && result !== store.lastNext) {
                 store.lastNext = result
-                store.lastNextCount = result.threadPageList.size
                 accept(result)
             }
         }
-        presenter.isRefreshing().observe(viewLifecycleOwner) { store.ui.refreshing = it == true }
-        presenter.errorMsg.observe(viewLifecycleOwner) { store.ui.error = it }
-        presenter.removedTopic.observe(viewLifecycleOwner) { removed ->
+        viewModel.refreshing.observe(viewLifecycleOwner) { store.ui.refreshing = it == true }
+        viewModel.error.observe(viewLifecycleOwner) { error -> if (error != null) { store.ui.error = error; viewModel.errorShown() } }
+        viewModel.removedTopic.observe(viewLifecycleOwner) { removed ->
             if (removed != null) { store.entries = store.entries.filterNot { it == removed }; publishRows() }
         }
         updateActions()
-        if (!store.started) { store.started = true; refresh() }
+        viewModel.start()
     }
 
     private fun accept(result: TopicListInfo) {
@@ -144,15 +140,13 @@ class ComposeTopicListFragment : BaseFragment() {
     private fun refresh() {
         if (store.ui.refreshing) return
         store.ui.error = null
-        // Hot-topic responses are emitted through nextTopicList, so reset their accumulated UI too.
-        if (param.twentyfour == 1) { store.entries = emptyList(); store.page = 0; publishRows() }
-        presenter.loadPage(1, param)
+        viewModel.refresh()
     }
 
     private fun nextPage() {
         if (store.ui.refreshing || !store.ui.hasMore) return
         store.ui.error = null
-        presenter.loadNextPage(store.page + 1, param)
+        viewModel.loadNextPage(store.page + 1)
     }
 
     override fun onResume() {
@@ -163,7 +157,7 @@ class ComposeTopicListFragment : BaseFragment() {
     private fun updateActions() {
         val menu = PopupMenu(requireContext(), View(requireContext())).menu
         requireActivity().menuInflater.inflate(R.menu.topic_list_menu, menu)
-        val bookmarked = presenter.isBookmarkBoard(param.fid, param.stid)
+        val bookmarked = viewModel.isBookmarkBoard
         menu.findItem(R.id.menu_add_bookmark).isVisible = !bookmarked && (param.fid != 0 || param.stid != 0)
         menu.findItem(R.id.menu_remove_bookmark).isVisible = bookmarked
         val available = !favorites.snapshot.loading && !favorites.snapshot.mutating
@@ -182,12 +176,15 @@ class ComposeTopicListFragment : BaseFragment() {
         }
         when (id) {
             R.id.menu_add_bookmark -> {
-                presenter.addBookmarkBoard(Board(param.fid, param.stid, param.title ?: store.ui.title).also { it.boardHead = param.boardHead })
+                viewModel.addBookmarkBoard(Board(param.fid, param.stid, param.title ?: store.ui.title).also { it.boardHead = param.boardHead })
                 updateActions()
             }
-            R.id.menu_remove_bookmark -> { presenter.removeBookmarkBoard(param.fid, param.stid); updateActions() }
+            R.id.menu_remove_bookmark -> { viewModel.removeBookmarkBoard(); updateActions() }
             R.id.menu_history -> ActivityUtils.startHistoryTopicActivity(requireContext())
-            R.id.menu_board_head -> presenter.startArticleActivity(param.boardHead, "${param.title} - 版头")
+            R.id.menu_board_head -> AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_TOPIC_CONTENT)
+                .withInt(ParamKey.KEY_TID, param.boardHead.toInt())
+                .withString(ParamKey.KEY_TITLE, "${param.title} - 版头")
+                .navigation(requireContext())
             R.id.menu_sub_board -> subBoardLauncher.launch(Intent(requireContext(), LauncherSubActivity::class.java).apply {
                 putExtra("fragment", BoardSubListFragment::class.java.name)
                 putExtra(ParamKey.KEY_TITLE, param.title)

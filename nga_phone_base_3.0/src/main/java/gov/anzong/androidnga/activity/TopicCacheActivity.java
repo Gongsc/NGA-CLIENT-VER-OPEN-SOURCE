@@ -4,8 +4,6 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import sp.phone.param.ParamKey;
-import sp.phone.param.TopicListParam;
 import sp.phone.ui.fragment.TopicCacheFragment;
 
 /**
@@ -17,12 +15,10 @@ public class TopicCacheActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setToolbarEnabled(true);
         super.onCreate(savedInstanceState);
-        TopicListParam param = new TopicListParam();
-        param.loadCache = true;
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(ParamKey.KEY_PARAM, param);
-        Fragment fragment = new TopicCacheFragment();
-        fragment.setArguments(bundle);
-        getSupportFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
+        if (savedInstanceState == null) {
+            // 重建时沿用已恢复的 Fragment，保留已读取的缓存列表
+            Fragment fragment = new TopicCacheFragment();
+            getSupportFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
+        }
     }
 }
