@@ -21,6 +21,7 @@ import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.Utils;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.common.util.EmoticonUtils;
+import gov.anzong.androidnga.core.decode.ForumImageUrl;
 import sp.phone.http.bean.StringFindResult;
 import gov.anzong.androidnga.base.util.ContextUtils;;
 import sp.phone.theme.ThemeManager;
@@ -429,8 +430,8 @@ public class StringUtils {
         // if(showImage){
         ret = ret.replaceAll(ignoreCaseTag
                         + "\\[img\\]\\s*\\.(/[^\\[|\\]]+)\\s*\\[/img\\]",
-                "<a href='http://" + HttpUtil.NGA_ATTACHMENT_HOST
-                        + "/attachments$1'><img src='http://"
+                "<a href='https://" + HttpUtil.NGA_ATTACHMENT_HOST
+                        + "/attachments$1'><img src='https://"
                         + HttpUtil.NGA_ATTACHMENT_HOST
                         + "/attachments$1' style= 'max-width:100%' ></a>");
         ret = ret.replaceAll(ignoreCaseTag
@@ -461,7 +462,11 @@ public class StringUtils {
         while (m.find()) {
             String s0 = m.group();
             String s1 = m.group(1);
+            // 短消息、签名中的旧图片域名已不可用，换成可用域名；表情仍按路径使用内置图片。
+            String normalized = ForumImageUrl.normalize(s1);
+            if (normalized != null) s1 = normalized;
             String path = EmoticonUtils.getPathByURI(s1);
+            if (path == null) path = EmoticonUtils.getPathByForumPath(ForumImageUrl.forumPath(s1));
             if (path != null) {
 
                 String newImgBlock = "<img src='"
@@ -641,8 +646,8 @@ public class StringUtils {
         while (matcher.find()) {
             String audioUrl = matcher.group();
             audioUrl = audioUrl.substring(14, audioUrl.indexOf("[/flash]") - 1);
-            // <audio src="http://img.ngacn.cc/attachments/mon_201802/25/-7Q5-ak1cKe.mp3?duration=3&filename=nga_audio.mp3" controls="controls"></audio>
-            audioUrl = "<audio src=\"http://img.ngacn.cc/attachments" + audioUrl + "&filename=nga_audio.mp3\" controls=\"controls\"></audio>";
+            // <audio src="https://img.nga.cn/attachments/mon_201802/25/-7Q5-ak1cKe.mp3?duration=3&filename=nga_audio.mp3" controls="controls"></audio>
+            audioUrl = "<audio src=\"https://" + HttpUtil.NGA_ATTACHMENT_HOST + "/attachments" + audioUrl + "&filename=nga_audio.mp3\" controls=\"controls\"></audio>";
             content = matcher.replaceFirst(audioUrl);
             matcher = pattern.matcher(content);
         }
@@ -656,7 +661,7 @@ public class StringUtils {
         while (matcher.find()) {
             String url = matcher.group();
             url = url.substring("[flash=video]".length() + 1, url.indexOf("[/flash]"));
-            url = "<video src=\"http://img.ngacn.cc/attachments" + url + "\" controls=\"controls\"></video>";
+            url = "<video src=\"https://" + HttpUtil.NGA_ATTACHMENT_HOST + "/attachments" + url + "\" controls=\"controls\"></video>";
             content = matcher.replaceFirst(url);
             matcher = pattern.matcher(content);
         }

@@ -85,17 +85,10 @@ public class ForumImageDecoder implements IForumDecoder {
         return normalized.toString();
     }
 
+    /** 旧帖以图片形式插入的表情使用内置图片；按路径匹配，与图片域名无关。 */
     private static String emoticonPath(String url) {
         String path = EmoticonUtils.getPathByURI(url);
-        if (path == null)
-            path =
-                    EmoticonUtils.getPathByURI(
-                            url.replace("https://img.nga.cn", "http://img.nga.178.com"));
-        if (path == null)
-            path =
-                    EmoticonUtils.getPathByURI(
-                            url.replace("https://img.nga.cn", "http://img6.nga.178.com"));
-        return path;
+        return path != null ? path : EmoticonUtils.getPathByForumPath(ForumImageUrl.forumPath(url));
     }
 
     @Override

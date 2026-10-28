@@ -233,10 +233,10 @@ public class ForumBasicDecoder implements IForumDecoder {
         content = StringUtils.replaceAll(content, "\\[collapse](.*?)\\[/collapse]", "<div><button onclick='toggleCollapse(this)'>点击显示内容</button><div name='collapse' class='collapse'style='display:none' >$1</div></div>");
 
         // [flash=video]/flash]
-        content = StringUtils.replaceAll(content, "\\[flash=video].(.*?)\\[/flash]", "<video src='http://img.ngacn.cc/attachments$1' controls='controls'></video>");
+        content = StringUtils.replaceAll(content, "\\[flash=video].(.*?)\\[/flash]", "<video src='https://img.nga.cn/attachments$1' controls='controls'></video>");
 
         // [flash=audio][/flash]"
-        content = StringUtils.replaceAll(content, "\\[flash=audio].(.*?)\\[/flash]", "<audio src='http://img.ngacn.cc/attachments$1&filename=nga_audio.mp3' controls='controls'></audio>");
+        content = StringUtils.replaceAll(content, "\\[flash=audio].(.*?)\\[/flash]", "<audio src='https://img.nga.cn/attachments$1&filename=nga_audio.mp3' controls='controls'></audio>");
 
         return content;
     }

@@ -11,6 +11,7 @@ import sp.phone.http.bean.MessageDetailInfo;
 import sp.phone.http.bean.MessageListInfo;
 import sp.phone.http.bean.MessageThreadPageInfo;
 import gov.anzong.androidnga.base.util.ContextUtils;;
+import sp.phone.util.HttpUtil;
 import sp.phone.util.MessageUtil;
 import sp.phone.util.NLog;
 import sp.phone.util.StringUtils;
@@ -119,7 +120,8 @@ public class MessageConvertFactory {
         js = js.replaceAll("\"content\":\\+(\\d+),", "\"content\":\"+$1\",");
         js = js.replaceAll("\"subject\":\\+(\\d+),", "\"subject\":\"+$1\",");
         js = js.replaceAll("/\\*\\$js\\$\\*/", "");
-        js = js.replaceAll("\\[img\\]./mon_", "[img]http://img6.nga.178.com/attachments/mon_");
+        // 短消息图片的相对地址补全为附件域名；img6.nga.178.com 已不可用。
+        js = js.replaceAll("\\[img\\]./mon_", "[img]https://" + HttpUtil.NGA_ATTACHMENT_HOST + "/attachments/mon_");
 
         NgaJsonObject o = null;
         try {

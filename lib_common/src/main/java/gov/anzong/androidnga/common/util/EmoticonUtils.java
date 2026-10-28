@@ -364,6 +364,28 @@ public class EmoticonUtils {
         return null;
     }
 
+    private static java.util.Map<String, String> sPaths;
+
+    /**
+     * 按论坛图片地址的路径部分（如 {@code /ngabbs/post/smile/pt00.png}）查找内置表情，不区分域名与协议，
+     * 已停用的旧图片域名换成新域名后仍能匹配。
+     */
+    public static synchronized String getPathByForumPath(String path) {
+        if (path == null) return null;
+        if (sPaths == null) {
+            sPaths = new java.util.HashMap<>();
+            for (int category = 0; category < EMOTICON_URL.length; category++) {
+                for (int index = 0; index < EMOTICON_URL[category].length; index++) {
+                    String url = EMOTICON_URL[category][index];
+                    int start = url.indexOf('/', url.indexOf("://") + 3);
+                    if (start > 0 && !sPaths.containsKey(url.substring(start)))
+                        sPaths.put(url.substring(start), getFilePath(category, index));
+                }
+            }
+        }
+        return sPaths.get(path);
+    }
+
     private static String getFilePath(int category, int position) {
         String httpUri = EMOTICON_URL[category][position];
         return EMOTICON_LABEL[category][0] + "/" + FileNameUtils.getName(httpUri);
