@@ -1,7 +1,7 @@
 package sp.phone.mvp.contract;
 
 import sp.phone.param.MessagePostParam;
-import sp.phone.task.MessagePostTask;
+import gov.anzong.androidnga.http.OnHttpCallBack;
 
 /**
  * Created by Justwen on 2017/5/28.
@@ -28,7 +28,7 @@ public interface MessagePostContract {
 
     interface Model  {
 
-        void postMessage(MessagePostParam param, MessagePostTask.CallBack callBack);
+        void postMessage(MessagePostParam param, OnHttpCallBack<String> callBack);
 
     }
 }

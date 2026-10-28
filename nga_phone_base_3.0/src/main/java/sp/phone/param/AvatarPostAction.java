@@ -1,16 +1,8 @@
 package sp.phone.param;
 
-import sp.phone.util.StringUtils;
-
-
+/** 设置头像页填写的头像地址，提交见 {@link sp.phone.http.post.ForumActionClient#setAvatar}。 */
 public class AvatarPostAction {
-    private String func_;
     private String icon_;
-    private String __ngaClientChecksum;
-
-    public AvatarPostAction() {
-        func_ = "avatar";
-    }
 
     public void seticon_(String icon) {
         icon_ = icon;
@@ -19,22 +11,4 @@ public class AvatarPostAction {
     public String geticon_() {
         return icon_;
     }
-
-    public void set__ngaClientChecksum(String getngaClientChecksum) {
-        // TODO Auto-generated method stub
-        __ngaClientChecksum = getngaClientChecksum;
-    }
-
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
-        sb.append("lite=js&noprefix");
-        sb.append("&func=");
-        sb.append(func_);
-        sb.append("&icon=");
-        sb.append(StringUtils.encodeUrl(icon_, "GBK"));
-        sb.append("&__ngaClientChecksum=");
-        sb.append(__ngaClientChecksum);
-        return sb.toString();
-    }
 }
-

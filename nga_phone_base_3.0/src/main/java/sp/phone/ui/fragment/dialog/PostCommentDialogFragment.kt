@@ -15,9 +15,11 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import gov.anzong.androidnga.ui.compose.NgaTheme
-import sp.phone.task.PostCommentTask
+import gov.anzong.androidnga.coroutines.AppScope
+import gov.anzong.androidnga.coroutines.launchWithCallback
+import sp.phone.http.post.TopicPostClient
 
-class PostCommentDialogFragment : BaseDialogFragment(), PostCommentTask.OnPostCommentFinishedListener {
+class PostCommentDialogFragment : BaseDialogFragment() {
     private var submitting by mutableStateOf(false)
     private var error by mutableStateOf<String?>(null)
 
@@ -46,9 +48,7 @@ class PostCommentDialogFragment : BaseDialogFragment(), PostCommentTask.OnPostCo
                                     else {
                                         submitting = true
                                         isCancelable = false
-                                        val args = requireArguments()
-                                        PostCommentTask(args.getInt("fid"), args.getInt("pid"), args.getInt("tid"), if (anonymous) 1 else 0,
-                                            args.getString("prefix"), requireActivity(), this@PostCommentDialogFragment).execute(body)
+                                        submit(body, anonymous)
                                     }
                                 }, enabled = !submitting && body.length in 6..650) { Text("提交") }
                             }
@@ -64,7 +64,16 @@ class PostCommentDialogFragment : BaseDialogFragment(), PostCommentTask.OnPostCo
             setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
-    override fun OnPostCommentFinished(result: String?, success: Boolean) {
+    /** 提交不随对话框关闭取消，与原先一致；回调时对话框已关闭则忽略结果。 */
+    private fun submit(body: String, anonymous: Boolean) {
+        val args = requireArguments()
+        val content = args.getString("prefix").orEmpty() + body
+        AppScope.launchWithCallback({ message: String -> onCommentFinished(message, true) }, { onCommentFinished(it.message, false) }) {
+            TopicPostClient.create().submitComment(args.getInt("tid").toString(), args.getInt("pid").toString(), content, anonymous)
+        }
+    }
+
+    private fun onCommentFinished(result: String?, success: Boolean) {
         if (!isAdded) return
         submitting = false
         isCancelable = true

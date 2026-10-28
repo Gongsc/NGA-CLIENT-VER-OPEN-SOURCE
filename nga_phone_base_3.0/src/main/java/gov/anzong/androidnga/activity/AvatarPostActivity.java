@@ -20,23 +20,25 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import gov.anzong.androidnga.base.json.NgaJson;
-import gov.anzong.androidnga.base.json.NgaJsonObject;
+
+
 import gov.anzong.androidnga.coroutines.BackgroundTask;
+import sp.phone.http.post.ForumActionClient;
+import sp.phone.http.post.NgaWriteClient;
 
-import gov.anzong.androidnga.common.util.StreamUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
+
+
+
+
 import java.util.HashSet;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.util.ToastUtils;
-import sp.phone.common.PhoneConfiguration;
+
 import sp.phone.common.UserManagerImpl;
 import sp.phone.param.AvatarPostAction;
-import sp.phone.param.HttpPostClient;
+
 import sp.phone.task.AvatarFileUploadTask;
 import sp.phone.task.ChangeAvatarLoadTask;
 import sp.phone.theme.ThemeManager;
@@ -64,7 +66,6 @@ public class AvatarPostActivity extends BaseActivity implements
     private ImageView avatarImage;
     private Button selectpic_button, submit_button;
     private Bitmap resultbitmap;
-    private String REPLY_URL = "http://nga.178.com/nuke.php?";
     private View v;
     private boolean loading;
     private AvatarFileUploadTask uploadTask = null;
@@ -181,7 +182,7 @@ public class AvatarPostActivity extends BaseActivity implements
             public void onClick(View arg0) {
                 // TODO Auto-generated method stub
                 if (commitListener == null) {
-                    commitListener = new ButtonCommitListener(REPLY_URL);
+                    commitListener = new ButtonCommitListener();
                 }
                 commitListener.onClick(null);
             }
@@ -278,12 +279,6 @@ public class AvatarPostActivity extends BaseActivity implements
 
     class ButtonCommitListener implements OnClickListener {
 
-        private final String url;
-
-        ButtonCommitListener(String url) {
-            this.url = url;
-        }
-
         @Override
         public void onClick(View v) {
             if (titleText.getText().toString().length() > 0) {
@@ -307,8 +302,7 @@ public class AvatarPostActivity extends BaseActivity implements
         public void handleReply(View v1) {
 
             act.seticon_(titleText.getText().toString());
-            new ArticlePostTask(AvatarPostActivity.this).execute(url,
-                    act.toString());
+            new ArticlePostTask(AvatarPostActivity.this).execute(act.geticon_());
 
         }
 
@@ -333,92 +327,14 @@ public class AvatarPostActivity extends BaseActivity implements
             ActivityUtils.getInstance().noticeSaying(c);
         }
 
-        private String doInBackground(String... params) {
-            if (params.length < 2)
-                return "parameter error";
-            String ret = "网络错误";
-            String url = params[0];
-            String body = params[1];
-
-            HttpPostClient c = new HttpPostClient(url);
-            String cookie = PhoneConfiguration.getInstance().getCookie();
-            c.setCookie(cookie);
-            try {
-                InputStream input = null;
-                HttpURLConnection conn = c.post_body(body);
-                if (conn != null) {
-                    if (conn.getResponseCode() >= 500) {
-                        input = null;
-                        keepActivity = true;
-                        ret = "二哥在用服务器下毛片";
-                    } else {
-                        if (conn.getResponseCode() >= 400) {
-                            input = conn.getErrorStream();
-                            keepActivity = true;
-                        } else
-                            input = conn.getInputStream();
-                    }
-                } else
-                    keepActivity = true;
-
-                if (input != null) {
-                    String html = StreamUtils.toString(input, "gbk");
-                    ret = getReplyResult(html);
-                } else
-                    keepActivity = true;
-            } catch (IOException e) {
-                keepActivity = true;
-                NLog.e(LOG_TAG, NLog.getStackTraceString(e));
-
-            }
-            return ret;
+        /** 经 {@link ForumActionClient#setAvatar} 提交；params[0] 为头像地址。 */
+        private NgaWriteClient.ActionResult doInBackground(String... params) {
+            return ForumActionClient.create().setAvatar(params[0]);
         }
 
-
-        private String getReplyResult(String js) {
-            if (null == js) {
-                return "发送失败";
-            }
-            js = js.replaceAll("window.script_muti_get_var_store=", "");
-            if (js.indexOf("/*error fill content") > 0)
-                js = js.substring(0, js.indexOf("/*error fill content"));
-            js = js.replaceAll("\"content\":\\+(\\d+),", "\"content\":\"+$1\",");
-            js = js.replaceAll("\"subject\":\\+(\\d+),", "\"subject\":\"+$1\",");
-            js = js.replaceAll("/\\*\\$js\\$\\*/", "");
-            NgaJsonObject o = null;
-            try {
-                o = (NgaJsonObject) NgaJson.parseObject(js).get("data");
-            } catch (Exception e) {
-                NLog.e("TAG", "can not parse :\n" + js);
-            }
-            if (o == null) {
-                try {
-                    o = (NgaJsonObject) NgaJson.parseObject(js).get("error");
-                } catch (Exception e) {
-                    NLog.e("TAG", "can not parse :\n" + js);
-                }
-                if (o == null) {
-                    return "发送失败";
-                }
-                return o.getString("0");
-            }
-            return o.getString("0");
-        }
-
-        private void onPostExecute(String result) {
-            String success_results[] = {"操作成功 你可能需要重新登录以显示新的头像"};
-            if (keepActivity == false) {
-                boolean success = false;
-                for (int i = 0; i < success_results.length; ++i) {
-                    if (result.contains(success_results[i])) {
-                        success = true;
-                        break;
-                    }
-                }
-                if (!success)
-                    keepActivity = true;
-            }
-            ToastUtils.showToast("操作成功");
+        private void onPostExecute(NgaWriteClient.ActionResult result) {
+            keepActivity = !result.success;
+            ToastUtils.showToast(result.success ? "操作成功" : result.message);
             ActivityUtils.getInstance().dismiss();
             String userId = UserManagerImpl.getInstance().getUserId();
 //            String avatarPath = HttpUtil.PATH_AVATAR + "/" + userId + ".jpg";

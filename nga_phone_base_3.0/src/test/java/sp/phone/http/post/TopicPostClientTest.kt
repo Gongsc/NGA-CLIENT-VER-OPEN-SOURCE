@@ -1,13 +1,5 @@
 package sp.phone.http.post
 
-import okhttp3.Interceptor
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Protocol
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
-import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -15,46 +7,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import sp.phone.param.PostParam
-import java.io.IOException
-import java.net.URLDecoder
 
 /** 合成响应，不访问真实论坛。 */
 class TopicPostClientTest {
 
-    private class Reply(val body: String, val code: Int = 200, val contentType: String = "application/xml; charset=utf-8")
-
-    private class FakeForum(vararg replies: Reply) : Interceptor {
-        private val pending = ArrayDeque(replies.toList())
-        val requests = mutableListOf<Request>()
-        val bodies = mutableListOf<String>()
-        var failNext = false
-
-        override fun intercept(chain: Interceptor.Chain): Response {
-            val request = chain.request()
-            requests += request
-            bodies += Buffer().also { request.body?.writeTo(it) }.readUtf8()
-            if (failNext) throw IOException("connection reset")
-            val reply = pending.removeFirst()
-            return Response.Builder()
-                .request(request)
-                .protocol(Protocol.HTTP_1_1)
-                .code(reply.code)
-                .message("OK")
-                .body(reply.body.toByteArray(charset(if (reply.contentType.contains("gbk")) "GBK" else "UTF-8"))
-                    .toResponseBody(reply.contentType.toMediaType()))
-                .build()
-        }
-    }
-
-    private fun client(forum: FakeForum, loggedIn: Boolean = true) = TopicPostClient(
-        OkHttpClient.Builder().addInterceptor(forum).build(),
-        "https://bbs.nga.cn/",
-    ) { if (loggedIn) TopicPostClient.Credentials("123", "secret-token") else null }
-
-    private fun form(body: String): Map<String, String> = body.split("&").filter { it.isNotEmpty() }.associate {
-        val (name, value) = it.split("=", limit = 2)
-        name to URLDecoder.decode(value, "UTF-8")
-    }
+    private fun client(forum: FakeForum, loggedIn: Boolean = true) = TopicPostClient(forum.writer(loggedIn))
 
     private fun reply(content: String = "测试回复") = PostParam("47239186", "", content).apply {
         postAction = "reply"
@@ -74,7 +31,7 @@ class TopicPostClientTest {
         try {
             block()
             fail("应当失败：$expected")
-        } catch (e: TopicPostClient.PostException) {
+        } catch (e: NgaWriteClient.PostException) {
             assertEquals(expected, e.message)
         }
     }
@@ -96,8 +53,8 @@ class TopicPostClientTest {
             assertEquals("UTF8", request.url.queryParameter("__inchst"))
             // 回复由 tid 确定版面，不提交缺省的 -7
             assertNull(request.url.queryParameter("fid"))
-            assertEquals(TopicPostClient.USER_AGENT, request.header("User-Agent"))
-            assertEquals(TopicPostClient.USER_AGENT, request.header("X-User-Agent"))
+            assertEquals(NgaWriteClient.USER_AGENT, request.header("User-Agent"))
+            assertEquals(NgaWriteClient.USER_AGENT, request.header("X-User-Agent"))
             assertEquals("ngaPassportUid=123; ngaPassportCid=secret-token", request.header("Cookie"))
             assertEquals("application/x-www-form-urlencoded; charset=UTF-8", request.body?.contentType().toString())
         }
@@ -116,6 +73,25 @@ class TopicPostClientTest {
         assertTrue("正文按 UTF-8 编码", forum.bodies[1].contains("post_content=%E6%B5%8B%E8%AF%95%E5%9B%9E%E5%A4%8D"))
         assertEquals(forum.requests[1].url.toString(), forum.requests[1].header("Referer"))
         assertEquals("reply-token", param.authCode)
+    }
+
+    @Test fun commentUsesReplyFlowWithCommentFlag() {
+        val forum = FakeForum(preflight, posted)
+
+        assertEquals("贴条成功", client(forum).submitComment("47239186", "876078281", "贴条内容六个字", anonymous = true))
+
+        assertEquals(2, forum.requests.size)
+        forum.requests.forEach { request ->
+            assertEquals("reply", request.url.queryParameter("action"))
+            assertEquals("1", request.url.queryParameter("comment"))
+            assertEquals("47239186", request.url.queryParameter("tid"))
+            assertEquals("876078281", request.url.queryParameter("pid"))
+            assertNull(request.url.queryParameter("fid"))
+        }
+        val submitForm = form(forum.bodies[1])
+        assertEquals("reply-token", submitForm["auth"])
+        assertEquals("贴条内容六个字", submitForm["post_content"])
+        assertEquals("1", submitForm["anony"])
     }
 
     @Test fun existingAuthSkipsPreflight() {
@@ -175,13 +151,13 @@ class TopicPostClientTest {
         try {
             client(FakeForum(message("你必须先登录论坛"))).prepare(reply())
             fail()
-        } catch (e: TopicPostClient.PostException) {
+        } catch (e: NgaWriteClient.PostException) {
             assertTrue(e.requiresLogin)
         }
     }
 
     @Test fun unauthorizedStatusRequiresLogin() {
-        assertRejected(TopicPostClient.LOGIN_REQUIRED) { client(FakeForum(Reply("", code = 401))).prepare(reply()) }
+        assertRejected(NgaWriteClient.LOGIN_REQUIRED) { client(FakeForum(Reply("", code = 401))).prepare(reply()) }
     }
 
     @Test fun forbiddenJsonErrorShowsItsMessage() {
@@ -205,7 +181,7 @@ class TopicPostClientTest {
     @Test fun unrecognizedResultIsNotTreatedAsSuccess() {
         val forum = FakeForum(preflight, Reply("<root></root>"))
 
-        assertRejected(TopicPostClient.AMBIGUOUS) { client(forum).submit(reply()) }
+        assertRejected(NgaWriteClient.AMBIGUOUS) { client(forum).submit(reply()) }
     }
 
     @Test fun networkErrorWhileSubmittingIsAmbiguous() {
@@ -214,7 +190,7 @@ class TopicPostClientTest {
         client(forum).prepare(param).also { param.authCode = it }
         forum.failNext = true
 
-        assertRejected(TopicPostClient.AMBIGUOUS_NETWORK) { client(forum).submit(param) }
+        assertRejected(NgaWriteClient.AMBIGUOUS_NETWORK) { client(forum).submit(param) }
     }
 
     @Test fun gbkResponseIsDecoded() {

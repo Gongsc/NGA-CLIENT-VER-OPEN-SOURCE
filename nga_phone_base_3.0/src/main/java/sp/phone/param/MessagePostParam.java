@@ -3,7 +3,6 @@ package sp.phone.param;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import sp.phone.util.StringUtils;
 
 public class MessagePostParam implements Parcelable {
 
@@ -77,24 +76,6 @@ public class MessagePostParam implements Parcelable {
 
     public void setRecipient(String recipient) {
         mRecipient = recipient;
-    }
-
-    @Override
-    public String toString() {
-        String recipient = mRecipient.replaceAll("，", ",");
-        recipient = StringUtils.encodeUrl(recipient, "GBK");
-        StringBuilder builder = new StringBuilder();
-        builder.append("__lib=message&__act=message&lite=js&act=")
-                .append(mAction)
-                .append("&to=")
-                .append(recipient)
-                .append("&mid=")
-                .append(mMid)
-                .append("&subject=")
-                .append(StringUtils.encodeUrl(mPostSubject, "GBK"))
-                .append("&content=")
-                .append(StringUtils.encodeUrl(mPostContent, "GBK"));
-        return builder.toString();
     }
 
     @Override

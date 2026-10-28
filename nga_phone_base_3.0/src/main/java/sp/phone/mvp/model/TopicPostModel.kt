@@ -13,9 +13,7 @@ import gov.anzong.androidnga.http.OnHttpCallBack
 import gov.anzong.androidnga.util.ToastUtils
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
-import sp.phone.common.UserManagerImpl
 import sp.phone.http.post.TopicPostClient
 import sp.phone.http.retrofit.NgaApi
 import sp.phone.http.retrofit.RetrofitHelper
@@ -41,18 +39,7 @@ class TopicPostModel : BaseModel(), TopicPostContract.Model {
         RetrofitHelper.getInstance().createRetrofit(builder).create(NgaApi::class.java)
     }
 
-    private val postClient = TopicPostClient(
-        OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(40, TimeUnit.SECONDS)
-            .build(),
-        Utils.getNGAHost(),
-    ) {
-        val user = UserManagerImpl.getInstance()
-        val uid = user.userId
-        val cid = user.cid
-        if (uid.isNullOrEmpty() || cid.isNullOrEmpty()) null else TopicPostClient.Credentials(uid, cid)
-    }
+    private val postClient = TopicPostClient.create()
 
     override fun getPostInfo(postParam: PostParam, callBack: OnHttpCallBack<PostParam>) {
         AppScope.launchWithCallback({ param: PostParam -> callBack.onSuccess(param) },

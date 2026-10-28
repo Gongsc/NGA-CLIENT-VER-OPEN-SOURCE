@@ -5,14 +5,14 @@ import sp.phone.param.MessagePostParam;
 import sp.phone.ui.fragment.MessagePostFragment;
 import sp.phone.mvp.contract.MessagePostContract;
 import sp.phone.mvp.model.MessagePostModel;
-import sp.phone.task.MessagePostTask;
+import gov.anzong.androidnga.http.OnHttpCallBack;
 import sp.phone.util.ActivityUtils;
 
 /**
  * Created by Justwen on 2017/5/28.
  */
 
-public class MessagePostPresenter extends BasePresenter<MessagePostFragment, MessagePostModel> implements MessagePostContract.Presenter, MessagePostTask.CallBack {
+public class MessagePostPresenter extends BasePresenter<MessagePostFragment, MessagePostModel> implements MessagePostContract.Presenter {
 
     private final static Object COMMIT_LOCK = new Object();
 
@@ -32,7 +32,19 @@ public class MessagePostPresenter extends BasePresenter<MessagePostFragment, Mes
         mPostParam.setRecipient(to);
         mPostParam.setPostSubject(title);
         mPostParam.setPostContent(body);
-        mBaseModel.postMessage(mPostParam, this);
+        mBaseModel.postMessage(
+                mPostParam,
+                new OnHttpCallBack<String>() {
+                    @Override
+                    public void onError(String text) {
+                        onMessagePostFinished(false, text);
+                    }
+
+                    @Override
+                    public void onSuccess(String data) {
+                        onMessagePostFinished(true, data);
+                    }
+                });
     }
 
     @Override
@@ -48,8 +60,7 @@ public class MessagePostPresenter extends BasePresenter<MessagePostFragment, Mes
         mPostParam = param;
     }
 
-    @Override
-    public void onMessagePostFinished(boolean result, String resultInfo) {
+    private void onMessagePostFinished(boolean result, String resultInfo) {
         if (resultInfo != null && mBaseView != null) {
             mBaseView.showToast(resultInfo);
         }
