@@ -89,14 +89,16 @@ public class MessageUtil {
             return null;
 
         NgaJsonObject userInfoMap = (NgaJsonObject) o1.get("userInfo");
-
-        List<MessageArticlePageInfo> messageEntryList = convertJSobjToList(o1, userInfoMap, page);
+        // 现在的接口把消息放在 allmsgs 中（字段不变），旧接口直接放在 data.0 下。
+        Object allMessages = o1.get("allmsgs");
+        NgaJsonObject rows = allMessages instanceof NgaJsonObject ? (NgaJsonObject) allMessages : o1;
+        List<MessageArticlePageInfo> messageEntryList = convertJSobjToList(rows, userInfoMap, page);
         if (messageEntryList == null)
             return null;
         data.setMessageEntryList(messageEntryList);
         data.set__currentPage(o1.getIntValue("currentPage"));
         data.set__nextPage(o1.getIntValue("nextPage"));
-        String alluser = o1.getString("allUsers"), allusertmp = "";
+        String alluser = StringUtils.isEmpty(o1.getString("allUsers")) ? "" : o1.getString("allUsers"), allusertmp = "";
         alluser = alluser.replaceAll("	", " ");
         String alluserarray[] = alluser.split(" ");
         for (int i = 1; i < alluserarray.length; i += 2) {
@@ -105,8 +107,8 @@ public class MessageUtil {
         if (allusertmp.length() > 0)
             allusertmp = allusertmp.substring(0, allusertmp.length() - 1);
         data.set_Alluser(allusertmp);
-        if (data.getMessageEntryList().get(0) != null) {
-            String title = data.getMessageEntryList().get(0).getSubject();
+        if (!messageEntryList.isEmpty() && messageEntryList.get(0) != null) {
+            String title = messageEntryList.get(0).getSubject();
             if (!StringUtils.isEmpty(title)) {
                 data.set_Title(title);
             } else {
@@ -144,7 +146,11 @@ public class MessageUtil {
     }
 
     private void fillUserInfo(MessageArticlePageInfo row, NgaJsonObject userInfoMap) {
-        NgaJsonObject userInfo = (NgaJsonObject) userInfoMap.get(row.getFrom());
+        if (userInfoMap == null || row.getFrom() == null) {
+            return;
+        }
+        Object info = userInfoMap.get(row.getFrom());
+        NgaJsonObject userInfo = info instanceof NgaJsonObject ? (NgaJsonObject) info : null;
         if (userInfo == null) {
             return;
         }
