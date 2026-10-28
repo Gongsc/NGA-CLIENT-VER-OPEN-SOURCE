@@ -116,7 +116,11 @@ fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (
                     else if (row.formattedHtmlData.isNullOrEmpty()) Text(row.content.orEmpty(), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp)
                     else ArticleHtml(row.formattedHtmlData, row.imageUrls.orEmpty(), background, foreground)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text("赞同：${row.score}", style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
+                        Row(Modifier.weight(1f).semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
+                            Icon(ActionIcons.ThumbUp, contentDescription = "赞同", modifier = Modifier.size(16.dp), tint = secondary)
+                            Spacer(Modifier.width(4.dp))
+                            Text("${row.score}", style = MaterialTheme.typography.labelMedium, color = secondary)
+                        }
                         if (!row.fromClientModel.isNullOrBlank()) ClientPlatformIcon(row.fromClientModel, row.fromClient.orEmpty())
                         ActionIcon(ActionIcons.Reply, "引用回复", { onQuote(row) })
                     }

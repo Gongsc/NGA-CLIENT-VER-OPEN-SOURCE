@@ -26,6 +26,7 @@ object ActionIcons {
     val Right = vector("Right") { moveTo(9f,5f);lineTo(16f,12f);lineTo(9f,19f) }
     val Down = vector("Down") { moveTo(7f,10f);lineTo(12f,15f);lineTo(17f,10f) }
     val Reply = vector("Reply") { moveTo(4f,5f);lineTo(20f,5f);lineTo(20f,17f);lineTo(9f,17f);lineTo(4f,21f);close();moveTo(8f,9f);lineTo(16f,9f);moveTo(8f,13f);lineTo(13f,13f) }
+    val ThumbUp = vector("ThumbUp") { moveTo(7f,10f);lineTo(7f,21f);moveTo(4f,10f);lineTo(7f,10f);lineTo(12f,3f);curveTo(13.8f,3f,15.3f,4.6f,14.8f,6.3f);lineTo(14f,10f);lineTo(19.6f,10f);curveTo(20.9f,10f,21.9f,11.3f,21.5f,12.6f);lineTo(19.4f,19.6f);curveTo(19.1f,20.4f,18.4f,21f,17.5f,21f);lineTo(4f,21f);curveTo(3.4f,21f,3f,20.6f,3f,20f);lineTo(3f,11f);curveTo(3f,10.4f,3.4f,10f,4f,10f);close() }
     val Download = vector("Download") { moveTo(12f,4f);lineTo(12f,15f);moveTo(7f,10f);lineTo(12f,15f);lineTo(17f,10f);moveTo(5f,20f);lineTo(19f,20f) }
     val Link = vector("Link") { moveTo(10f,14f);lineTo(14f,10f);moveTo(9f,7f);lineTo(11f,5f);curveTo(13f,3f,17f,3f,19f,5f);curveTo(21f,7f,21f,11f,19f,13f);lineTo(17f,15f);moveTo(15f,17f);lineTo(13f,19f);curveTo(11f,21f,7f,21f,5f,19f);curveTo(3f,17f,3f,13f,5f,11f);lineTo(7f,9f) }
     val Appearance =vector("Appearance") { moveTo(12f,3f);curveTo(4f,3f,0f,12f,5f,18f);curveTo(8f,22f,18f,23f,15f,17f);curveTo(13f,13f,22f,17f,21f,10f);curveTo(20f,5f,16f,3f,12f,3f);moveTo(7f,9f);lineTo(7f,9.1f);moveTo(11f,6f);lineTo(11f,6.1f);moveTo(16f,7f);lineTo(16f,7.1f) }

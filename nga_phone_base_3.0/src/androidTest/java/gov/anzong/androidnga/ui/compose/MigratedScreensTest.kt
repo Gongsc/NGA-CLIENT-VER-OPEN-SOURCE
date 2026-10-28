@@ -51,11 +51,14 @@ class MigratedScreensTest {
     }
 
     @Test fun articleRowExposesQuoteAction() {
-        val row = ThreadRowInfo().apply { author = "测试作者"; content = "离线正文内容"; tid = 100; pid = 200; lou = 1 }
+        val row = ThreadRowInfo().apply { author = "测试作者"; content = "离线正文内容"; tid = 100; pid = 200; lou = 1; score = 42 }
         val state = ArticlePageState().apply { rows = listOf(row); loading = false }
         var quoted = 0
         compose.setContent { NgaTheme { ArticlePageScreen(state, {}, { quoted++ }, {}, {}, { emptyList() }, { _, _ -> }) } }
         compose.onNodeWithText("离线正文内容").assertIsDisplayed()
+        // 赞同数以图标加数字显示，无障碍读作“赞同 42”
+        compose.onNode(hasContentDescription("赞同") and hasText("42")).assertIsDisplayed()
+        compose.onNodeWithText("赞同", substring = true).assertDoesNotExist()
         compose.onNodeWithContentDescription("引用回复").performClick()
         compose.runOnIdle { assertEquals(1, quoted) }
     }
