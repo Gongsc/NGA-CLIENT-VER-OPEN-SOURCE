@@ -1,5 +1,6 @@
 package sp.phone.ui.fragment
 
+import gov.anzong.androidnga.base.util.ToastUtils
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -159,7 +160,7 @@ open class ArticleListFragment : BaseMvpFragment<ArticleListPresenter>(), Articl
     private fun handleRowAction(row: ThreadRowInfo, id: Int) {
         when (id) {
             R.id.menu_edit -> {
-                if (FunctionUtils.isComment(row)) showToast(R.string.cannot_eidt_comment)
+                if (FunctionUtils.isComment(row)) ToastUtils.info(R.string.cannot_eidt_comment)
                 else startPostActivity(Intent().putExtra(ParamKey.KEY_PID, row.pid.toString()).putExtra(ParamKey.KEY_TID, row.tid.toString())
                     .putExtra("title", StringUtils.unEscapeHtml(row.subject.orEmpty())).putExtra("action", "modify")
                     .putExtra("prefix", StringUtils.unEscapeHtml(StringUtils.removeBrTag(row.content.orEmpty()))))

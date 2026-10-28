@@ -34,7 +34,7 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <androidx.viewpager.widget.ViewPager
+            <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/pager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
@@ -70,7 +70,7 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <gov.anzong.androidnga.base.widget.TabLayoutEx
+    <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="@dimen/article_list_tab_height"

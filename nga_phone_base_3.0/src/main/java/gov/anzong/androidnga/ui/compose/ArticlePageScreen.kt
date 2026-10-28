@@ -141,7 +141,7 @@ private fun ClientPlatformIcon(model: String, details: String) {
         "wp" -> R.drawable.ic_windows_12dp to "Windows Phone 客户端"
         else -> R.drawable.ic_smartphone_12dp to "其他客户端"
     }
-    TooltipBox(positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+    TooltipBox(positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
         tooltip = { PlainTooltip { Text(label) } }, state = rememberTooltipState()) {
         IconButton(onClick = { gov.anzong.androidnga.base.util.ToastUtils.info(details.ifBlank { label }) }) {
             Icon(painterResource(resource), contentDescription = label, modifier = Modifier.size(20.dp),

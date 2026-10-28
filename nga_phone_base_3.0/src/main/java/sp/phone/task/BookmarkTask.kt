@@ -21,7 +21,7 @@ object BookmarkTask {
 
     private fun post(postUrl: String) {
         AppScope.launchWithCallback({ msg: String? ->
-            if (!StringUtils.isEmpty(msg)) ToastUtils.showShortToast(msg!!.trim())
+            if (!StringUtils.isEmpty(msg)) ToastUtils.info(msg!!.trim())
         }, { NLog.e(it.message) }) {
             val result = NgaApi.get().post(postUrl)
             StringUtils.getStringBetween(result, 0, "{\"0\":\"", "\"},\"time\"").result

@@ -10,7 +10,7 @@ import gov.anzong.androidnga.coroutines.AppScope
 import gov.anzong.androidnga.coroutines.launchWithCallback
 import gov.anzong.androidnga.coroutines.scopeOf
 import gov.anzong.androidnga.http.OnHttpCallBack
-import gov.anzong.androidnga.util.ToastUtils
+import gov.anzong.androidnga.base.util.ToastUtils
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -109,7 +109,7 @@ class TopicPostModel : BaseModel(), TopicPostContract.Model {
                 if (obj.containsKey("error_code")) {
                     val errorCode = obj.getInteger("error_code")
                     if (errorCode == 9 && !compress) {
-                        ToastUtils.showShortToast("附件过大，无法上传，重新进行压缩并上传")
+                        ToastUtils.info("附件过大，无法上传，重新进行压缩并上传")
                         uploadFile(uri, postParam, callBack, true)
                         return@launchWithCallback
                     }

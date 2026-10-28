@@ -1,8 +1,12 @@
 package gov.anzong.androidnga.activity;
 
+import androidx.core.content.IntentCompat;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import android.view.View;
 
 import java.io.File;
@@ -13,7 +17,6 @@ import java.util.List;
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.base.util.ToastUtils;
-import gov.anzong.androidnga.base.widget.TabLayoutEx;
 import sp.phone.param.ArticleListParam;
 import sp.phone.param.ParamKey;
 import sp.phone.ui.adapter.ArticlePagerAdapter;
@@ -32,7 +35,7 @@ public class ArticleCacheActivity extends BaseActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setToolbarEnabled(true);
-        mRequestParam = getIntent().getParcelableExtra(ParamKey.KEY_PARAM);
+        mRequestParam = IntentCompat.getParcelableExtra(getIntent(), ParamKey.KEY_PARAM, ArticleListParam.class);
         setTitle(mRequestParam.title);
         super.onCreate(savedInstanceState);
         loadCachePageList(String.valueOf(mRequestParam.tid));
@@ -51,15 +54,16 @@ public class ArticleCacheActivity extends BaseActivity {
             setContentView(R.layout.fragment_article_tab);
         }
 
-        mPagerAdapter = new ArticlePagerAdapter(getSupportFragmentManager(), mRequestParam);
+        mPagerAdapter = new ArticlePagerAdapter(this, mRequestParam);
         mPagerAdapter.setPageIndexList(mCachePageList);
 
         findViewById(R.id.fab_menu).setVisibility(View.GONE);
-        ViewPager viewPager = findViewById(R.id.pager);
+        ViewPager2 viewPager = findViewById(R.id.pager);
         viewPager.setAdapter(mPagerAdapter);
 
-        TabLayoutEx tabLayout = findViewById(R.id.tabs);
-        tabLayout.setUpWithViewPager(viewPager);
+        TabLayout tabLayout = findViewById(R.id.tabs);
+        new TabLayoutMediator(tabLayout, viewPager,
+                (tab, position) -> tab.setText(mPagerAdapter.getPageTitle(position))).attach();
     }
 
     private void loadCachePageList(String tid) {

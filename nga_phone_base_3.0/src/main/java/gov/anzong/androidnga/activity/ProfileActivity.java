@@ -1,5 +1,7 @@
 package gov.anzong.androidnga.activity;
 
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.ActivityResultLauncher;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -232,7 +234,7 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         Intent intent = new Intent();
         intent.putExtra("prefix", mProfileData.getSign());
         intent.setClass(this, PhoneConfiguration.getInstance().signPostActivityClass);
-        startActivityForResult(intent, 321);
+        mSignLauncher.launch(intent);
     }
 
     private void loadProfileInfo(ProfileData profileInfo) {
@@ -377,23 +379,16 @@ public class ProfileActivity extends BaseActivity implements OnHttpCallBack<Prof
         startActivity(intent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 321 && resultCode == Activity.RESULT_OK) {
-            String signData = data.getStringExtra("sign");
-            if (mProfileData != null) {
-                mProfileData.setSign(signData);
-                mSignWebView.requestLayout();
-                handleSignWebView(mSignWebView, mProfileData);
-            }
-        } else if (requestCode == 123 && resultCode == Activity.RESULT_OK) {
-            String avatarData = data.getStringExtra("avatar");
-            mProfileData.setAvatarUrl(avatarData);
-            mSignWebView.requestLayout();
-            //  handleAvatar(avatarImage, mProfileData);
-        }
-    }
+    /** 签名修改成功后刷新签名显示。 */
+    private final ActivityResultLauncher<Intent> mSignLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() == Activity.RESULT_OK && data != null && mProfileData != null) {
+                    mProfileData.setSign(data.getStringExtra("sign"));
+                    mSignWebView.requestLayout();
+                    handleSignWebView(mSignWebView, mProfileData);
+                }
+            });
 
     private void handleSignWebView(WebViewEx contentTV, ProfileData ret) {
         ThemeManager theme = ThemeManager.getInstance();

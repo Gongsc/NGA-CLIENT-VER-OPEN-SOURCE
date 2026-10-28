@@ -1,5 +1,6 @@
 package sp.phone.ui.fragment;
 
+import androidx.core.os.BundleCompat;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -55,7 +56,7 @@ public class RecentNotificationFragment extends BaseEventFragment
         Bundle bundle = getArguments();
         if (bundle != null) {
             ArrayList<RecentReplyInfo> unreadRecentReplyList =
-                    bundle.getParcelableArrayList("unread");
+                    BundleCompat.getParcelableArrayList(bundle, "unread", RecentReplyInfo.class);
             mNotificationAdapter.setUnreadRecentReplyList(unreadRecentReplyList);
         }
 

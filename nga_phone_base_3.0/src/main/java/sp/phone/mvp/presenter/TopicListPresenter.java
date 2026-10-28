@@ -1,5 +1,6 @@
 package sp.phone.mvp.presenter;
 
+import androidx.activity.result.ActivityResultLauncher;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -292,15 +293,13 @@ public class TopicListPresenter extends ViewModel implements LifecycleObserver {
                 }
     }
 
-    public void showFileChooser(Fragment fragment) {
-                    try {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                        intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("application/zip");
-                        fragment.startActivityForResult(intent, TopicCacheFragment.REQUEST_IMPORT_CACHE);
+    /** 用系统文档选择器选择缓存压缩包，结果交给 {@link #importCacheTopic}。 */
+    public void showFileChooser(ActivityResultLauncher<String[]> launcher) {
+        try {
+            launcher.launch(new String[]{"application/zip"});
         } catch (ActivityNotFoundException error) {
-                        ToastUtils.warn("系统不支持导入");
-                    }
+            ToastUtils.warn("系统不支持导入");
+        }
     }
 
     public void importCacheTopic(Uri uri) {

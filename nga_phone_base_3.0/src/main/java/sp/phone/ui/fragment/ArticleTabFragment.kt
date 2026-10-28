@@ -1,5 +1,6 @@
 package sp.phone.ui.fragment
 
+import gov.anzong.androidnga.base.util.ToastUtils
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -96,7 +97,7 @@ class ArticleTabFragment : BaseEventFragment() {
             R.id.menu_share -> FunctionUtils.share(requireContext(), getString(R.string.share), "${state.title}\n${currentUrl()}")
             R.id.menu_copy_url -> {
                 (requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("帖子链接", currentUrl()))
-                showToast("链接已复制。")
+                ToastUtils.info("链接已复制。")
             }
             R.id.menu_nightmode -> { ThemeManager.getInstance().setNightMode(true); requireActivity().recreate() }
             R.id.menu_daymode -> { ThemeManager.getInstance().setNightMode(false); requireActivity().recreate() }

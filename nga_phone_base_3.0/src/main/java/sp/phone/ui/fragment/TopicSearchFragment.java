@@ -1,5 +1,6 @@
 package sp.phone.ui.fragment;
 
+import androidx.core.os.BundleCompat;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,8 +46,6 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
 
     private static final String TAG = TopicSearchFragment.class.getSimpleName();
 
-    public static final int REQUEST_IMPORT_CACHE = 0;
-
     protected TopicListParam mRequestParam;
 
     protected BaseAppendableAdapter mAdapter;
@@ -61,7 +60,7 @@ public class TopicSearchFragment extends BaseFragment implements View.OnClickLis
     @Override
     public void onCreate(Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        mRequestParam = getArguments().getParcelable(ParamKey.KEY_PARAM);
+        mRequestParam = BundleCompat.getParcelable(getArguments(), ParamKey.KEY_PARAM, TopicListParam.class);
         super.onCreate(savedInstanceState);
         setTitle();
         mPresenter = onCreatePresenter();

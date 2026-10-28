@@ -1,5 +1,6 @@
 package sp.phone.ui.fragment;
 
+import androidx.core.os.BundleCompat;
 import android.app.Activity;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
@@ -40,7 +41,7 @@ public class BoardSubListFragment extends BaseEventFragment implements View.OnCl
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Bundle bundle = getArguments();
         setTitle(String.format("%s - 子板块", bundle.getString(ParamKey.KEY_TITLE)));
-        mBoardList = bundle.getParcelableArrayList("subBoard");
+        mBoardList = BundleCompat.getParcelableArrayList(bundle, "subBoard", SubBoard.class);
         mSubscribeTask = new SubscribeSubBoardTask(this);
         super.onCreate(savedInstanceState);
     }

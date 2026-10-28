@@ -25,6 +25,8 @@
 
     <color name="profilebgcolor">#fff5d7</color>
     <color name="profilefcolor">#551200</color>
+    <color name="profile_text_primary">#121c46</color>
+    <color name="profile_text_accent">#712d08</color>
 
     <color name="replynumbernormal">#80C0C0</color>
     <color name="drawerlistcolormain">#551200</color>

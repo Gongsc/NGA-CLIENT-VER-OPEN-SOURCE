@@ -1,5 +1,6 @@
 package sp.phone.ui.fragment;
 
+import androidx.core.os.BundleCompat;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,7 +44,7 @@ public class BoardCategoryFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mBoardCategory = getArguments().getParcelable("category");
+            mBoardCategory = BundleCompat.getParcelable(getArguments(), "category", BoardCategory.class);
         }
     }
 

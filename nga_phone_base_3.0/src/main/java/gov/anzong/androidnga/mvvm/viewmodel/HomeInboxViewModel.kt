@@ -9,6 +9,7 @@ import gov.anzong.androidnga.base.json.NgaJsonObject
 import gov.anzong.androidnga.Utils
 import gov.anzong.androidnga.coroutines.NgaDispatchers
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -45,7 +46,10 @@ class HomeInboxViewModel(
     private var messagesLoaded = false
     private var retryMore = false
     /** 当前账号的请求；切换账号时整体取消。 */
-    private var requests = SupervisorJob(viewModelScope.coroutineContext[Job])
+    /** 当前账号的请求作用域：切换账号时整体取消，作为 viewModelScope 的子作用域随 ViewModel 结束。 */
+    private var requests = newRequestScope()
+
+    private fun newRequestScope() = CoroutineScope(viewModelScope.coroutineContext + SupervisorJob(viewModelScope.coroutineContext[Job]))
 
     fun selectAccount(uid: String) {
         val cookie = if (uid.isEmpty()) "" else currentCookie()
@@ -54,7 +58,7 @@ class HomeInboxViewModel(
         account = uid
         generation++
         requests.cancel()
-        requests = SupervisorJob(viewModelScope.coroutineContext[Job])
+        requests = newRequestScope()
         replies = emptyList(); messages = emptyList()
         replyError = null; messageError = null
         repliesLoading = false; messagesLoading = false
@@ -68,7 +72,7 @@ class HomeInboxViewModel(
         val token = generation; val uid = account; val cookie = session
         repliesLoading = true; replyError = null
         // 首次可能仅返回未读通知；再读取一次历史，合并时保留未读标记，不无限重试。
-        viewModelScope.launch(requests) {
+        requests.launch {
             val data = try {
                 withContext(worker) {
                     val unread = replyRequest(cookie)
@@ -101,7 +105,7 @@ class HomeInboxViewModel(
         val page = if (more) nextPage else 1
         retryMore = more
         messagesLoading = true; messageError = null
-        viewModelScope.launch(requests) {
+        requests.launch {
             val data = try {
                 withContext(worker) { messageRequest(cookie, page) }
             } catch (e: CancellationException) {

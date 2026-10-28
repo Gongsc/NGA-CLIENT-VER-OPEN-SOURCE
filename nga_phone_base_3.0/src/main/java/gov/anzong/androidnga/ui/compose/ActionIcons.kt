@@ -36,7 +36,7 @@ object ActionIcons {
 @Composable
 fun ActionIcon(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier,
                enabled: Boolean = true) {
-    TooltipBox(positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+    TooltipBox(positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
         tooltip = { PlainTooltip { Text(label) } }, state = rememberTooltipState()) {
         IconButton(onClick = onClick, enabled = enabled, modifier = modifier) { Icon(icon, contentDescription = label) }
     }

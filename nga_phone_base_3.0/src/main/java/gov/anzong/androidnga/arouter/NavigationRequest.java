@@ -18,20 +18,18 @@ public final class NavigationRequest {
     public NavigationRequest withString(String key, String value) { extras.putString(key, value); return this; }
     public NavigationRequest withParcelable(String key, Parcelable value) { extras.putParcelable(key, value); return this; }
     public void navigation() { navigation(ContextUtils.getContext()); }
-    public void navigation(Context context) { launch(context, null); }
-    public void navigation(Activity activity, int requestCode) { launch(activity, requestCode); }
+    public void navigation(Context context) {
+        Context target = context != null ? context : ContextUtils.getContext();
+        Intent intent = intent(target);
+        if (!(target instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        target.startActivity(intent);
+    }
 
-    private void launch(Context requestedContext, Integer requestCode) {
-        Context context = requestedContext != null ? requestedContext : ContextUtils.getContext();
+    /** 目标页面的 Intent，供 {@code registerForActivityResult} 的启动器使用；需要登录时指向登录页。 */
+    public Intent intent(Context context) {
         boolean needsLogin = AppNavigator.requiresLogin(path) && UserManagerImpl.getInstance().getActiveUser() == null;
         Intent intent = new Intent(context, needsLogin ? LoginActivity.class : AppNavigator.destination(path));
         if (!needsLogin) intent.putExtras(extras);
-        if (context instanceof Activity) {
-            if (requestCode == null) context.startActivity(intent);
-            else ((Activity) context).startActivityForResult(intent, requestCode);
-        } else {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        }
+        return intent;
     }
 }

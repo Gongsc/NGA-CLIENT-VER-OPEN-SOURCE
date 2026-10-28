@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.core.app.ApplicationProvider
@@ -36,7 +37,7 @@ class SettingsScreenTest {
         compose.onNodeWithText("左手模式").performClick()
         compose.runOnIdle {assertTrue(prefs.getBoolean(PreferenceKey.LEFT_HAND,false))}
         compose.onNodeWithTag("settings_list").performScrollToNode(hasText("回复提醒"))
-        compose.onNodeWithText("回复提醒").performClick()
+        compose.onNodeWithText("回复提醒").clickAfterScroll()
         compose.onNode(hasText("提醒声音") and isToggleable()).assertIsNotEnabled()
         compose.runOnIdle {assertFalse(prefs.getBoolean(PreferenceKey.ENABLE_NOTIFIACTION,true))}
         compose.onNodeWithText("回复提醒").performClick()
@@ -49,11 +50,11 @@ class SettingsScreenTest {
         var destination=""
         compose.setContent {NgaTheme {SettingsScreen(prefs,{}, {destination=it},{clear++})}}
         compose.onNodeWithTag("settings_list").performScrollToNode(hasText("帖子图片"))
-        compose.onNodeWithText("帖子图片").performClick()
+        compose.onNodeWithText("帖子图片").clickAfterScroll()
         compose.onNodeWithText("始终关闭").performClick()
         compose.runOnIdle {assertEquals("1",prefs.getString(PreferenceKey.KEY_LOAD_IMAGE_STRATEGY,null))}
         compose.onNodeWithTag("settings_list").performScrollToNode(hasText("清除缓存"))
-        compose.onNodeWithText("清除缓存").performClick()
+        compose.onNodeWithText("清除缓存").clickAfterScroll()
         compose.onNodeWithText("取消").performClick()
         compose.runOnIdle {assertEquals(0,clear)}
         compose.onNodeWithText("清除缓存").performClick()
@@ -90,3 +91,6 @@ class SettingsScreenTest {
         compose.runOnIdle {assertEquals(listOf(gov.anzong.androidnga.R.id.menu_login),clicked)}
     }
 }
+
+/** 刚滚动到的列表项用语义点击：列表仍在回弹时，注入的触摸可能只停止滚动而不触发点击。 */
+private fun SemanticsNodeInteraction.clickAfterScroll() = performSemanticsAction(SemanticsActions.OnClick)

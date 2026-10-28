@@ -1,5 +1,7 @@
 package gov.anzong.androidnga.activity;
 
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.ActivityResultLauncher;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
@@ -154,18 +156,16 @@ public class MainActivity extends BaseActivity {
         startActivity(new Intent(this,AboutActivity.class));
     }
 
-    private void startSettingActivity() {
-        Intent intent = new Intent();
-        intent.setClass(MainActivity.this, SettingsActivity.class);
-        startActivityForResult(intent, ActivityUtils.REQUEST_CODE_SETTING);
-    }
+    /** 设置页返回 RESULT_OK 表示外观等设置已变化，需要重建页面。 */
+    private final ActivityResultLauncher<Intent> mSettingLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    recreate();
+                }
+            });
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ActivityUtils.REQUEST_CODE_SETTING && resultCode == Activity.RESULT_OK) {
-            recreate();
-        }
+    private void startSettingActivity() {
+        mSettingLauncher.launch(new Intent(this, SettingsActivity.class));
     }
 
     private void startNotificationActivity() {

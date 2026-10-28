@@ -1,10 +1,18 @@
 package sp.phone.util;
 
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -29,15 +37,9 @@ public class ActivityUtils {
     static Object lock = new Object();
     private DialogFragment df = null;
 
-    public static final int REQUEST_CODE_LOGIN = 1;
-
-    public static final int REQUEST_CODE_SETTING = 2;
-
     public static final int REQUEST_CODE_TOPIC_POST = 3;
 
     public static final int REQUEST_CODE_JUMP_PAGE = 4;
-
-    public static final int REQUEST_CODE_SUB_BOARD = 4;
 
     private ActivityUtils() {
     }
@@ -61,7 +63,6 @@ public class ActivityUtils {
     public static void showToast(int resId) {
         showToast(ContextUtils.getContext(), resId);
     }
-
 
     public static ActivityUtils getInstance() {
         if (instance == null) {
@@ -207,7 +208,6 @@ public class ActivityUtils {
         synchronized (lock) {
             NLog.d(TAG, "trying dissmiss dialog");
 
-
             if (df != null && df.getActivity() != null) {
                 NLog.d(TAG, "dissmiss dialog");
 
@@ -229,7 +229,6 @@ public class ActivityUtils {
 
                 df = null;
 
-
             } else {
                 df = null;
             }
@@ -237,74 +236,67 @@ public class ActivityUtils {
         }
     }
 
+    /** 带进度条的提示框（如上传头像），进度由 {@link #setProgress} 更新。 */
     public static class SayingDialogFragmentWithProgressBar extends DialogFragment {
 
-        ProgressDialog dialog;
+        LinearProgressIndicator progress;
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            dialog = new ProgressDialog(getActivity());
-            //
-            Bundle b = getArguments();
-            if (b != null) {
-                String title = b.getString("title");
-                String content = b.getString("content");
-                dialog.setTitle(title);
-                if (StringUtils.isEmpty(content))
-                    content = ActivityUtils.getSaying();
-                dialog.setMessage(content);
-            }
-
-
-            dialog.setCanceledOnTouchOutside(true);
-            dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            dialog.setIndeterminate(false);
-            dialog.setMax(100);
-            dialog.setCancelable(true);
-
-
-            // etc...
-            this.setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme);
-            return dialog;
+            progress = new LinearProgressIndicator(requireContext());
+            progress.setMax(100);
+            return progressDialog(requireContext(), getArguments(), progress, false);
         }
 
         public void setProgress(int i) {
-            if (dialog != null) {
-                dialog.setProgress(i);
+            if (progress != null) {
+                progress.setProgressCompat(i, true);
             }
         }
 
     }
 
+    /** 不确定进度的提示框（如“正在提交”）。 */
     public static class SayingDialogFragment extends DialogFragment {
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final ProgressDialog dialog = new ProgressDialog(getActivity());
-            //
-            Bundle b = getArguments();
-            if (b != null) {
-                String title = b.getString("title");
-                String content = b.getString("content");
-                dialog.setTitle(title);
-                if (StringUtils.isEmpty(content))
-                    content = ActivityUtils.getSaying();
-                dialog.setMessage(content);
-            }
-
-
-            dialog.setCanceledOnTouchOutside(true);
-            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            dialog.setIndeterminate(true);
-            dialog.setCancelable(true);
-
-
-            // etc...
-            this.setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme);
-            return dialog;
+            CircularProgressIndicator progress = new CircularProgressIndicator(requireContext());
+            progress.setIndeterminate(true);
+            return progressDialog(requireContext(), getArguments(), progress, true);
         }
 
+    }
 
+    /** 替代已弃用的 ProgressDialog：标题与提示文字取自参数，提示为空时显示随机名言；点击外部可关闭。 */
+    private static Dialog progressDialog(Context context, Bundle args, View indicator, boolean inline) {
+        String title = args != null ? args.getString("title") : null;
+        String content = args != null ? args.getString("content") : null;
+        if (StringUtils.isEmpty(content)) {
+            content = ActivityUtils.getSaying();
+        }
+        int padding = Math.round(24 * context.getResources().getDisplayMetrics().density);
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(inline ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        layout.setGravity(inline ? Gravity.CENTER_VERTICAL : Gravity.NO_GRAVITY);
+        layout.setPadding(padding, padding / 2, padding, padding / 2);
+        TextView message = new TextView(context);
+        message.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
+        message.setText(content);
+        if (inline) {
+            layout.addView(indicator);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            params.setMarginStart(padding / 2);
+            layout.addView(message, params);
+        } else {
+            layout.addView(message);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.topMargin = padding / 2;
+            layout.addView(indicator, params);
+        }
+        Dialog dialog = new MaterialAlertDialogBuilder(context).setTitle(title).setView(layout).create();
+        dialog.setCanceledOnTouchOutside(true);
+        return dialog;
     }
 
     public static void startLoginActivity(Context context) {

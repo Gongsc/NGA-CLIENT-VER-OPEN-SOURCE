@@ -1,5 +1,7 @@
 package gov.anzong.androidnga.activity;
 
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.ActivityResultLauncher;
 import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Context;
@@ -51,7 +53,6 @@ import sp.phone.util.StringUtils;
 public class AvatarPostActivity extends BaseActivity implements
         AvatarFileUploadTask.onFileUploaded, ChangeAvatarLoadTask.ChangeAvatarLoadCompleteCallBack {
 
-    final int REQUEST_CODE_SELECT_PIC = 1;
     private final String LOG_TAG = Activity.class.getSimpleName();
     private final Object lock = new Object();
     private final HashSet<String> urlSet = new HashSet<String>();
@@ -169,10 +170,7 @@ public class AvatarPostActivity extends BaseActivity implements
             @Override
             public void onClick(View arg0) {
                 // TODO Auto-generated method stub
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(intent, REQUEST_CODE_SELECT_PIC);
+                mPickImageLauncher.launch("image/*");
             }
 
         });
@@ -202,20 +200,14 @@ public class AvatarPostActivity extends BaseActivity implements
         return true;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_CANCELED || data == null)
-            return;
-        switch (requestCode) {
-            case REQUEST_CODE_SELECT_PIC:
-                NLog.i(LOG_TAG, " select file :" + data.getDataString());
-                uploadTask = new AvatarFileUploadTask(this, this, data.getData());
-                break;
-            default:
-                ;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
+    /** 选中的图片在 onResume 中上传，与原先一致。 */
+    private final ActivityResultLauncher<String> mPickImageLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    NLog.i(LOG_TAG, " select file :" + uri);
+                    uploadTask = new AvatarFileUploadTask(this, this, uri);
+                }
+            });
 
     @Override
     protected void onResume() {

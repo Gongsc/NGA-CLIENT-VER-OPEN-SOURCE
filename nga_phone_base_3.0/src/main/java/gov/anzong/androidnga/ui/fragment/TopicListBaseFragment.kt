@@ -1,5 +1,6 @@
 package gov.anzong.androidnga.ui.fragment
 
+import androidx.core.os.BundleCompat
 import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.Observer
@@ -36,7 +37,7 @@ open class TopicListBaseFragment : BaseFragment(R.layout.fragment_topic_list_bas
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mRequestParam = requireArguments().getParcelable(ParamKey.KEY_PARAM)
+        mRequestParam = BundleCompat.getParcelable(requireArguments(), ParamKey.KEY_PARAM, TopicListParam::class.java)
         mPresenter = onCreatePresenter()
         lifecycle.addObserver(mPresenter)
     }

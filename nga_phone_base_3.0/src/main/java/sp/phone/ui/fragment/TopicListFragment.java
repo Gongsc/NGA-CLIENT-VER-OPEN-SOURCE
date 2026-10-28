@@ -1,5 +1,7 @@
 package sp.phone.ui.fragment;
 
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.ActivityResultLauncher;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -178,17 +180,15 @@ public class TopicListFragment extends TopicSearchFragment {
         intent.putExtra(ParamKey.KEY_FID, mRequestParam.fid);
 
         intent.putParcelableArrayListExtra("subBoard", mTopicListInfo.getSubBoardList());
-        startActivityForResult(intent, ActivityUtils.REQUEST_CODE_SUB_BOARD);
+        mSubBoardLauncher.launch(intent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == ActivityUtils.REQUEST_CODE_SUB_BOARD
-                && resultCode == Activity.RESULT_OK) {
-            mPresenter.loadPage(1, mRequestParam);
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
+    private final ActivityResultLauncher<Intent> mSubBoardLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    mPresenter.loadPage(1, mRequestParam);
+                }
+            });
 
     protected void bindViews(android.view.View root) {
         super.bindViews(root);

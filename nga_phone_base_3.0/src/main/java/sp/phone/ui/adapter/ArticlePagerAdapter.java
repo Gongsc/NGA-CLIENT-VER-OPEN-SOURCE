@@ -2,8 +2,9 @@ package sp.phone.ui.adapter;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import sp.phone.ui.fragment.ArticleListFragment;
  * Created by Justwen on 2017/7/9.
  */
 
-public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
+public class ArticlePagerAdapter extends FragmentStateAdapter {
 
     private int mCount = 1;
 
@@ -24,13 +25,14 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
 
     private List<String> mPageIndexList;
 
-    public ArticlePagerAdapter(FragmentManager fm, ArticleListParam param) {
-        super(fm);
+    public ArticlePagerAdapter(FragmentActivity activity, ArticleListParam param) {
+        super(activity);
         mRequestParam = param;
     }
 
+    @NonNull
     @Override
-    public Fragment getItem(int position) {
+    public Fragment createFragment(int position) {
         Fragment fragment = new ArticleListFragment();
         Bundle bundle = new Bundle();
         bundle.putParcelable(ParamKey.KEY_PARAM, getRequestParam(position));
@@ -49,7 +51,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         return mCount;
     }
 
@@ -65,7 +67,7 @@ public class ArticlePagerAdapter extends FragmentStatePagerAdapter {
         setCount(pageIndexList.size());
     }
 
-    @Override
+    /** 分页标签文字，由 TabLayoutMediator 使用。 */
     public CharSequence getPageTitle(int position) {
         return mPageIndexList == null ? String.valueOf(position + 1) : mPageIndexList.get(position);
     }

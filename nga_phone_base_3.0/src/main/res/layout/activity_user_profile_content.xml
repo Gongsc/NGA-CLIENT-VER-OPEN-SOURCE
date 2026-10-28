@@ -25,7 +25,7 @@
             android:layout_marginEnd="@dimen/cardview_default_margin_left_right"
             android:layout_marginStart="@dimen/cardview_default_margin_left_right"
             android:layout_marginTop="@dimen/cardview_default_margin_top_bottom"
-            app:cardBackgroundColor="#fff5d7"
+            app:cardBackgroundColor="@color/profilebgcolor"
             app:contentPadding="16dp">
 
             <RelativeLayout
@@ -38,7 +38,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
                     android:text=":: 基础信息 ::"
-                    android:textColor="#712d08"
+                    android:textColor="@color/profile_text_accent"
                     android:textIsSelectable="false"
                     android:textSize="16dp"
                     android:textStyle="bold"/>
@@ -49,7 +49,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/tv_base_info_title"
                     android:text="邮箱 : "
-                    android:textColor="#121c46"
+                    android:textColor="@color/profile_text_primary"
                     android:textIsSelectable="false"/>
 
                 <TextView
@@ -84,7 +84,7 @@
                     android:layout_alignTop="@+id/tv_user_tel"
                     android:layout_toStartOf="@+id/tv_user_tel"
                     android:text="Tel : "
-                    android:textColor="#121c46"
+                    android:textColor="@color/profile_text_primary"
                     android:textIsSelectable="false"/>
 
                 <TextView
@@ -93,7 +93,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/tv_user_email_title"
                     android:text="用户组 : "
-                    android:textColor="#121c46"
+                    android:textColor="@color/profile_text_primary"
                     android:textIsSelectable="false"/>
 
                 <TextView
@@ -126,7 +126,7 @@
                     android:layout_alignTop="@+id/tv_post_count"
                     android:layout_toStartOf="@+id/tv_post_count"
                     android:text="发帖数 : "
-                    android:textColor="#121c46"
+                    android:textColor="@color/profile_text_primary"
                     android:textIsSelectable="false"/>
 
                 <TextView
@@ -135,7 +135,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/tv_user_group_title"
                     android:text="金钱 : "
-                    android:textColor="#121c46"
+                    android:textColor="@color/profile_text_primary"
                     android:textIsSelectable="false"/>
 
                 <TextView
@@ -223,7 +223,7 @@
                     android:layout_alignTop="@+id/tv_user_state"
                     android:layout_toStartOf="@+id/tv_user_state"
                     android:text="状态 : "
-                    android:textColor="#121c46"
+                    android:textColor="@color/profile_text_primary"
                     android:textIsSelectable="false"/>
 
                 <TextView
@@ -243,7 +243,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/tv_user_money_title"
                     android:text="注册日期 : "
-                    android:textColor="#121c46"
+                    android:textColor="@color/profile_text_primary"
                     android:textIsSelectable="false"/>
 
                 <TextView
@@ -270,7 +270,7 @@
             android:layout_marginEnd="@dimen/cardview_default_margin_left_right"
             android:layout_marginStart="@dimen/cardview_default_margin_left_right"
             android:layout_marginTop="@dimen/cardview_default_margin_top_bottom"
-            app:cardBackgroundColor="#fff5d7"
+            app:cardBackgroundColor="@color/profilebgcolor"
             app:contentPadding="16dp">
 
             <RelativeLayout
@@ -283,7 +283,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
                     android:text=":: 签名 ::"
-                    android:textColor="#712d08"
+                    android:textColor="@color/profile_text_accent"
                     android:textIsSelectable="false"
                     android:textSize="16dp"
                     android:textStyle="bold"/>
@@ -299,7 +299,7 @@
                     android:focusable="true"
                     android:padding="2dp"
                     android:text="[更改签名]"
-                    android:textColor="#551200"
+                    android:textColor="@color/profilefcolor"
                     android:textSize="12dp"
                     android:visibility="gone"/>
 
@@ -322,7 +322,7 @@
             android:layout_marginEnd="@dimen/cardview_default_margin_left_right"
             android:layout_marginStart="@dimen/cardview_default_margin_left_right"
             android:layout_marginTop="@dimen/cardview_default_margin_top_bottom"
-            app:cardBackgroundColor="#fff5d7"
+            app:cardBackgroundColor="@color/profilebgcolor"
             app:contentPadding="16dp">
 
             <LinearLayout
@@ -335,7 +335,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text=":: 管理权限 ::"
-                    android:textColor="#712d08"
+                    android:textColor="@color/profile_text_accent"
                     android:textSize="16dp"
                     android:textStyle="bold"/>
 
@@ -364,7 +364,7 @@
             android:layout_marginEnd="@dimen/cardview_default_margin_left_right"
             android:layout_marginStart="@dimen/cardview_default_margin_left_right"
             android:layout_marginTop="@dimen/cardview_default_margin_top_bottom"
-            app:cardBackgroundColor="#fff5d7"
+            app:cardBackgroundColor="@color/profilebgcolor"
             app:contentPadding="16dp">
 
             <LinearLayout
@@ -377,7 +377,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text=":: 声望 ::"
-                    android:textColor="#712d08"
+                    android:textColor="@color/profile_text_accent"
                     android:textIsSelectable="false"
                     android:textSize="16dp"
                     android:textStyle="bold"/>

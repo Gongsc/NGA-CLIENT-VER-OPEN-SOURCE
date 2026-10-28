@@ -12,6 +12,12 @@
     <color name="background_color2">@color/night_bg_color</color>
     <color name="foreground_color">#FF999999</color>
 
+    <!-- 个人资料页卡片：与卡片内网页正文同底色 -->
+    <color name="profilebgcolor">@color/background_color</color>
+    <color name="profilefcolor">#FFD7A47A</color>
+    <color name="profile_text_primary">@color/text_color</color>
+    <color name="profile_text_accent">#FFD7A47A</color>
+
     <color name="colorAccentBrown">#FF128F80</color>
     <color name="colorPrimaryBrown">#FF1F2021</color>
     <color name="colorPrimaryDarkBrown">#FF1F2021</color>

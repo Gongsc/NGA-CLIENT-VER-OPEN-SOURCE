@@ -1,5 +1,6 @@
 package sp.phone.ui.fragment
 
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
@@ -209,7 +210,18 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
 
 
     private fun User.toHomeAccount() = HomeAccount(userId, nickName.orEmpty(), FunctionUtils.parseAvatarUrl(avatarUrl))
-    override fun jumpToLogin() = mPresenter.startLogin()
+    /** 登录成功后回到首个页签并强制同步当前账号的论坛收藏。 */
+    private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            state.selected = 0
+            refreshState()
+            favorites.refresh(force = true)
+        }
+    }
+
+    override fun jumpToLogin() {
+        loginLauncher.launch(AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_LOGIN).intent(requireContext()))
+    }
     override fun switchToNextUser(): Int {
         val users = UserManagerImpl.getInstance()
         val next = (users.activeUserIndex + 1) % users.userSize.coerceAtLeast(1)
@@ -219,14 +231,6 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
         return next
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == ActivityUtils.REQUEST_CODE_LOGIN && resultCode == Activity.RESULT_OK) {
-            state.selected = 0
-            refreshState()
-            favorites.refresh(force = true)
-        } else if (requestCode == ActivityUtils.REQUEST_CODE_SETTING) refreshState()
-    }
 }
 
 /** 从个人资料响应中取头像原始值；解析失败返回空串，由调用方保留默认头像。 */

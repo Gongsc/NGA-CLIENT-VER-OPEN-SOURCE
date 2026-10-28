@@ -1,5 +1,6 @@
 package gov.anzong.androidnga.ui.fragment
 
+import androidx.activity.result.contract.ActivityResultContracts
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -187,12 +188,12 @@ class ComposeTopicListFragment : BaseFragment() {
             R.id.menu_remove_bookmark -> { presenter.removeBookmarkBoard(param.fid, param.stid); updateActions() }
             R.id.menu_history -> ActivityUtils.startHistoryTopicActivity(requireContext())
             R.id.menu_board_head -> presenter.startArticleActivity(param.boardHead, "${param.title} - 版头")
-            R.id.menu_sub_board -> startActivityForResult(Intent(requireContext(), LauncherSubActivity::class.java).apply {
+            R.id.menu_sub_board -> subBoardLauncher.launch(Intent(requireContext(), LauncherSubActivity::class.java).apply {
                 putExtra("fragment", BoardSubListFragment::class.java.name)
                 putExtra(ParamKey.KEY_TITLE, param.title)
                 putExtra(ParamKey.KEY_FID, param.fid)
                 putParcelableArrayListExtra("subBoard", store.info?.subBoardList)
-            }, ActivityUtils.REQUEST_CODE_SUB_BOARD)
+            })
             else -> {
                 val menu = PopupMenu(requireContext(), View(requireContext())).menu
                 requireActivity().menuInflater.inflate(R.menu.topic_list_menu, menu)
@@ -201,8 +202,8 @@ class ComposeTopicListFragment : BaseFragment() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == ActivityUtils.REQUEST_CODE_SUB_BOARD && resultCode == Activity.RESULT_OK) refresh()
+    /** 子版块页订阅状态变化时返回 RESULT_OK，刷新列表。 */
+    private val subBoardLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) refresh()
     }
 }

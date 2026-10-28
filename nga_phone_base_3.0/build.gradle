@@ -94,7 +94,7 @@ dependencies {
 
     implementation fileTree(include: '*.jar', dir: 'libs')
 
-    implementation "androidx.viewpager:viewpager:1.1.0"
+    implementation "androidx.viewpager2:viewpager2:1.1.0"
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0"
     implementation "com.google.android.material:material:${rootProject.ext.androidxMaterial}"
 

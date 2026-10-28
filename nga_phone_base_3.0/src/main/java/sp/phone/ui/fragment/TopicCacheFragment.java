@@ -1,5 +1,7 @@
 package sp.phone.ui.fragment;
 
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.ActivityResultLauncher;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -80,7 +82,7 @@ public class TopicCacheFragment extends TopicSearchFragment implements View.OnLo
         if (selectedResourceId == R.id.menu_cache_export) {
                 mPresenter.exportCacheTopic(this);
         } else if (selectedResourceId == R.id.menu_cache_import) {
-                mPresenter.showFileChooser(this);
+                mPresenter.showFileChooser(mImportLauncher);
         } else {
                 return super.onOptionsItemSelected(item);
         }
@@ -102,15 +104,10 @@ public class TopicCacheFragment extends TopicSearchFragment implements View.OnLo
         startActivity(intent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_IMPORT_CACHE && resultCode == Activity.RESULT_OK) {
-            if (data == null) {
-                return;
-            }
-            mPresenter.importCacheTopic(data.getData());
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
+    private final ActivityResultLauncher<String[]> mImportLauncher =
+            registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
+                if (uri != null) {
+                    mPresenter.importCacheTopic(uri);
+                }
+            });
 }

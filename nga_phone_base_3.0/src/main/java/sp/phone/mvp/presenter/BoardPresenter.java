@@ -132,8 +132,7 @@ public class BoardPresenter extends BasePresenter<NavigationDrawerFragment, Boar
 
     @Override
     public void startLogin() {
-        ARouterUtils.build(ARouterConstants.ACTIVITY_LOGIN)
-                .navigation((Activity) mBaseView.getContext(), ActivityUtils.REQUEST_CODE_LOGIN);
+        mBaseView.jumpToLogin();
     }
 
     @Override

@@ -1,5 +1,7 @@
 package sp.phone.ui.fragment;
 
+import androidx.core.os.BundleCompat;
+import sp.phone.param.MessagePostParam;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,7 +30,7 @@ public class MessagePostFragment extends BaseMvpFragment<MessagePostPresenter>
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPresenter.setPostParam(getArguments().getParcelable("param"));
+        mPresenter.setPostParam(BundleCompat.getParcelable(getArguments(), "param", MessagePostParam.class));
     }
 
     @Override

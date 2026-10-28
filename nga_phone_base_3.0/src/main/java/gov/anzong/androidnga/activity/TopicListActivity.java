@@ -1,5 +1,6 @@
 package gov.anzong.androidnga.activity;
 
+import androidx.core.os.BundleCompat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -43,7 +44,7 @@ public class TopicListActivity extends BaseActivity {
             requestParam.fid = StringUtils.getUrlParameter(url, "fid");
             requestParam.stid = StringUtils.getUrlParameter(url, "stid");
         } else if (bundle != null) {
-            requestParam = bundle.getParcelable(ParamKey.KEY_PARAM);
+            requestParam = BundleCompat.getParcelable(bundle, ParamKey.KEY_PARAM, TopicListParam.class);
             if (requestParam == null) {
                 requestParam = new TopicListParam();
                 requestParam.fid = bundle.getInt(ParamKey.KEY_FID, 0);

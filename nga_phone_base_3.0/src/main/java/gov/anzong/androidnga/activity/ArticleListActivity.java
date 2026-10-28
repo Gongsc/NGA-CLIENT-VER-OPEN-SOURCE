@@ -1,5 +1,6 @@
 package gov.anzong.androidnga.activity;
 
+import androidx.core.os.BundleCompat;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -47,7 +48,7 @@ public class ArticleListActivity extends BaseActivity {
             param.page = queryInt(Uri.parse(url), "page");
             param.searchPost = queryInt(Uri.parse(url), ParamKey.KEY_SEARCH_POST);
         } else if (bundle != null) {
-            param = bundle.getParcelable(ParamKey.KEY_PARAM);
+            param = BundleCompat.getParcelable(bundle, ParamKey.KEY_PARAM, ArticleListParam.class);
             if (param == null) {
                 param = new ArticleListParam();
                 param.tid = bundle.getInt(ParamKey.KEY_TID, 0);
