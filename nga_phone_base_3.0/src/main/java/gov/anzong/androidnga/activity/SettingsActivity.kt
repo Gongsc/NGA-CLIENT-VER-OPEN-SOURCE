@@ -3,7 +3,16 @@ package gov.anzong.androidnga.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import gov.anzong.androidnga.mvvm.viewmodel.SettingsListsViewModel
+import sp.phone.common.PhoneConfiguration
+import sp.phone.util.FunctionUtils
 import com.bumptech.glide.Glide
 import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.coroutines.AppScope
@@ -22,15 +31,31 @@ class SettingsActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         val preferences=getSharedPreferences(PreferenceKey.PERFERENCE,Context.MODE_PRIVATE)
         setContent {NgaTheme {
-            SettingsScreen(preferences,{finish()}, {destination->
-                val fragment=when(destination) {
-                    "accounts"->"sp.phone.ui.fragment.SettingsUserFragment"
-                    "blacklist"->"sp.phone.ui.fragment.SettingsBlackListFragment"
-                    else->"sp.phone.ui.fragment.FilterKeywordsFragment"
-                }
-                startActivity(Intent(this,LauncherSubActivity::class.java).putExtra("fragment",fragment))
-            },::clearCache)
+            // 关键词屏蔽、黑名单与账号管理是设置页内的子页面，返回键回到设置
+            var page by rememberSaveable {mutableStateOf<String?>(null)}
+            BackHandler(page!=null) {page=null}
+            val back={page=null}
+            when(page) {
+                "keywords"->KeywordFilterScreen(lists.keywords,lists::addKeyword,lists::toggleKeyword,lists::removeKeyword,back)
+                "blacklist"->BlacklistScreen(lists.blacklist,{showProfile(it.name)},{lists.unblock(it.uid)},lists::clearBlacklist,back)
+                "accounts"->AccountsScreen(lists.accounts,{FunctionUtils.parseAvatarUrl(it.avatarUrl)},lists::activateAccount,
+                    lists::moveAccount,{showProfile(it.name)},lists::removeAccount,{startActivity(Intent(this,LoginActivity::class.java))},back)
+                else->SettingsScreen(preferences,{finish()},{lists.reload();page=it},::clearCache)
+            }
         }}
+    }
+
+    private val lists:SettingsListsViewModel by viewModels()
+
+    /** 从登录或资料页返回后刷新账号与黑名单。 */
+    override fun onResume() {
+        super.onResume()
+        lists.reload()
+    }
+
+    private fun showProfile(userName:String) {
+        startActivity(Intent(this,PhoneConfiguration.getInstance().profileActivityClass)
+            .putExtra("mode","username").putExtra("username",userName))
     }
     /** 清除图片与网页缓存；离开设置页也会继续完成。 */
     private fun clearCache() {

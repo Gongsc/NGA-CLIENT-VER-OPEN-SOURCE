@@ -91,7 +91,7 @@ public class UserManagerImpl implements UserManager {
     /** 在调用时取账号列表的快照，按顺序在后台写入数据库，较早的快照不会覆盖较新的。 */
     private void saveUsers() {
         User[] users = mUserList.toArray(new User[0]);
-        BackgroundTask.runSerially(() -> AppDatabase.getInstance().userDao().updateUsers(users));
+        BackgroundTask.runSerially(() -> AppDatabase.getInstance().userDao().replaceAll(users));
     }
 
     @Override
@@ -204,6 +204,9 @@ public class UserManagerImpl implements UserManager {
         mUserList.remove(index);
         if (mUserList.isEmpty() || mActiveIndex == index) {
             mActiveIndex = 0;
+        } else if (index < mActiveIndex) {
+            // 当前账号前移了一位，保持仍是同一个账号
+            mActiveIndex--;
         }
         commit();
     }
@@ -240,6 +243,7 @@ public class UserManagerImpl implements UserManager {
 
     @Override
     public void swapUser(int from, int to) {
+        User active = getActiveUser();
         if (from < to) {
             for (int i = from; i < to; i++) {
                 Collections.swap(mUserList, i, i + 1);
@@ -248,6 +252,10 @@ public class UserManagerImpl implements UserManager {
             for (int i = from; i > to; i--) {
                 Collections.swap(mUserList, i, i - 1);
             }
+        }
+        // 调整顺序不改变当前账号
+        if (active != null) {
+            mActiveIndex = mUserList.indexOf(active);
         }
         commit();
     }

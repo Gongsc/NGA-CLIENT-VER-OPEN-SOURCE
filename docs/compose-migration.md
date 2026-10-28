@@ -24,10 +24,11 @@
 - 贴条：Compose 对话框、长度校验、匿名选项、提交反馈与楼层列表刷新。
 - 关于：Compose 应用信息、许可证、更新与贡献者信息。
 - 字号设置：Compose Slider 和预览，沿用已有配置键。
+- 设置子页面：关键词屏蔽（添加、去重、启用开关、确认删除）、用户黑名单（移除、清空确认）、账号管理（切换当前账号、上移下移、查看资料、确认移除、添加账号），作为设置页内的子页面，由 `SettingsListsViewModel` 读写。
 
 Compose 页面通过 ComposeView / setContent 接入现有 Activity、Fragment 和业务层；Fragment 中的 composition 跟随 View 生命周期销毁。
 
-登录认证网页与帖子正文保留 WebView，通过 AndroidView 接入 Compose。详情分页采用 Compose Pager，并通过 AndroidFragment 管理单页请求及生命周期。用户资料、私信、设置主体与缓存管理入口仍保留原有 View 实现。原登录、编辑器及楼层列表 XML、列表适配器和格式工具面板已移除。
+登录认证网页与帖子正文保留 WebView，通过 AndroidView 接入 Compose。详情分页采用 Compose Pager，并通过 AndroidFragment 管理单页请求及生命周期。用户资料、私信、浏览历史与缓存管理仍保留原有 View 实现。原登录、编辑器及楼层列表 XML、列表适配器和格式工具面板已移除。
 
 ## 系统行为
 
