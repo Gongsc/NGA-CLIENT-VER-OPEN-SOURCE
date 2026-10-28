@@ -19,7 +19,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import gov.anzong.androidnga.R;
 
-import sp.phone.rxjava.RxEvent;
+import gov.anzong.androidnga.coroutines.UiEvent;
 
 public class LoginDialogFragment extends BaseDialogFragment {
     public WebView mAuthCodeWebView;
@@ -46,10 +46,10 @@ public class LoginDialogFragment extends BaseDialogFragment {
         // 随对话框销毁结束订阅，原先的订阅从未释放。
         UiEventBus.observe(
                 this,
-                rxEvent -> {
-                    if (rxEvent.what == RxEvent.EVENT_LOGIN_AUTH_CODE_UPDATE
+                event -> {
+                    if (event.what == UiEvent.EVENT_LOGIN_AUTH_CODE_UPDATE
                             && mAuthCodeWebView != null) {
-                        mAuthCodeWebView.loadUrl(String.valueOf(rxEvent.obj));
+                        mAuthCodeWebView.loadUrl(String.valueOf(event.obj));
                     }
                 });
     }

@@ -11,7 +11,7 @@ import sp.phone.mvp.presenter.BasePresenter;
  * Created by Justwen on 2017/11/25.
  */
 
-public abstract class BaseMvpFragment<T extends BasePresenter> extends BaseRxFragment {
+public abstract class BaseMvpFragment<T extends BasePresenter> extends BaseEventFragment {
 
     protected T mPresenter;
 

@@ -26,9 +26,9 @@ project.ext {
     appVersionName = '4.2.1'
     appVersionCode = 4201
     lifecycle_version = '2.11.0'
-    androidxAppcompat = '1.7.1'
-    androidxMaterial = '1.13.0'
-    room_version = '2.8.4'
+    androidxAppcompat = '1.8.0'
+    androidxMaterial = '1.14.0'
+    room_version = '2.8.5'
     retrofit = '3.0.0'
     okhttp = '4.12.0'
     coroutines = '1.9.0'

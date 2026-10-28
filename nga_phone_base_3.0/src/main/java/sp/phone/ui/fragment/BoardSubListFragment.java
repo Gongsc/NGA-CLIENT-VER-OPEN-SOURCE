@@ -26,7 +26,7 @@ import sp.phone.view.RecyclerViewEx;
  * Created by Justwen on 2018/1/27.
  */
 
-public class BoardSubListFragment extends BaseRxFragment implements View.OnClickListener {
+public class BoardSubListFragment extends BaseEventFragment implements View.OnClickListener {
 
     private RecyclerViewEx mListView;
 

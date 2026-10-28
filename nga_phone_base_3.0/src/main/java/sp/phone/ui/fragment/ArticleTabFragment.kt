@@ -30,7 +30,7 @@ import sp.phone.task.BookmarkTask
 import sp.phone.theme.ThemeManager
 import sp.phone.util.FunctionUtils
 
-class ArticleTabFragment : BaseRxFragment() {
+class ArticleTabFragment : BaseEventFragment() {
     private lateinit var request: ArticleListParam
     private val state = ArticleReaderState()
     private val share get() = getActivityViewModelProvider()[ArticleShareViewModel::class.java]

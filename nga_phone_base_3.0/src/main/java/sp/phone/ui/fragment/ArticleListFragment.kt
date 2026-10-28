@@ -31,7 +31,7 @@ import sp.phone.mvp.presenter.ArticleListPresenter
 import sp.phone.mvp.viewmodel.ArticleShareViewModel
 import sp.phone.param.ArticleListParam
 import sp.phone.param.ParamKey
-import sp.phone.rxjava.RxEvent
+import gov.anzong.androidnga.coroutines.UiEvent
 import sp.phone.task.BookmarkTask
 import sp.phone.ui.fragment.dialog.AvatarDialogFragment
 import sp.phone.ui.fragment.dialog.BaseDialogFragment
@@ -51,7 +51,7 @@ open class ArticleListFragment : BaseMvpFragment<ArticleListPresenter>(), Articl
         request = BundleCompat.getParcelable(requireArguments(), ParamKey.KEY_PARAM, ArticleListParam::class.java)!!
         request.page = request.page.coerceAtLeast(1)
         super.onCreate(savedInstanceState)
-        registerRxBus()
+        registerUiEvents()
     }
     override fun onCreatePresenter() = ArticleListPresenter(request)
 
@@ -140,11 +140,11 @@ open class ArticleListFragment : BaseMvpFragment<ArticleListPresenter>(), Articl
         bundle.putInt("page", request.page)
         PostCommentDialogFragment().apply { arguments = bundle }.show(parentFragmentManager)
     }
-    override fun accept(event: RxEvent) {
-        if (event.what == RxEvent.EVENT_ARTICLE_GO_FLOOR && event.arg + 1 == request.page && event.obj != null) {
+    override fun onUiEvent(event: UiEvent) {
+        if (event.what == UiEvent.EVENT_ARTICLE_GO_FLOOR && event.arg + 1 == request.page && event.obj != null) {
             state.targetFloor = (request.page - 1) * 20 + (event.obj as Int)
             state.scrollRequest++
-        } else super.accept(event)
+        } else super.onUiEvent(event)
     }
     fun scrollToFloor(floor: Int) { state.targetFloor = floor; state.scrollRequest++ }
 

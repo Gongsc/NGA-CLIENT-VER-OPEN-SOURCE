@@ -35,7 +35,7 @@ import sp.phone.http.retrofit.NgaApi
 import sp.phone.mvp.contract.BoardContract
 import sp.phone.mvp.model.entity.Board
 import sp.phone.mvp.presenter.BoardPresenter
-import sp.phone.rxjava.RxEvent
+import gov.anzong.androidnga.coroutines.UiEvent
 import sp.phone.ui.fragment.dialog.AddBoardDialogFragment
 import sp.phone.util.ActivityUtils
 
@@ -49,7 +49,7 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        registerRxBus()
+        registerUiEvents()
         inbox = ViewModelProvider(this)[HomeInboxViewModel::class.java]
         favorites = ViewModelProvider(this)[ForumFavoritesViewModel::class.java]
         state.selected = savedInstanceState?.getInt("selected_category")
@@ -59,9 +59,9 @@ class NavigationDrawerFragment : BaseMvpFragment<BoardPresenter>(), BoardContrac
 
     override fun onCreatePresenter() = BoardPresenter()
 
-    override fun accept(event: RxEvent) {
-        if (event.what == RxEvent.EVENT_SHOW_TOPIC_LIST) mPresenter.showTopicList(event.obj as Board)
-        else super.accept(event)
+    override fun onUiEvent(event: UiEvent) {
+        if (event.what == UiEvent.EVENT_SHOW_TOPIC_LIST) mPresenter.showTopicList(event.obj as Board)
+        else super.onUiEvent(event)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {

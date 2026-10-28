@@ -13,7 +13,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import sp.phone.rxjava.RxEvent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class UiEventBusTest {
@@ -27,16 +26,16 @@ class UiEventBusTest {
     }
 
     @Test fun eventsReachLiveSubscribersOnlyWithoutReplay() {
-        UiEventBus.post(RxEvent(RxEvent.EVENT_SHOW_TOPIC_LIST, "订阅前"))
+        UiEventBus.post(UiEvent(UiEvent.EVENT_SHOW_TOPIC_LIST, "订阅前"))
         val first = Page()
         val second = Page()
         val a = mutableListOf<Any?>()
         val b = mutableListOf<Any?>()
         UiEventBus.observe(first) { a += it.obj }
         UiEventBus.observe(second) { b += it.obj }
-        UiEventBus.post(RxEvent(RxEvent.EVENT_SHOW_TOPIC_LIST, "版块"))
+        UiEventBus.post(UiEvent(UiEvent.EVENT_SHOW_TOPIC_LIST, "版块"))
         first.registry.currentState = Lifecycle.State.DESTROYED
-        UiEventBus.post(RxEvent(RxEvent.EVENT_LOGIN_AUTH_CODE_UPDATE, "验证码"))
+        UiEventBus.post(UiEvent(UiEvent.EVENT_LOGIN_AUTH_CODE_UPDATE, "验证码"))
         assertEquals(listOf<Any?>("版块"), a)
         assertEquals(listOf<Any?>("版块", "验证码"), b)
         second.registry.currentState = Lifecycle.State.DESTROYED

@@ -1,107 +1,112 @@
 ------------------------------
- Android Open Source Project
+ Android Open Source Project / Android Jetpack (AndroidX)
 ------------------------------
-  see source code for referenced code and text resources
+  androidx.*  (Activity, AppCompat, Compose, Core, Fragment, Lifecycle, Room, RecyclerView, ViewPager, SwipeRefreshLayout 等)
 
-  Copyright 2009-2012 The Android Open Source Project
+  https://developer.android.com/jetpack/androidx
 
-  Android is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0
+  Copyright The Android Open Source Project
 
-  
-------------------------------
- Android-PullToRefresh ?.?.?
-------------------------------
-  uk.co.senab.actionbarpulltorefresh.library
+  Licensed under the Apache License, Version 2.0; http://www.apache.org/licenses/LICENSE-2.0
 
-  https://github.com/chrisbanes/ActionBar-PullToRefresh
-
-  Copyright 2013 Chris Banes
-
-  Android-PullToRefresh is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0 
-  
 
 ------------------------------
- Android-Universal-Image-Loader 1.9.2
+ Material Components for Android
 ------------------------------
-  com.nostra13.universalimageloader
+  com.google.android.material
 
-  https://github.com/nostra13/Android-Universal-Image-Loader
+  https://github.com/material-components/material-components-android
 
-  Copyright 2011-2014 Sergey Tarasevich
+  Copyright Google LLC
 
-  Android-Universal-Image-Loader is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0 
-  
+  Licensed under the Apache License, Version 2.0; http://www.apache.org/licenses/LICENSE-2.0
 
-------------------------------
- Android-ViewBadger 1.0
-------------------------------
-  com.readystatesoftware.viewbadger
-
-  https://github.com/jgilfelt/android-viewbadger
-
-  Copyright 2011 readyState Software Ltd.
-
-  Android-ViewBadger is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0 
-  
 
 ------------------------------
- PagerSlidingTabStrip ?.?.?
+ Kotlin Standard Library / kotlinx.coroutines / JetBrains Annotations
 ------------------------------
-  com.astuetz
+  org.jetbrains.kotlin, org.jetbrains.kotlinx, org.jetbrains:annotations
 
-  https://github.com/astuetz/PagerSlidingTabStrip
+  https://github.com/JetBrains/kotlin
+  https://github.com/Kotlin/kotlinx.coroutines
 
-  Copyright 2013 Andreas Stuetz
+  Copyright JetBrains s.r.o. and Kotlin Programming Language contributors
 
-  PagerSlidingTabStrip is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0 
-  
+  Licensed under the Apache License, Version 2.0; http://www.apache.org/licenses/LICENSE-2.0
 
-------------------------------
- PinterestLikeAdapterView 1.0
-------------------------------
-  com.huewu.pla.lib
-
-  https://github.com/GDG-Korea/PinterestLikeAdapterView
-
-  Copyright 2012 PinterestLikeAdapterView authors
-
-  PinterestLikeAdapterView is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0 
-  
 
 ------------------------------
- SwipeBackLayoutLibrary 1.0
+ Glide 4.16.0
 ------------------------------
-  me.imid.swipebacklayout.lib
+  com.github.bumptech.glide
 
-  https://github.com/Issacw0ng/SwipeBackLayout
+  https://github.com/bumptech/glide
 
-  Copyright 2013 Issac Wong
+  Copyright 2014 Google, Inc.
 
-  SwipeBackLayoutLibrary is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0 
-  
+  Glide is Licensed under a BSD-style license, with parts under the MIT License
+  (gifdecoder, Copyright 2013 Xcellent Creations, Inc.) and the Apache License, Version 2.0
+  (disklrucache, Copyright 2012 Jake Wharton); https://github.com/bumptech/glide/blob/master/LICENSE
 
-------------------------------
- GSON 2.2.4
-------------------------------
-  libs/gson-2.2.4.jar
-
-  https://code.google.com/p/google-gson/
-
-  Copyright 2008-2009 Google Inc. 
-
-  GSON is Licensed under the Apache License, Version 2.0 (the "License"); http://www.apache.org/licenses/LICENSE-2.0 
-  
 
 ------------------------------
- JSOUP 1.7.3
+ Retrofit 3.0.0
 ------------------------------
-  libs/jsoup-1.7.3.jar
+  com.squareup.retrofit2
 
-  http://jsoup.org/
+  https://github.com/square/retrofit
 
-  Copyright 2009-2013 Jonathan Hedley
+  Copyright 2013 Square, Inc.
 
-  JSOUP is Licensed under the MIT License; http://opensource.org/licenses/MIT
-  
+  Licensed under the Apache License, Version 2.0; http://www.apache.org/licenses/LICENSE-2.0
 
+
+------------------------------
+ OkHttp 4.12.0 / Okio 3.6.0
+------------------------------
+  com.squareup.okhttp3, com.squareup.okio
+
+  https://github.com/square/okhttp
+  https://github.com/square/okio
+
+  Copyright 2019 Square, Inc.
+
+  Licensed under the Apache License, Version 2.0; http://www.apache.org/licenses/LICENSE-2.0
+
+
+------------------------------
+ jsoup 1.23.2
+------------------------------
+  org.jsoup
+
+  https://jsoup.org/
+
+  Copyright (c) 2009-2025 Jonathan Hedley
+
+  jsoup is Licensed under the MIT License; https://opensource.org/licenses/MIT
+
+
+------------------------------
+ Guava ListenableFuture 1.0 / Error Prone Annotations
+------------------------------
+  com.google.guava:listenablefuture, com.google.errorprone:error_prone_annotations
+
+  https://github.com/google/guava
+  https://github.com/google/error-prone
+
+  Copyright Google LLC
+
+  Licensed under the Apache License, Version 2.0; http://www.apache.org/licenses/LICENSE-2.0
+
+
+------------------------------
+ JSpecify 1.0.0
+------------------------------
+  org.jspecify
+
+  https://jspecify.dev/
+
+  Copyright The JSpecify Authors
+
+  Licensed under the Apache License, Version 2.0; http://www.apache.org/licenses/LICENSE-2.0
 

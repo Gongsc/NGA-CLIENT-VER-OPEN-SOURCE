@@ -83,7 +83,7 @@ dependencies {
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.material:material-icons-core'
     implementation 'androidx.activity:activity-compose:1.13.0'
-    implementation 'androidx.fragment:fragment-compose:1.9.0'
+    implementation 'androidx.fragment:fragment-compose:1.9.1'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation platform('androidx.compose:compose-bom:2026.09.00')
@@ -97,7 +97,6 @@ dependencies {
     implementation "androidx.viewpager:viewpager:1.1.0"
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0"
     implementation "com.google.android.material:material:${rootProject.ext.androidxMaterial}"
-    implementation "androidx.cardview:cardview:1.0.0"
 
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${rootProject.ext.lifecycle_version}"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:${rootProject.ext.lifecycle_version}"
@@ -127,5 +126,5 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:${rootProject.ext.room_version}"
 
     // kotlin
-    implementation "androidx.core:core-ktx:1.17.0"
+    implementation "androidx.core:core-ktx:1.19.1"
 }

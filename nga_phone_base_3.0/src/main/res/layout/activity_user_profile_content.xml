@@ -15,7 +15,10 @@
         android:paddingBottom="@dimen/cardview_default_margin_top_bottom"
         android:paddingTop="@dimen/cardview_default_margin_top_bottom">
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Material3.CardView.Elevated"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/cardview_default_margin_top_bottom"
@@ -255,9 +258,12 @@
                     android:textColor="#808080"
                     android:textIsSelectable="false"/>
             </RelativeLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Material3.CardView.Elevated"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/cardview_default_margin_top_bottom"
@@ -303,9 +309,12 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/tv_sign_title"/>
             </RelativeLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Material3.CardView.Elevated"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp"
             android:id="@+id/card_admin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -343,9 +352,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.Material3.CardView.Elevated"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/cardview_default_margin_top_bottom"
@@ -383,6 +395,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -17,7 +17,7 @@ import gov.anzong.androidnga.ui.compose.*
 import sp.phone.mvp.contract.TopicPostContract
 import sp.phone.mvp.presenter.TopicPostPresenter
 import sp.phone.param.PostParam
-import sp.phone.rxjava.RxEvent
+import gov.anzong.androidnga.coroutines.UiEvent
 
 class TopicPostFragment : BaseMvpFragment<TopicPostPresenter>(), TopicPostContract.View {
     private val state = PostEditorState()
@@ -37,7 +37,7 @@ class TopicPostFragment : BaseMvpFragment<TopicPostPresenter>(), TopicPostContra
         state.body = TextFieldValue(body, TextRange(savedInstanceState?.getInt("cursor", body.length)?.coerceIn(0, body.length) ?: body.length))
         state.anonymous = savedInstanceState?.getBoolean("anonymous") ?: false
         mPresenter.setPostParam(param)
-        registerRxBus()
+        registerUiEvents()
     }
 
     override fun onCreatePresenter() = TopicPostPresenter()
@@ -83,8 +83,8 @@ class TopicPostFragment : BaseMvpFragment<TopicPostPresenter>(), TopicPostContra
     fun setSubmitting(value: Boolean) { state.submitting = value }
     fun setEditorError(message: String?) { state.error = message }
     fun setAttachmentReady(ready: Boolean) { state.attachmentReady = ready; state.preparing = false }
-    override fun accept(event: RxEvent) {
-        if (event.what == RxEvent.EVENT_INSERT_EMOTICON) insertBodyText(event.obj as String) else super.accept(event)
+    override fun onUiEvent(event: UiEvent) {
+        if (event.what == UiEvent.EVENT_INSERT_EMOTICON) insertBodyText(event.obj as String) else super.onUiEvent(event)
     }
     private fun loadCategories() {
         state.categoryLoading = true

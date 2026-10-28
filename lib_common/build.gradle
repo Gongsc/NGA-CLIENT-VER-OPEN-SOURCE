@@ -38,7 +38,7 @@ dependencies {
     api "androidx.appcompat:appcompat:${rootProject.ext.androidxAppcompat}"
 
     // kotlin
-    implementation "androidx.core:core-ktx:1.17.0"
+    implementation "androidx.core:core-ktx:1.19.1"
 
     // okhttp
     implementation "com.squareup.okhttp3:okhttp:${rootProject.ext.okhttp}"

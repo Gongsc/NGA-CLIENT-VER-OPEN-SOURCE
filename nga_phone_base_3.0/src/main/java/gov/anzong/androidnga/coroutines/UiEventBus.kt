@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import sp.phone.rxjava.RxEvent
 import java.util.function.Consumer
 
 /**
@@ -14,18 +13,18 @@ import java.util.function.Consumer
  */
 object UiEventBus {
 
-    private val events = MutableSharedFlow<RxEvent>(extraBufferCapacity = 64)
+    private val events = MutableSharedFlow<UiEvent>(extraBufferCapacity = 64)
 
-    val flow: SharedFlow<RxEvent> = events.asSharedFlow()
+    val flow: SharedFlow<UiEvent> = events.asSharedFlow()
 
     @JvmStatic
-    fun post(event: RxEvent) {
+    fun post(event: UiEvent) {
         events.tryEmit(event)
     }
 
     /** 在主线程接收事件，直到 [owner] 销毁。 */
     @JvmStatic
-    fun observe(owner: LifecycleOwner, consumer: Consumer<RxEvent>) {
+    fun observe(owner: LifecycleOwner, consumer: Consumer<UiEvent>) {
         owner.lifecycleScope.launch { events.collect { consumer.accept(it) } }
     }
 }

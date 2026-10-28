@@ -17,7 +17,7 @@ import gov.anzong.androidnga.R;
 
 import sp.phone.mvp.contract.LoginContract;
 import sp.phone.mvp.presenter.LoginPresenter;
-import sp.phone.rxjava.RxEvent;
+import gov.anzong.androidnga.coroutines.UiEvent;
 import sp.phone.ui.fragment.dialog.LoginDialogFragment;
 
 public class LoginFragment extends BaseMvpFragment<LoginPresenter>
@@ -73,7 +73,7 @@ public class LoginFragment extends BaseMvpFragment<LoginPresenter>
     @Override
     public void setAuthCodeImg(String dataUrl) {
         mAuthCodeDataUrl = dataUrl;
-        UiEventBus.post(new RxEvent(RxEvent.EVENT_LOGIN_AUTH_CODE_UPDATE, mAuthCodeDataUrl));
+        UiEventBus.post(new UiEvent(UiEvent.EVENT_LOGIN_AUTH_CODE_UPDATE, mAuthCodeDataUrl));
     }
 
     @Override

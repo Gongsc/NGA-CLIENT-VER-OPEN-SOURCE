@@ -28,7 +28,7 @@ import sp.phone.util.ActivityUtils;
 /**
  * Created by Justwen on 2018/10/12.
  */
-public class SearchHistoryBoardFragment extends BaseRxFragment {
+public class SearchHistoryBoardFragment extends BaseEventFragment {
 
     protected List<String> mKeyList;
 

@@ -33,7 +33,7 @@ import sp.phone.view.RecyclerViewEx;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecentNotificationFragment extends BaseRxFragment
+public class RecentNotificationFragment extends BaseEventFragment
         implements OnHttpCallBack<List<RecentReplyInfo>>, View.OnClickListener {
 
     private RecentNotificationAdapter mNotificationAdapter;
