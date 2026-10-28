@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,6 +34,8 @@ class SettingsActivity : BaseActivity() {
         setContent {NgaTheme {
             // 关键词屏蔽、黑名单与账号管理是设置页内的子页面，返回键回到设置
             var page by rememberSaveable {mutableStateOf<String?>(null)}
+            // 列表位置放在子页面切换之外，从子页面返回时停在原处
+            val settingsList=rememberLazyListState()
             BackHandler(page!=null) {page=null}
             val back={page=null}
             when(page) {
@@ -40,7 +43,7 @@ class SettingsActivity : BaseActivity() {
                 "blacklist"->BlacklistScreen(lists.blacklist,{showProfile(it.name)},{lists.unblock(it.uid)},lists::clearBlacklist,back)
                 "accounts"->AccountsScreen(lists.accounts,{FunctionUtils.parseAvatarUrl(it.avatarUrl)},lists::activateAccount,
                     lists::moveAccount,{showProfile(it.name)},lists::removeAccount,{startActivity(Intent(this,LoginActivity::class.java))},back)
-                else->SettingsScreen(preferences,{finish()},{lists.reload();page=it},::clearCache)
+                else->SettingsScreen(preferences,{finish()},{lists.reload();page=it},::clearCache,settingsList)
             }
         }}
     }

@@ -4,6 +4,8 @@ import android.content.SharedPreferences
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +23,8 @@ import gov.anzong.androidnga.common.PreferenceKey as Keys
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(preferences: SharedPreferences, onBack: () -> Unit, onNavigate: (String) -> Unit, onClearCache: () -> Unit) {
+fun SettingsScreen(preferences: SharedPreferences, onBack: () -> Unit, onNavigate: (String) -> Unit, onClearCache: () -> Unit,
+                   listState: LazyListState = rememberLazyListState()) {
     var values by remember(preferences) { mutableStateOf(preferences.all.toMap()) }
     DisposableEffect(preferences) {
         val listener=SharedPreferences.OnSharedPreferenceChangeListener {_,_->values=preferences.all.toMap()}
@@ -54,7 +57,7 @@ fun SettingsScreen(preferences: SharedPreferences, onBack: () -> Unit, onNavigat
         TopAppBar(title={Text("设置")},navigationIcon={ActionIcon(Icons.AutoMirrored.Filled.ArrowBack,"返回",onBack)},
             colors=TopAppBarDefaults.topAppBarColors(containerColor=MaterialTheme.colorScheme.background))
     }) {padding->
-        LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("settings_list"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(24.dp)) {
+        LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("settings_list"),state=listState,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(24.dp)) {
             item {Group("阅读与浏览") {
                 Toggle("左手模式",Keys.LEFT_HAND)
                 Entry("帖子图片",imageOptions.getOrElse((values[Keys.KEY_LOAD_IMAGE_STRATEGY] as? String ?: "0").toIntOrNull()?:0){imageOptions[0]}){choice=Keys.KEY_LOAD_IMAGE_STRATEGY}
