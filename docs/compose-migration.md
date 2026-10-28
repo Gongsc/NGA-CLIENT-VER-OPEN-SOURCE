@@ -26,6 +26,7 @@
 - 字号设置：Compose Slider 和预览，沿用已有配置键。
 - 设置子页面：关键词屏蔽（添加、去重、启用开关、确认删除）、用户黑名单（移除、清空确认）、账号管理（切换当前账号、上移下移、查看资料、确认移除、添加账号），作为设置页内的子页面，由 `SettingsListsViewModel` 读写。
 - 浏览历史：主题列表菜单中的浏览历史改为 `TopicHistoryActivity`，与首页“历史”共用 `HomeHistoryScreen`（按日分组、长按删除、清空确认）。
+- 回复通知：`RecentNotificationActivity`（系统通知栏“被喷提醒”打开的页面）改为 Compose，与首页“消息”共用 `HomeInboxViewModel` 和 `ReplyNotificationCard`；显示通知类型、时间与未读标记，按时间从新到旧排列，下拉刷新，清空前确认。
 
 Compose 页面通过 ComposeView / setContent 接入现有 Activity、Fragment 和业务层；Fragment 中的 composition 跟随 View 生命周期销毁。
 

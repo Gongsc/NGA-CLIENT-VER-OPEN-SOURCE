@@ -6,6 +6,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.After
 import org.junit.Before
 import org.junit.Assert.*
@@ -99,5 +100,31 @@ class HomeInboxViewModelTest {
     @Test fun replyResponseWithServerErrorFails() {
         assertEquals("你需要登录", homeReplyError("{\"error\":{\"0\":\"你需要登录\"}}"))
         assertNotNull(homeReplyError(""))
+    }
+
+    @Test fun repliesAreShownNewestFirst() {
+        fun reply(pid: String, time: String?) = RecentReplyInfo(1, "示例", "主题", pid, "100").apply { timeStamp = time }
+        val vm = HomeInboxViewModel({ "a" }, { "cookie" }, {
+            listOf(reply("1", "100"), reply("2", null), reply("3", "300"), reply("4", "200"))
+        }, { _, _ -> page(1, 0) }, main)
+        vm.selectAccount("a"); vm.loadReplies()
+        assertEquals(listOf("3", "4", "1", "2"), vm.replies.map { it.pidStr })
+    }
+
+    @Test fun clearingRepliesCallsServerOnceAndDropsPendingLoad() {
+        var cleared = 0
+        val pending = CompletableDeferred<List<RecentReplyInfo>>()
+        val vm = HomeInboxViewModel({ "a" }, { "cookie" }, { pending.await() }, { _, _ -> page(1, 0) }, main, { cleared++ })
+        vm.clearReplies()
+        assertEquals(0, cleared)
+        vm.selectAccount("a"); vm.loadReplies()
+        assertTrue(vm.repliesLoading)
+        vm.clearReplies()
+        assertEquals(1, cleared)
+        assertFalse(vm.repliesLoading)
+        pending.complete(listOf(RecentReplyInfo(1, "示例", "主题", "1", "100")))
+        assertTrue(vm.replies.isEmpty())
+        vm.loadReplies()
+        assertTrue(vm.replies.isEmpty())
     }
 }

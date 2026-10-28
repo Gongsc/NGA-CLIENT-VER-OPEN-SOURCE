@@ -15,9 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
 import sp.phone.http.bean.MessageThreadPageInfo
+import sp.phone.common.ApiConstants
 import sp.phone.mvp.model.entity.RecentReplyInfo
 import sp.phone.util.StringUtils
 
@@ -90,13 +92,7 @@ fun HomeMessagesScreen(account: HomeAccount?, inbox: HomeInboxViewModel, replyCo
                     if (tab == 0) {
                         if (!loading && error == null && inbox.replies.isEmpty()) item { Text("暂无回复通知") }
                         items(inbox.replies, key = { "${it.tidStr}:${it.pidStr}" }) { reply ->
-                            OutlinedCard(onClick = { onReply(reply) }, modifier = Modifier.fillMaxWidth()) {
-                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Text(reply.userName.orEmpty(), style = MaterialTheme.typography.titleSmall)
-                                    Text("回复了你的主题或评论", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text(StringUtils.unEscapeHtml(reply.title.orEmpty()), style = MaterialTheme.typography.bodyLarge)
-                                }
-                            }
+                            ReplyNotificationCard(reply, reply.isUnread) { onReply(reply) }
                         }
                     } else {
                         if (!loading && error == null && inbox.messages.isEmpty()) item { Text("暂无短消息") }
@@ -113,6 +109,34 @@ fun HomeMessagesScreen(account: HomeAccount?, inbox: HomeInboxViewModel, replyCo
                     }
                 }
             }
+        }
+    }
+}
+
+/** 通知类型说明；未知类型按回复主题显示，与旧通知页一致。 */
+internal fun replyTypeText(type: Int) = when (type) {
+    ApiConstants.NGA_NOTIFICATION_TYPE_REPLY_REPLY -> "回复了你的回复"
+    ApiConstants.NGA_NOTIFICATION_TYPE_REPLY_COMMENT -> "评论了你的主题"
+    ApiConstants.NGA_NOTIFICATION_TYPE_TOPIC_COMMENT -> "评论了你的回复"
+    ApiConstants.NGA_NOTIFICATION_TYPE_REPLY_AT -> "在回复中@了你"
+    ApiConstants.NGA_NOTIFICATION_TYPE_TOPIC_AT -> "在主题中@了你"
+    else -> "回复了你的主题"
+}
+
+/** 一条回复通知：用户、类型与时间、主题标题；未读时加粗并标记。 */
+@Composable
+fun ReplyNotificationCard(reply: RecentReplyInfo, unread: Boolean, onClick: () -> Unit) {
+    val weight = if (unread) FontWeight.Bold else null
+    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(reply.userName.orEmpty(), style = MaterialTheme.typography.titleSmall, fontWeight = weight)
+                if (unread) Badge { Text("未读") }
+            }
+            val time = reply.timeStamp?.takeIf { it.toLongOrNull() != null }?.let(StringUtils::timeStamp2Date2)
+            Text(listOfNotNull(replyTypeText(reply.type), time).joinToString(" · "), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = weight)
+            Text(StringUtils.unEscapeHtml(reply.title.orEmpty()), style = MaterialTheme.typography.bodyLarge, fontWeight = weight)
         }
     }
 }

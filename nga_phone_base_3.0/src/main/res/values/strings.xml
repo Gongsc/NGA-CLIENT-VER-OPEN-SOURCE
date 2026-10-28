@@ -182,7 +182,6 @@
     <string name="comment">评论</string>
     <string name="sig">签名</string>
     <string name="delete">删除</string>
-    <string name="delete_all">删除全部</string>
     <string name="crash_notice">崩溃啦</string>
     <string name="report_success">操作成功</string>
     <string name="please_relogin">请重新登录</string>
@@ -229,7 +228,6 @@
     <string name="last_page_prompt_message">已加载到短消息列表的最后一页</string>
     <string name="delete_favo_confirm_text">确定要删除这个帖子吗？</string>
     <string name="dragon_ball_collect_complete">你收集到了7颗龙珠,成功召唤了一个叫撸的巨龙\n确定要使用这条巨龙吗(一次确定,多次使用)</string>
-    <string name="delete_recentreply_confirm_text">确定删除全部喷你的信息吗？</string>
     <string name="confirm">确定</string>
     <string name="cancle">取消</string>
     <string name="showColortxtWarn">彩虹发帖模式易导致禁言,专供有自杀需求的用户!</string>

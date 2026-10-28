@@ -22,6 +22,7 @@ import sp.phone.http.bean.MessageThreadPageInfo
 import sp.phone.http.retrofit.NgaApi
 import sp.phone.mvp.model.convert.ForumNotificationFactory
 import sp.phone.mvp.model.convert.MessageConvertFactory
+import sp.phone.task.ForumNotificationTask
 import sp.phone.mvp.model.entity.RecentReplyInfo
 
 /** 首页消息只接收当前账号、当前代次的响应；切换账号即清空旧内容。 */
@@ -31,6 +32,7 @@ class HomeInboxViewModel(
     private val replyRequest: suspend (String) -> List<RecentReplyInfo> = ::requestHomeReplies,
     private val messageRequest: suspend (String, Int) -> MessageListInfo = ::requestHomeMessages,
     private val worker: CoroutineDispatcher = NgaDispatchers.io,
+    private val replyClear: () -> Unit = { ForumNotificationTask(null).clearAllNotification() },
 ) : ViewModel() {
     var replies by mutableStateOf(emptyList<RecentReplyInfo>()); private set
     var messages by mutableStateOf(emptyList<MessageThreadPageInfo>()); private set
@@ -94,7 +96,7 @@ class HomeInboxViewModel(
                 return@launch
             }
             if (current(token, uid)) {
-                replies = data; repliesLoaded = true; repliesLoading = false; onRead()
+                replies = newestFirst(data); repliesLoaded = true; repliesLoading = false; onRead()
             }
         }
     }
@@ -123,8 +125,21 @@ class HomeInboxViewModel(
     }
     fun retryMessages() = loadMessages(force = true, more = retryMore)
 
+    /** 清空服务端的回复通知；清空请求不随页面取消，进行中的读取结果不再显示。 */
+    fun clearReplies() {
+        if (account.isEmpty()) return
+        replyClear()
+        generation++
+        requests.cancel()
+        requests = newRequestScope()
+        replies = emptyList(); replyError = null; repliesLoading = false; repliesLoaded = true
+    }
+
     override fun onCleared() { generation++; requests.cancel() }
 }
+
+/** 最新的通知在前；没有时间的排在最后，同一时间保持服务端顺序。 */
+internal fun newestFirst(replies: List<RecentReplyInfo>) = replies.sortedByDescending { it.timeStamp?.toLongOrNull() ?: Long.MIN_VALUE }
 
 private suspend fun requestHomeReplies(cookie: String): List<RecentReplyInfo> {
     val content = NgaApi.get().get(Utils.getNGAHost() + "nuke.php?__lib=noti&__output=8&__act=get_all", mapOf("Cookie" to cookie))
