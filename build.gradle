@@ -23,8 +23,8 @@ project.ext {
     minSdkVersion = 31
     targetSdkVersion = 37
     compileSdkVersion = 37
-    appVersionName = '4.2.1'
-    appVersionCode = 4201
+    appVersionName = '4.3.0'
+    appVersionCode = 4300
     lifecycle_version = '2.11.0'
     androidxAppcompat = '1.8.0'
     androidxMaterial = '1.14.0'
