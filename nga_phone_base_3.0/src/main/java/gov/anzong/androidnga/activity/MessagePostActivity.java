@@ -31,12 +31,14 @@ public class MessagePostActivity extends BaseActivity {
             setTitle(R.string.reply_message);
         }
 
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("param", postParam);
-        Fragment fragment = new MessagePostFragment();
-        fragment.setArguments(bundle);
-        fragment.setHasOptionsMenu(true);
-        getSupportFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
+        if (savedInstanceState == null) {
+            // 重建时沿用已恢复的 Fragment，保留输入内容与进行中的提交
+            Bundle bundle = new Bundle();
+            bundle.putParcelable("param", postParam);
+            Fragment fragment = new MessagePostFragment();
+            fragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
+        }
 
     }
 

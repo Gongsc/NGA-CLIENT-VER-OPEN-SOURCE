@@ -1,7 +1,6 @@
 package sp.phone.ui.fragment;
 
-import androidx.core.os.BundleCompat;
-import sp.phone.param.MessagePostParam;
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -11,96 +10,102 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.ViewModelProvider;
 
 import gov.anzong.androidnga.R;
-
-import sp.phone.mvp.contract.MessagePostContract;
-import sp.phone.mvp.presenter.MessagePostPresenter;
+import gov.anzong.androidnga.mvvm.viewmodel.MessagePostViewModel;
+import sp.phone.util.ActivityUtils;
 import sp.phone.util.StringUtils;
 
 /** Created by Justwen on 2017/5/28. */
-public class MessagePostFragment extends BaseMvpFragment<MessagePostPresenter>
-        implements MessagePostContract.View {
-    public EditText mTitleEditor;
-    public EditText mRecipientEditor;
-    public EditText mBodyEditor;
-    public ViewGroup mRecipientPanel;
+public class MessagePostFragment extends BaseFragment {
+    private EditText mTitleEditor;
+    private EditText mRecipientEditor;
+    private EditText mBodyEditor;
+
+    private MessagePostViewModel mViewModel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPresenter.setPostParam(BundleCompat.getParcelable(getArguments(), "param", MessagePostParam.class));
-    }
-
-    @Override
-    protected MessagePostPresenter onCreatePresenter() {
-        return new MessagePostPresenter();
+        mViewModel = new ViewModelProvider(this).get(MessagePostViewModel.class);
     }
 
     @Override
     public View onCreateView(
-            LayoutInflater inflater,
+            @NonNull LayoutInflater inflater,
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_message_post, container, false);
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        bindViews(view);
-        mBodyEditor.requestFocus();
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.message_post_menu, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int selectedResourceId = item.getItemId();
-        if (selectedResourceId == R.id.send) {
-                String title = mTitleEditor.getText().toString();
-                String recipient = mRecipientEditor.getText().toString();
-                String body = mBodyEditor.getText().toString();
-                if (StringUtils.isEmpty(recipient) && mRecipientPanel.isShown()) {
-                    mRecipientEditor.setError("请输入收件人");
-                    mRecipientEditor.requestFocus();
-                } else if (StringUtils.isEmpty(body) && body.length() < 6) {
-                    mBodyEditor.setError("请输入内容或者内容字数少于6");
-                    mBodyEditor.requestFocus();
-                } else {
-                    mPresenter.commit(title, recipient, body);
-                }
+        mTitleEditor = view.findViewById(R.id.et_title);
+        mRecipientEditor = view.findViewById(R.id.et_recipient);
+        mBodyEditor = view.findViewById(R.id.et_body);
+        if (!mViewModel.isNewMessage()) {
+            view.findViewById(R.id.panel_recipient).setVisibility(View.GONE);
+        } else if (savedInstanceState == null) {
+            setRecipient(mViewModel.getInitialRecipient());
         }
-        return true;
+        mBodyEditor.requestFocus();
+
+        requireActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+                inflater.inflate(R.menu.message_post_menu, menu);
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull MenuItem item) {
+                if (item.getItemId() != R.id.send) {
+                    return false;
+                }
+                send();
+                return true;
+            }
+        }, getViewLifecycleOwner());
+
+        mViewModel.getResult().observe(getViewLifecycleOwner(), result -> {
+            if (result == null) {
+                return;
+            }
+            mViewModel.resultShown();
+            ActivityUtils.getInstance().dismiss();
+            showToast(result.message);
+            if (result.success) {
+                requireActivity().setResult(Activity.RESULT_OK);
+                requireActivity().finish();
+            }
+        });
     }
 
-    @Override
-    public void setRecipient(String recipient) {
+    private void send() {
+        String title = mTitleEditor.getText().toString();
+        String recipient = mRecipientEditor.getText().toString();
+        String body = mBodyEditor.getText().toString();
+        if (StringUtils.isEmpty(recipient) && mViewModel.isNewMessage()) {
+            mRecipientEditor.setError("请输入收件人");
+            mRecipientEditor.requestFocus();
+        } else if (StringUtils.isEmpty(body)) {
+            mBodyEditor.setError("请输入内容");
+            mBodyEditor.requestFocus();
+        } else if (mViewModel.send(title, recipient, body)) {
+            ActivityUtils.getInstance().noticeSaying(requireActivity());
+        } else {
+            showToast(R.string.avoidWindfury);
+        }
+    }
+
+    private void setRecipient(String recipient) {
         mRecipientEditor.setText(recipient);
         if (recipient != null) {
             mRecipientEditor.setSelection(recipient.length());
         }
     }
-
-    @Override
-    public void finish(int resultCode) {
-        getActivity().setResult(resultCode);
-        getActivity().finish();
-    }
-
-    @Override
-    public void hideRecipientEditor() {
-        mRecipientPanel.setVisibility(View.GONE);
-    }
-
-    protected void bindViews(android.view.View root) {
-        mTitleEditor = root.findViewById(R.id.et_title);
-        mRecipientEditor = root.findViewById(R.id.et_recipient);
-        mBodyEditor = root.findViewById(R.id.et_body);
-        mRecipientPanel = root.findViewById(R.id.panel_recipient);
-}
 }
