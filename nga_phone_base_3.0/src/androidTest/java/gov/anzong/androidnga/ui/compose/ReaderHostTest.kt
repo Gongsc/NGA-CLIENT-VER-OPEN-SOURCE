@@ -40,16 +40,10 @@ class ReaderHostTest {
                     return fragment.childFragmentManager.fragments.firstNotNullOfOrNull(::findReader)
                 }
                 val fragment = activity.supportFragmentManager.fragments.firstNotNullOf(::findReader)
-                val presenter = object : sp.phone.mvp.presenter.ArticleListPresenter(request) {
-                    override fun onCreateModel() = object : sp.phone.mvp.model.ArticleListModel() {
-                        override fun loadPage(param: ArticleListParam, headers: MutableMap<String, String>?, callback: gov.anzong.androidnga.http.OnHttpCallBack<sp.phone.http.bean.ThreadData>) {
-                            val error = sp.phone.http.article.ArticlePageLoader.ResponseFormatException()
-                            callback.onError(error.message, error)
-                        }
-                    }
-                }
-                presenter.attachView(fragment)
-                presenter.loadPage(request)
+                // 换成按网络加载、且总是返回无法解析的响应，不发起真实请求
+                fragment.viewModel.request.loadCache = false
+                fragment.viewModel.pageLoader = { throw sp.phone.http.article.ArticlePageLoader.ResponseFormatException() }
+                fragment.loadPage()
                 org.junit.Assert.assertFalse(activity.isFinishing)
             }
             compose.onNodeWithText("主题加载异常测试").assertIsDisplayed()

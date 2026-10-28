@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Created by Justwen on 2019/6/23. */
-public class BoardModel extends BaseModel implements BoardStore {
+public class BoardModel implements BoardStore {
 
     private List<BoardCategory> mBoardCategoryList = new ArrayList<>();
 
