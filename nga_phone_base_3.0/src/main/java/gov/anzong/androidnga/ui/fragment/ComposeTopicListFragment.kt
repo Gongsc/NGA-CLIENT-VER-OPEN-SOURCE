@@ -15,7 +15,7 @@ import sp.phone.mvp.viewmodel.ForumFavoritesViewModel
 import sp.phone.common.UserManagerImpl
 import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.R
-import gov.anzong.androidnga.activity.LauncherSubActivity
+import gov.anzong.androidnga.activity.SubBoardActivity
 import gov.anzong.androidnga.activity.TopicListActivity
 import gov.anzong.androidnga.arouter.ARouterConstants
 import gov.anzong.androidnga.ui.compose.*
@@ -27,7 +27,6 @@ import sp.phone.param.ParamKey
 import sp.phone.param.TopicListParam
 import sp.phone.param.TopicTitleHelper
 import sp.phone.ui.fragment.BaseFragment
-import sp.phone.ui.fragment.BoardSubListFragment
 import gov.anzong.androidnga.arouter.TopicNavigation
 import sp.phone.util.ActivityUtils
 
@@ -185,8 +184,7 @@ class ComposeTopicListFragment : BaseFragment() {
                 .withInt(ParamKey.KEY_TID, param.boardHead.toInt())
                 .withString(ParamKey.KEY_TITLE, "${param.title} - 版头")
                 .navigation(requireContext())
-            R.id.menu_sub_board -> subBoardLauncher.launch(Intent(requireContext(), LauncherSubActivity::class.java).apply {
-                putExtra("fragment", BoardSubListFragment::class.java.name)
+            R.id.menu_sub_board -> subBoardLauncher.launch(Intent(requireContext(), SubBoardActivity::class.java).apply {
                 putExtra(ParamKey.KEY_TITLE, param.title)
                 putExtra(ParamKey.KEY_FID, param.fid)
                 putParcelableArrayListExtra("subBoard", store.info?.subBoardList)

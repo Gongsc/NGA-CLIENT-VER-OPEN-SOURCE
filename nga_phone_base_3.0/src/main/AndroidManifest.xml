@@ -180,7 +180,7 @@
         <activity android:name=".activity.ForumListActivity" />
         <activity android:name=".activity.WebViewerActivity" />
         <activity android:name=".activity.RecentNotificationActivity" />
-        <activity android:name=".activity.LauncherSubActivity" />
+        <activity android:name=".activity.SubBoardActivity" />
         <activity android:name=".activity.TopicHistoryActivity" />
         <activity
             android:name=".activity.SearchActivity"

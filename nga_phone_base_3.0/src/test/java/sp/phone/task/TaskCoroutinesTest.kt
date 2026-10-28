@@ -12,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -101,18 +102,17 @@ class TaskCoroutinesTest {
         assertTrue(recorder.events.isEmpty())
     }
 
-    @Test fun subBoardActionsKeepInvertedTypesAndMessages() {
+    @Test fun subBoardActionsKeepInvertedTypesAndMessages() = runBlocking {
         val api = FakeNgaApi { "操作成功" }
-        val task = SubscribeSubBoardTask(null) { api }
+        val task = SubscribeSubBoardTask { api }
         val board = SubBoard().apply { type = 0; fid = 7; parentFidStr = "-7" }
         val inverted = SubBoard().apply { type = 1; tidStr = "42"; parentFidStr = "-7" }
-        val recorder = Recorder<String>()
-        task.subscribe(board, recorder)
-        task.unsubscribe(inverted, recorder)
+        assertEquals("已取消屏蔽，刷新后生效", task.setVisible(board, true))
+        assertEquals("已屏蔽子版块，刷新后生效", task.setVisible(inverted, false))
         api.respond = { "没有权限" }
-        task.subscribe(board, recorder)
-        api.respond = { throw IllegalStateException("超时") }
-        task.unsubscribe(board, recorder)
+        assertEquals("没有权限", runCatching { task.setVisible(board, true) }.exceptionOrNull()?.message)
+        api.respond = { "" }
+        assertEquals("操作失败，请稍后重试", runCatching { task.setVisible(board, false) }.exceptionOrNull()?.message)
         assertEquals(
             listOf(
                 "POST http://bbs.ngacn.cc/nuke.php?__lib=user_option&__act=set&raw=3&type=0&__output=8&fid=-7&add=7",
@@ -122,22 +122,6 @@ class TaskCoroutinesTest {
             ),
             api.requests,
         )
-        assertEquals(
-            listOf("success:取消屏蔽成功，请刷新界面！", "success:屏蔽子板块成功，请刷新界面！", "error:没有权限", "error:超时"),
-            recorder.events,
-        )
-    }
-
-    @Test fun subBoardRequestIsCancelledWithPage() {
-        val pending = PendingResponse<String>()
-        val page = Page()
-        val recorder = Recorder<String>()
-        SubscribeSubBoardTask(page) { FakeNgaApi { pending.await() } }
-            .subscribe(SubBoard().apply { fid = 7; parentFidStr = "-7" }, recorder)
-        page.registry.currentState = Lifecycle.State.DESTROYED
-        pending.complete("操作成功")
-        assertTrue(pending.cancelled)
-        assertTrue(recorder.events.isEmpty())
     }
 
     @Test fun notificationsParseOffMainAndClearUsesDeleteEndpoint() {

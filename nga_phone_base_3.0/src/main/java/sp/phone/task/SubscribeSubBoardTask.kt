@@ -1,28 +1,16 @@
 package sp.phone.task
 
-import androidx.lifecycle.LifecycleOwner
-import gov.anzong.androidnga.coroutines.launchWithCallback
-import gov.anzong.androidnga.coroutines.scopeOf
-import gov.anzong.androidnga.http.OnHttpCallBack
 import sp.phone.http.retrofit.NgaApi
 import sp.phone.mvp.model.entity.SubBoard
 
-/** 屏蔽或取消屏蔽子版块，随页面销毁取消。 */
-class SubscribeSubBoardTask @JvmOverloads constructor(
-    private val owner: LifecycleOwner?,
-    private val api: () -> NgaApi = NgaApi::get,
-) {
+/** 屏蔽或取消屏蔽子版块。 */
+class SubscribeSubBoardTask(private val api: () -> NgaApi = NgaApi::get) {
 
-    fun subscribe(subBoard: SubBoard, callBack: OnHttpCallBack<String>) =
-        post(getUrl(subBoard, true), "取消屏蔽成功，请刷新界面！", callBack)
-
-    fun unsubscribe(subBoard: SubBoard, callBack: OnHttpCallBack<String>) =
-        post(getUrl(subBoard, false), "屏蔽子板块成功，请刷新界面！", callBack)
-
-    private fun post(url: String, success: String, callBack: OnHttpCallBack<String>) {
-        scopeOf(owner).launchWithCallback({ s: String ->
-            if (s.contains("成功")) callBack.onSuccess(success) else callBack.onError(s)
-        }, { callBack.onError(it.message) }) { api().post(url) }
+    /** 设置子版块是否显示；成功返回提示，服务端未返回“成功”时以其内容抛出异常。 */
+    suspend fun setVisible(subBoard: SubBoard, visible: Boolean): String {
+        val response = api().post(getUrl(subBoard, visible))
+        check(response.contains("成功")) { response.ifBlank { "操作失败，请稍后重试" } }
+        return if (visible) "已取消屏蔽，刷新后生效" else "已屏蔽子版块，刷新后生效"
     }
 
     internal fun getUrl(subBoard: SubBoard, isSubscribe: Boolean): String {
