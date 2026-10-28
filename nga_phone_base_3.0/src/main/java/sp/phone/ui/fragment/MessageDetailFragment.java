@@ -1,140 +1,110 @@
 package sp.phone.ui.fragment;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import gov.anzong.androidnga.arouter.AppNavigator;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.arouter.ARouterConstants;
-
-import sp.phone.http.bean.MessageDetailInfo;
-import sp.phone.mvp.contract.MessageDetailContract;
-import sp.phone.mvp.presenter.MessageDetailPresenter;
+import gov.anzong.androidnga.arouter.AppNavigator;
+import gov.anzong.androidnga.mvvm.viewmodel.MessageDetailViewModel;
 import sp.phone.ui.adapter.MessageContentAdapter;
 import sp.phone.view.RecyclerViewEx;
 
-public class MessageDetailFragment extends BaseMvpFragment<MessageDetailPresenter>
-        implements MessageDetailContract.IMessageView {
-    SwipeRefreshLayout mSwipeRefreshLayout;
+public class MessageDetailFragment extends BaseFragment {
 
-    private int mMid;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
-    private String mTitle;
-
-    private String mRecipient;
+    private MessageDetailViewModel mViewModel;
 
     private MessageContentAdapter mAdapter;
-
-    private RecyclerViewEx.OnNextPageLoadListener mNextPageLoadListener =
-            new RecyclerViewEx.OnNextPageLoadListener() {
-        @Override
-        public void loadNextPage() {
-            if (!isRefreshing()) {
-                mPresenter.loadPage(mAdapter.getNextPage(), mMid);
-            }
-        }
-    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mMid = getArguments().getInt("mid");
-    }
-
-    @Override
-    protected MessageDetailPresenter onCreatePresenter() {
-        return new MessageDetailPresenter();
+        mViewModel = new ViewModelProvider(this).get(MessageDetailViewModel.class);
     }
 
     @Nullable
     @Override
     public View onCreateView(
-            LayoutInflater inflater,
+            @NonNull LayoutInflater inflater,
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_message_detail, container, false);
-        bindViews(view);
+        mSwipeRefreshLayout = view.findViewById(R.id.swipe_refresh);
 
         mAdapter = new MessageContentAdapter(getContext());
 
-        RecyclerViewEx listView = (RecyclerViewEx) view.findViewById(R.id.list);
+        RecyclerViewEx listView = view.findViewById(R.id.list);
         listView.setLayoutManager(new LinearLayoutManager(getContext()));
         listView.setAdapter(mAdapter);
         listView.setItemViewCacheSize(20);
-        listView.setOnNextPageLoadListener(mNextPageLoadListener);
+        listView.setOnNextPageLoadListener(mViewModel::loadNextPage);
 
-        mSwipeRefreshLayout.setOnRefreshListener(
-                new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                mPresenter.loadPage(1, mMid);
-            }
-        });
+        mSwipeRefreshLayout.setOnRefreshListener(mViewModel::refresh);
 
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setOnClickListener(
-                new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startMessagePost();
-            }
-        });
+        FloatingActionButton fab = requireActivity().findViewById(R.id.fab);
+        fab.setOnClickListener(v -> startMessagePost());
 
+        // 首屏加载由列表底部的加载提示表示，加载出内容后才允许下拉刷新
         mSwipeRefreshLayout.setEnabled(false);
-
         return view;
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        mPresenter.loadPage(1, mMid);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
-    public void hideLoadingView() {
-        mAdapter.hideLoadingView();
-        mSwipeRefreshLayout.setEnabled(true);
-    }
-
-    @Override
-    public void setData(MessageDetailInfo listInfo) {
-        mTitle = listInfo.get_Title();
-        mRecipient = listInfo.get_Alluser();
-        mAdapter.setData(listInfo);
-    }
-
-    @Override
-    public void setRefreshing(boolean refreshing) {
-        if (mSwipeRefreshLayout.isEnabled()) {
-            mSwipeRefreshLayout.setRefreshing(refreshing);
+        mViewModel.getPages().observe(getViewLifecycleOwner(), pages -> {
+            if (!pages.isEmpty()) {
+                showContent();
+            }
+            mAdapter.setPages(pages);
+        });
+        mViewModel.getLoading().observe(getViewLifecycleOwner(), loading -> {
+            if (mSwipeRefreshLayout.isEnabled()) {
+                mSwipeRefreshLayout.setRefreshing(loading);
+            }
+        });
+        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            if (error == null) {
+                return;
+            }
+            showContent();
+            if (TextUtils.isEmpty(error)) {
+                showToast(R.string.error_network);
+            } else {
+                showToast(error);
+            }
+            mViewModel.errorShown();
+        });
+        if (!mViewModel.isLoaded()) {
+            mViewModel.refresh();
         }
     }
 
-    @Override
-    public boolean isRefreshing() {
-        return mSwipeRefreshLayout.isRefreshing();
+    private void showContent() {
+        mAdapter.hideLoadingView();
+        mSwipeRefreshLayout.setEnabled(true);
     }
 
     private void startMessagePost() {
         AppNavigator.getInstance()
                 .build(ARouterConstants.ACTIVITY_MESSAGE_POST)
-                .withInt("mid", mMid)
+                .withInt("mid", mViewModel.getMid())
                 .withString("action", "reply")
-                .withString("to", mRecipient)
-                .withString("title", mTitle)
+                .withString("to", mViewModel.getRecipient())
+                .withString("title", mViewModel.getTitle())
                 .navigation(getContext());
     }
-
-    protected void bindViews(android.view.View root) {
-        mSwipeRefreshLayout = root.findViewById(R.id.swipe_refresh);
-}
 }

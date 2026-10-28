@@ -15,7 +15,10 @@ public class MessageDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message_detail);
         setupToolbar();
-        initFragment();
+        if (savedInstanceState == null) {
+            // 重建时沿用已恢复的 Fragment，保留其 ViewModel 中已加载的消息
+            initFragment();
+        }
     }
 
     private void initFragment() {

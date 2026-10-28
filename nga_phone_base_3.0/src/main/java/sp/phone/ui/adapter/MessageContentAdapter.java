@@ -76,28 +76,24 @@ public class MessageContentAdapter
         return mInfoList.get(position / 20).getMessageEntryList().get(position % 20);
     }
 
-    public void setData(MessageDetailInfo data) {
-        if (data != null) {
-            if (data.get__currentPage() == 1) {
-                reset();
-            }
-            mInfoList.add(data);
-            mTotalCount += data.getMessageEntryList().size();
-            setNextPageEnabled(data.get__nextPage() > 0);
+    /** 显示已加载的全部页；换成新的第一页（刷新）时重新提示最后一页。 */
+    public void setPages(List<MessageDetailInfo> pages) {
+        if (pages.isEmpty() || mInfoList.isEmpty() || pages.get(0) != mInfoList.get(0)) {
+            mPrompted = false;
         }
+        mInfoList.clear();
+        mInfoList.addAll(pages);
+        mTotalCount = 0;
+        for (MessageDetailInfo page : pages) {
+            mTotalCount += page.getMessageEntryList().size();
+        }
+        setNextPageEnabled(pages.isEmpty() || pages.get(pages.size() - 1).get__nextPage() > 0);
         notifyDataSetChanged();
     }
 
     @Override
     public int getNextPage() {
         return mInfoList.size() + 1;
-    }
-
-    private void reset() {
-        mTotalCount = 0;
-        mInfoList.clear();
-        mPrompted = false;
-        setNextPageEnabled(true);
     }
 
     private void handleJsonList(MessageViewHolder holder, int position) {
