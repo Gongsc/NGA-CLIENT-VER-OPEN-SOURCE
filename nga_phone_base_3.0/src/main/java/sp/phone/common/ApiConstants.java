@@ -2,9 +2,10 @@ package sp.phone.common;
 
 public interface ApiConstants {
 
-    String URL_BOARD_ICON = "http://img4.nga.178.com/ngabbs/nga_classic/f/app/%s.png";
+    // 版块图标：img4.nga.178.com 已不可用（http 返回 502，https 握手被断开），改用 img4.nga.cn。
+    String URL_BOARD_ICON = "https://img4.nga.cn/ngabbs/nga_classic/f/app/%s.png";
 
-    String URL_BOARD_ICON_STID = "https://img4.nga.178.com/proxy/cache_attach/ficon/%sv.png";
+    String URL_BOARD_ICON_STID = "https://img4.nga.cn/proxy/cache_attach/ficon/%sv.png";
 
     int NGA_NOTIFICATION_TYPE_TOPIC_REPLY = 1;
 
