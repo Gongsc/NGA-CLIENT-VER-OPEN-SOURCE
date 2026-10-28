@@ -1,6 +1,9 @@
 package gov.anzong.androidnga.core.decode;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -174,6 +177,33 @@ public class ForumEmoticonDecoder implements IForumDecoder {
         for (int i = 0; i < UBB_CODE_PENGUIN.length; i++) {
             putEmoticon("pg", UBB_CODE_PENGUIN[i], IMG_ADD_PENGUIN[i]);
         }
+    }
+
+    /** 表情选择器的分类，与网页版的表情代码 {@code [s:分类:名字]} 对应。 */
+    public static final String[] CATEGORIES = {"ac", "a2", "pg", "pst", "dt"};
+
+    /** 分类中的表情，按网页版顺序，每项为 {名字, 图片文件名}；图片位于 assets/分类/ 下。 */
+    public static List<String[]> emoticons(String category) {
+        String[] names;
+        String[] images;
+        switch (category) {
+            case "ac": names = UBB_CODE_ACNIANG; images = IMG_ADD_ACNIANG; break;
+            case "a2": names = UBB_CODE_ACNIANG_NEW; images = IMG_ADD_ACNIANG_NEW; break;
+            case "pg": names = UBB_CODE_PENGUIN; images = IMG_ADD_PENGUIN; break;
+            case "pst": names = UBB_CODE_PST; images = IMG_ADD_PST; break;
+            case "dt": names = UBB_CODE_DT; images = IMG_ADD_DT; break;
+            default: return Collections.emptyList();
+        }
+        List<String[]> list = new ArrayList<>(names.length);
+        for (int i = 0; i < names.length; i++) {
+            list.add(new String[]{names[i], images[i]});
+        }
+        return list;
+    }
+
+    /** 插入正文的表情代码，与网页版一致，如 {@code [s:ac:茶]}。 */
+    public static String code(String category, String name) {
+        return "[s:" + category + ":" + name + "]";
     }
 
     // 解析从官方客户端和网页版发布的表情

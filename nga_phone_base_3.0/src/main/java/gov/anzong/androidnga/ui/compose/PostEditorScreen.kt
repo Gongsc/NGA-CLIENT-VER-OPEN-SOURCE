@@ -109,7 +109,7 @@ fun PostEditorScreen(state: PostEditorState, action: String, onBack: () -> Unit,
             "颜色" -> listOf("skyblue", "royalblue", "blue", "darkblue", "orange", "orangered", "crimson", "red", "firebrick", "darkred", "green", "limegreen", "seagreen", "teal", "deeppink", "tomato", "coral", "purple", "indigo", "burlywood", "sandybrown", "sienna", "chocolate", "silver").map { it to "color=$it" }
             "字号" -> listOf(110, 120, 130, 150, 200, 250, 300, 400, 500).map { "$it%" to "size=$it%" }
             "分类" -> state.categories.map { it to it }
-            else -> listOf(1, 2, 3, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 4, 40, 41, 42, 43, 5, 6, 7, 8).map { "[s:$it]" to "[s:$it]" }
+            else -> emptyList()
         }
         ModalBottomSheet(onDismissRequest = { panel = null }) {
             Text(selected, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
@@ -123,7 +123,6 @@ fun PostEditorScreen(state: PostEditorState, action: String, onBack: () -> Unit,
                     TextButton(onClick = {
                         when (selected) {
                             "分类" -> state.title = insertEditorText(state.title.copy(selection = TextRange.Zero), value)
-                            "表情" -> state.body = insertEditorText(state.body, value)
                             else -> state.body = if (value == "@") insertEditorText(state.body, "[@]", 2) else formatEditorSelection(state.body, value)
                         }
                         panel = null

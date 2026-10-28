@@ -50,6 +50,21 @@ class MigratedScreensTest {
         compose.runOnIdle { assertEquals(1, state.currentPage) }
     }
 
+    @Test fun emoticonPickerInsertsSiteCodes() {
+        val selected = mutableListOf<String>()
+        compose.setContent { NgaTheme { EmoticonPicker { selected += it } } }
+        // 表情网格只有 320dp 高，需先滚动到目标表情
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasContentDescription("茶"))
+        compose.onNodeWithContentDescription("茶").performClick()
+        // 切换分类用语义点击，避免刚滚动完的网格吞掉触摸
+        compose.onNodeWithText("企鹅").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
+        compose.onNodeWithText("企鹅").assertIsSelected()
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasContentDescription("吃瓜"))
+        compose.onNodeWithContentDescription("吃瓜").performClick()
+        compose.runOnIdle { assertEquals(listOf("[s:ac:茶]", "[s:pg:吃瓜]"), selected) }
+        compose.onNodeWithText("熊猫").assertDoesNotExist()
+    }
+
     @Test fun articleRowExposesQuoteAction() {
         val row = ThreadRowInfo().apply { author = "测试作者"; content = "离线正文内容"; tid = 100; pid = 200; lou = 1; score = 42 }
         val state = ArticlePageState().apply { rows = listOf(row); loading = false }

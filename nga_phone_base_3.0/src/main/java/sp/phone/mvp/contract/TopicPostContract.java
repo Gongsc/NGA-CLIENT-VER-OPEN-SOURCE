@@ -65,8 +65,6 @@ public interface TopicPostContract {
 
         void post(String str, String str2, boolean z);
 
-        void setEmoticon(String str);
-
         void setPostParam(PostParam postParam);
 
         void showFilePicker();
