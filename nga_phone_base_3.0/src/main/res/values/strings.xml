@@ -16,7 +16,6 @@
     <string name="login">登录</string>
     <string name="submit">提交</string>
     <string name="selectpic">选择图片</string>
-    <string name="login_successfully">登录成功</string>
     <string name="login_failed">登录失败</string>
     <string name="not_to_send_to_self">不要给自己发短消息,你有不精分对不,万一你是,去短消息界面发吧</string>
     <string name="title">(这里填可以引喷的标题)</string>

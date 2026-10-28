@@ -35,7 +35,7 @@ class UiEventBusTest {
         UiEventBus.observe(second) { b += it.obj }
         UiEventBus.post(UiEvent(UiEvent.EVENT_SHOW_TOPIC_LIST, "版块"))
         first.registry.currentState = Lifecycle.State.DESTROYED
-        UiEventBus.post(UiEvent(UiEvent.EVENT_LOGIN_AUTH_CODE_UPDATE, "验证码"))
+        UiEventBus.post(UiEvent(UiEvent.EVENT_SHOW_TOPIC_LIST, "验证码"))
         assertEquals(listOf<Any?>("版块"), a)
         assertEquals(listOf<Any?>("版块", "验证码"), b)
         second.registry.currentState = Lifecycle.State.DESTROYED

@@ -1,6 +1,5 @@
 package gov.anzong.androidnga.coroutines
 
-import okhttp3.FormBody
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import sp.phone.http.retrofit.NgaApi
@@ -21,10 +20,6 @@ class FakeNgaApi(var respond: suspend (request: String) -> String = { error("未
     override suspend fun post(map: Map<String, String>) = handle("POST nuke.php ${map.toSortedMap()}")
     override suspend fun post(queryMap: Map<String, String>, fieldMap: Map<String, String>) =
         handle("POST nuke.php ${queryMap.toSortedMap()} ${fieldMap.toSortedMap()}")
-    override suspend fun login(map: Map<String, String>) = handle("LOGIN ${map.toSortedMap()}")
-    override suspend fun getAuthCodeImage(url: String): ResponseBody = error("未使用")
-    override suspend fun login(body: FormBody) = handle("LOGIN form")
-    override suspend fun login(multipartBody: MultipartBody) = handle("LOGIN multipart")
     override suspend fun uploadFile(url: String, body: MultipartBody): ResponseBody = error("未使用")
     override suspend fun get(url: String, map: Map<String, String>) = handle("GET $url ${map.toSortedMap()}")
     override suspend fun getArticleResponse(url: String, headers: Map<String, String>): ResponseBody = error("未使用")

@@ -27,7 +27,6 @@ public class RetrofitHelper {
 
     private Retrofit mRetrofit;
 
-    private static final String URL_NGA_BASE_CC = "https://bbs.ngacn.cc/";
 
     private String mBaseUrl;
 
@@ -113,23 +112,6 @@ public class RetrofitHelper {
 
     public Object getService(Class<?> service) {
         return mRetrofit.create(service);
-    }
-
-    /** 登录验证码图片：不带公共拦截器，响应原样返回。 */
-    public static NgaApi getAuthCodeApi() {
-        return new Retrofit.Builder()
-                .baseUrl(URL_NGA_BASE_CC)
-                .build()
-                .create(NgaApi.class);
-    }
-
-    /** 登录请求：不带公共拦截器，字符串按 GBK 解码。 */
-    public static NgaApi getDefaultApi() {
-        return new Retrofit.Builder()
-                .baseUrl(URL_NGA_BASE_CC)
-                .addConverterFactory(JsonStringConvertFactory.create())
-                .build()
-                .create(NgaApi.class);
     }
 
     private static class SingleTonHolder {
