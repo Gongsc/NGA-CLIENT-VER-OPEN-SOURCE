@@ -12,14 +12,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import sp.phone.mvp.model.entity.SubBoard
 import sp.phone.param.SignPostParam
 
 /** 后台任务改用协程后的行为：请求内容、回调文字、失败处理与取消。响应均为合成数据。 */
@@ -100,28 +98,6 @@ class TaskCoroutinesTest {
         assertTrue(pending.cancelled)
         assertFalse(task.isRunning())
         assertTrue(recorder.events.isEmpty())
-    }
-
-    @Test fun subBoardActionsKeepInvertedTypesAndMessages() = runBlocking {
-        val api = FakeNgaApi { "操作成功" }
-        val task = SubscribeSubBoardTask { api }
-        val board = SubBoard().apply { type = 0; fid = 7; parentFidStr = "-7" }
-        val inverted = SubBoard().apply { type = 1; tidStr = "42"; parentFidStr = "-7" }
-        assertEquals("已取消屏蔽，刷新后生效", task.setVisible(board, true))
-        assertEquals("已屏蔽子版块，刷新后生效", task.setVisible(inverted, false))
-        api.respond = { "没有权限" }
-        assertEquals("没有权限", runCatching { task.setVisible(board, true) }.exceptionOrNull()?.message)
-        api.respond = { "" }
-        assertEquals("操作失败，请稍后重试", runCatching { task.setVisible(board, false) }.exceptionOrNull()?.message)
-        assertEquals(
-            listOf(
-                "POST http://bbs.ngacn.cc/nuke.php?__lib=user_option&__act=set&raw=3&type=0&__output=8&fid=-7&add=7",
-                "POST http://bbs.ngacn.cc/nuke.php?__lib=user_option&__act=set&raw=3&type=1&__output=8&fid=-7&add=42",
-                "POST http://bbs.ngacn.cc/nuke.php?__lib=user_option&__act=set&raw=3&type=0&__output=8&fid=-7&add=7",
-                "POST http://bbs.ngacn.cc/nuke.php?__lib=user_option&__act=set&raw=3&type=0&__output=8&fid=-7&del=7",
-            ),
-            api.requests,
-        )
     }
 
     @Test fun notificationsParseOffMainAndClearUsesDeleteEndpoint() {

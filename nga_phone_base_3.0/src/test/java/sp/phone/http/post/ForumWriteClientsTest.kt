@@ -6,6 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import sp.phone.mvp.model.entity.SubBoard
 import sp.phone.param.MessagePostParam
 
 /** 短消息、投票、头像与 nuke.php 结果解析；合成响应，不访问真实论坛。 */
@@ -175,5 +176,53 @@ class ForumWriteClientsTest {
 
         assertFalse(result.success)
         assertEquals(NgaWriteClient.AMBIGUOUS_NETWORK, result.message)
+    }
+
+    @Test fun subBoardSwitchPostsUserOptionFormToCurrentHost() {
+        val forum = FakeForum(json("""{"data":{"0":"操作成功"}}"""), json("""{"data":{"0":"操作成功"}}"""))
+        val client = ForumActionClient(forum.writer())
+        val board = SubBoard().apply { type = 0; fid = 7; parentFidStr = "-7" }
+        val inverted = SubBoard().apply { type = 1; tidStr = "42"; parentFidStr = "-7" }
+
+        assertEquals("已屏蔽子版块，刷新后生效", client.setSubBoardVisible(board, false))
+        assertEquals("已取消屏蔽，刷新后生效", client.setSubBoardVisible(inverted, true))
+
+        val request = forum.requests.first()
+        assertEquals("POST", request.method)
+        assertEquals("bbs.nga.cn", request.url.host)
+        assertEquals("/nuke.php", request.url.encodedPath)
+        assertEquals("UTF8", request.url.queryParameter("__inchst"))
+        assertEquals("https://bbs.nga.cn/thread.php?fid=-7", request.header("Referer"))
+        assertEquals(NgaWriteClient.USER_AGENT, request.header("User-Agent"))
+        val fields = form(forum.bodies[0])
+        assertEquals("user_option", fields["__lib"])
+        assertEquals("set", fields["__act"])
+        assertEquals("0", fields["type"])
+        assertEquals("-7", fields["fid"])
+        assertEquals("7", fields["del"])
+        assertFalse(fields.containsKey("add"))
+        assertEquals("123", fields["access_uid"])
+        assertEquals("secret-token", fields["access_token"])
+        // type=1 的子版块以 tid 标识，显示时发 del。
+        val second = form(forum.bodies[1])
+        assertEquals("1", second["type"])
+        assertEquals("42", second["del"])
+    }
+
+    @Test fun subBoardSwitchMapsActionsAndRejectsUnclearResults() {
+        fun action(type: Int, visible: Boolean) =
+            ForumActionClient.subBoardFields(SubBoard().apply { this.type = type; fid = 7; tidStr = "42"; parentFidStr = "-7" }, visible).last()
+        assertEquals("add" to "7", action(0, true))
+        assertEquals("del" to "7", action(0, false))
+        assertEquals("del" to "42", action(1, true))
+        assertEquals("add" to "42", action(1, false))
+
+        val board = SubBoard().apply { fid = 7; parentFidStr = "-7" }
+        assertRejected("没有权限") {
+            ForumActionClient(FakeForum(json("""{"error":["没有权限"]}""")).writer()).setSubBoardVisible(board, true)
+        }
+        assertRejected(NgaWriteClient.AMBIGUOUS) {
+            ForumActionClient(FakeForum(Reply("<html></html>", 200, "text/html")).writer()).setSubBoardVisible(board, true)
+        }
     }
 }

@@ -12,8 +12,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
+import sp.phone.http.post.ForumActionClient
 import sp.phone.mvp.model.entity.SubBoard
-import sp.phone.task.SubscribeSubBoardTask
 
 /**
  * 子版块列表与显示开关。开关请求在 [AppScope] 中执行，离开页面也不会中途放弃；
@@ -21,7 +21,7 @@ import sp.phone.task.SubscribeSubBoardTask
  */
 class SubBoardViewModel(
     boards: List<SubBoard>,
-    private val setVisible: suspend (SubBoard, Boolean) -> String = SubscribeSubBoardTask()::setVisible,
+    private val setVisible: suspend (SubBoard, Boolean) -> String = { board, visible -> ForumActionClient.create().setSubBoardVisible(board, visible) },
     private val scope: CoroutineScope = AppScope,
     private val worker: CoroutineDispatcher = NgaDispatchers.io,
 ) : ViewModel() {

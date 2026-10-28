@@ -27,7 +27,7 @@
 - 设置子页面：关键词屏蔽（添加、去重、启用开关、确认删除）、用户黑名单（移除、清空确认）、账号管理（切换当前账号、上移下移、查看资料、确认移除、添加账号），作为设置页内的子页面，由 `SettingsListsViewModel` 读写。
 - 浏览历史：主题列表菜单中的浏览历史改为 `TopicHistoryActivity`，与首页“历史”共用 `HomeHistoryScreen`（按日分组、长按删除、清空确认）。
 - 回复通知：`RecentNotificationActivity`（系统通知栏“被喷提醒”打开的页面）改为 Compose，与首页“消息”共用 `HomeInboxViewModel` 和 `ReplyNotificationCard`；显示通知类型、时间与未读标记，按时间从新到旧排列，下拉刷新，清空前确认。
-- 子版块：主题列表菜单中的子版块改为 `SubBoardActivity`，由 `SubBoardViewModel` 管理显示开关；请求在 `AppScope` 中执行，开关状态以服务端结果为准，请求进行中显示进度且不能重复点击。未使用的版块分类分页（`BoardCategoryFragment`、`BoardPagerAdapter`）与 `LauncherSubActivity` 已删除。
+- 子版块：主题列表菜单中的子版块改为 `SubBoardActivity`，由 `SubBoardViewModel` 管理显示开关；请求经 `ForumActionClient`/`NgaWriteClient` 提交到当前论坛域名，在 `AppScope` 中执行，开关状态以服务端结果为准，请求进行中显示进度且不能重复点击。未使用的版块分类分页（`BoardCategoryFragment`、`BoardPagerAdapter`）与 `LauncherSubActivity` 已删除。
 
 Compose 页面通过 ComposeView / setContent 接入现有 Activity、Fragment 和业务层；Fragment 中的 composition 跟随 View 生命周期销毁。
 
