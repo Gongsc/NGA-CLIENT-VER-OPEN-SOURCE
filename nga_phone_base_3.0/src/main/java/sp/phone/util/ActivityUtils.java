@@ -21,12 +21,11 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.app.AppCompatActivity;
 
 import gov.anzong.androidnga.R;
-import gov.anzong.androidnga.activity.LauncherSubActivity;
+import gov.anzong.androidnga.activity.TopicHistoryActivity;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.base.util.ToastUtils;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.UserManagerImpl;
-import sp.phone.ui.fragment.TopicHistoryFragment;
 import sp.phone.ui.fragment.dialog.SearchDialogFragment;
 
 public class ActivityUtils {
@@ -354,8 +353,6 @@ public class ActivityUtils {
     }
 
     public static void startHistoryTopicActivity(Context context) {
-        Intent intent = new Intent(context, LauncherSubActivity.class);
-        intent.putExtra("fragment", TopicHistoryFragment.class.getName());
-        context.startActivity(intent);
+        context.startActivity(new Intent(context, TopicHistoryActivity.class));
     }
 }

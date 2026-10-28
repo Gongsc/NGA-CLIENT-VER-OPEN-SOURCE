@@ -8,10 +8,10 @@ import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
 import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.arouter.ARouterConstants
+import gov.anzong.androidnga.arouter.TopicNavigation
 import sp.phone.common.TopicHistoryManager
 import sp.phone.common.PhoneConfiguration
 import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.param.ArticleListParam
 import sp.phone.param.ParamKey
 import android.app.Activity
 import android.content.Intent
@@ -116,13 +116,7 @@ class NavigationDrawerFragment : BaseEventFragment() {
 
     private fun refreshHistory() { history = TopicHistoryManager.getInstance().topicHistoryList.toList() }
 
-    private fun openHistory(topic: ThreadPageInfo) {
-        val param = ArticleListParam().apply {
-            tid = topic.tid; page = topic.page.coerceAtLeast(1); title = topic.subject
-            topicInfo = NgaJson.toJSONString(topic)
-        }
-        startActivity(Intent(requireContext(), PhoneConfiguration.getInstance().articleActivityClass).putExtra(ParamKey.KEY_PARAM, param))
-    }
+    private fun openHistory(topic: ThreadPageInfo) = TopicNavigation.openHistory(requireContext(), topic)
 
     private fun navigationActions(): List<HomeAction> {
         val menu = PopupMenu(requireContext(), View(requireContext())).menu

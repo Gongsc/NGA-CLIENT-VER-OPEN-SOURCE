@@ -25,9 +25,10 @@ import gov.anzong.androidnga.mvvm.viewmodel.SettingsListsViewModel.Account
 import gov.anzong.androidnga.mvvm.viewmodel.SettingsListsViewModel.BlockedUser
 import gov.anzong.androidnga.mvvm.viewmodel.SettingsListsViewModel.Keyword
 
+/** 带返回按钮的二级页面框架。 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SettingsSubPage(title: String, onBack: () -> Unit, actions: @Composable RowScope.() -> Unit = {},
+internal fun SettingsSubPage(title: String, onBack: () -> Unit, actions: @Composable RowScope.() -> Unit = {},
                             content: @Composable (PaddingValues) -> Unit) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
         TopAppBar(title = { Text(title) }, navigationIcon = { ActionIcon(Icons.AutoMirrored.Filled.ArrowBack, "返回", onBack) },

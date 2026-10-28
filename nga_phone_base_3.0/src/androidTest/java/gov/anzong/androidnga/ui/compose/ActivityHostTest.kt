@@ -11,6 +11,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import gov.anzong.androidnga.activity.LoginActivity
 import gov.anzong.androidnga.activity.PostActivity
+import gov.anzong.androidnga.activity.TopicHistoryActivity
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +44,16 @@ class ActivityHostTest {
             compose.onNodeWithText("完成登录").assertIsDisplayed()
             scenario.onActivity { it.finish() }
             assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+        }
+    }
+
+    /** 只打开页面，不读写浏览记录。 */
+    @Test fun topicHistoryOpensAsComposePage() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        ActivityScenario.launch<TopicHistoryActivity>(Intent(context, TopicHistoryActivity::class.java)).use {
+            compose.onNodeWithText("浏览历史").assertIsDisplayed()
+            compose.onNodeWithText("本地浏览记录").assertIsDisplayed()
+            compose.onNodeWithContentDescription("返回").assertIsDisplayed()
         }
     }
 }

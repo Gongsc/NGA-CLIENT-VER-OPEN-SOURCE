@@ -49,4 +49,14 @@ object TopicNavigation {
             }
         }
     }
+
+    /** 从浏览历史打开主题，回到上次读到的页。 */
+    @JvmStatic
+    fun openHistory(context: Context, topic: ThreadPageInfo) {
+        val param = ArticleListParam().apply {
+            tid = topic.tid; page = topic.page.coerceAtLeast(1); title = topic.subject
+            topicInfo = NgaJson.toJSONString(topic)
+        }
+        context.startActivity(Intent(context, PhoneConfiguration.getInstance().articleActivityClass).putExtra(ParamKey.KEY_PARAM, param))
+    }
 }
