@@ -48,7 +48,7 @@ public interface UserManager {
 
     void setAvatarUrl(int userId, String url);
 
-    /** 本人修改头像后强制写入新头像（[setAvatarUrl] 只在头像缺失或每次启动首次时写入）。 */
+    /** 以个人资料中的头像为准强制写入账号头像与头像缓存（[setAvatarUrl] 只在账号头像缺失时补全）。 */
     default void updateAvatarUrl(String uid, String url) {}
 
     // 黑名单

@@ -171,7 +171,7 @@ class NavigationDrawerFragment : BaseEventFragment() {
         if (state.account?.uid != account?.uid) state.replyCount = 0
         state.account = account
         inbox.selectAccount(account?.uid.orEmpty())
-        boards.fetchMissingAvatar(active)
+        boards.refreshAccountAvatar(active)
         state.otherAccounts = users.userList.orEmpty().filter { it.userId != active?.userId }.map { it.toHomeAccount() }
     }
     private fun User.toHomeAccount() = HomeAccount(userId, nickName.orEmpty(), FunctionUtils.parseAvatarUrl(avatarUrl))

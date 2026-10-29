@@ -36,7 +36,6 @@ public class UserManagerImpl implements UserManager {
     private SharedPreferences mAvatarPreferences;
 
     // TODO: 2018/4/15  temp solution
-    private boolean mAvatarUpdated;
 
     private static class SingletonHolder {
 
@@ -141,10 +140,10 @@ public class UserManagerImpl implements UserManager {
 
         for (User user : mUserList) {
             if (user.getUserId().equals(String.valueOf(userId))) {
-                if (user.getAvatarUrl() == null || !mAvatarUpdated) {
+                // 帖子中的头像可能是修改前的旧地址，只用于补全；账号头像以个人资料为准（见 updateAvatarUrl）。
+                if (TextUtils.isEmpty(user.getAvatarUrl())) {
                     user.setAvatarUrl(url);
                     commit();
-                    mAvatarUpdated = true;
                 }
                 return;
             }

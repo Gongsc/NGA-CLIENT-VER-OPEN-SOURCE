@@ -49,6 +49,7 @@ class BoardViewModelTest {
         override fun getAvatarUrl(uid: String) = avatars[uid].orEmpty()
         override fun putAvatarUrl(uid: String, url: String) { avatars[uid] = url }
         override fun setAvatarUrl(userId: Int, url: String) { list.filter { it.userId == userId.toString() }.forEach { it.avatarUrl = url } }
+        override fun updateAvatarUrl(uid: String, url: String) { avatars[uid] = url; list.filter { it.userId == uid }.forEach { it.avatarUrl = url } }
     }
 
     private fun user(uid: String, name: String = "用户$uid") = User(uid, name, "cid")
@@ -86,40 +87,52 @@ class BoardViewModelTest {
         assertEquals(0, vm.defaultCategory)
     }
 
-    @Test fun missingAvatarIsFetchedOnceAndWrittenBack() {
-        val alice = user("1")
-        val users = FakeUsers(mutableListOf(alice))
+    @Test fun accountAvatarIsRefreshedFromProfileOncePerSession() {
+        val alice = user("1").apply { avatarUrl = "https://img.example.test/a.jpg?33" }
+        val users = FakeUsers(mutableListOf(alice)).apply { avatars["1"] = "https://img.example.test/a.jpg?33" }
         val requests = mutableListOf<Pair<String, String>>()
-        val vm = viewModel(users = users, avatar = { uid, cookie -> requests += uid to cookie; "https://img.example.test/a.jpg" })
+        val vm = viewModel(users = users, avatar = { uid, cookie -> requests += uid to cookie; "https://img.example.test/a.jpg?29" })
         val updated = mutableListOf<String>()
         vm.avatarUpdated.observeForever { updated += it }
-        vm.fetchMissingAvatar(alice)
-        vm.fetchMissingAvatar(alice)
-        assertEquals(listOf("1" to "cookie-1"), requests)
-        assertEquals("https://img.example.test/a.jpg", alice.avatarUrl)
-        assertEquals("https://img.example.test/a.jpg", users.avatars["1"])
+        vm.refreshAccountAvatar(alice)
+        vm.refreshAccountAvatar(alice)
+        assertEquals("已有头像也以资料为准，每次启动只读取一次", listOf("1" to "cookie-1"), requests)
+        assertEquals("https://img.example.test/a.jpg?29", alice.avatarUrl)
+        assertEquals("https://img.example.test/a.jpg?29", users.avatars["1"])
         assertEquals(listOf("1"), updated)
     }
 
-    @Test fun cachedAvatarIsUsedWithoutRequest() {
+    @Test fun unchangedAvatarIsNotRewritten() {
+        val alice = user("1").apply { avatarUrl = "https://img.example.test/a.jpg" }
+        val vm = viewModel(users = FakeUsers(mutableListOf(alice)), avatar = { _, _ -> "https://img.example.test/a.jpg" })
+        val updated = mutableListOf<String>()
+        vm.avatarUpdated.observeForever { updated += it }
+        vm.refreshAccountAvatar(alice)
+        assertEquals(emptyList<String>(), updated)
+    }
+
+    @Test fun cachedAvatarIsShownWhileProfileLoads() {
         val bob = user("2")
+        val pending = PendingResponse<String>()
         val users = FakeUsers(mutableListOf(bob)).apply { avatars["2"] = "https://img.example.test/b.jpg" }
-        val vm = viewModel(users = users, avatar = { _, _ -> error("不应请求") })
-        vm.fetchMissingAvatar(bob)
+        val vm = viewModel(users = users, avatar = { _, _ -> pending.await() })
+        vm.refreshAccountAvatar(bob)
         assertEquals("https://img.example.test/b.jpg", bob.avatarUrl)
+        pending.complete("https://img.example.test/b2.jpg")
+        assertEquals("https://img.example.test/b2.jpg", bob.avatarUrl)
     }
 
     @Test fun failedAvatarRequestCanBeRetriedButEmptyProfileIsNot() {
-        val alice = user("1")
+        val alice = user("1").apply { avatarUrl = "https://img.example.test/a.jpg" }
         var calls = 0
         var respond: suspend () -> String = { throw IOException("离线") }
         val vm = viewModel(users = FakeUsers(mutableListOf(alice)), avatar = { _, _ -> calls++; respond() })
-        vm.fetchMissingAvatar(alice)
+        vm.refreshAccountAvatar(alice)
         respond = { "" }
-        vm.fetchMissingAvatar(alice)
-        vm.fetchMissingAvatar(alice)
+        vm.refreshAccountAvatar(alice)
+        vm.refreshAccountAvatar(alice)
         assertEquals(2, calls)
-        assertNull(alice.avatarUrl)
+        assertEquals("读取失败或资料中没有头像时保留原头像", "https://img.example.test/a.jpg", alice.avatarUrl)
     }
 
     @Test fun pendingAvatarRequestIsNotDuplicated() {
@@ -127,8 +140,8 @@ class BoardViewModelTest {
         val pending = PendingResponse<String>()
         var calls = 0
         val vm = viewModel(users = FakeUsers(mutableListOf(alice)), avatar = { _, _ -> calls++; pending.await() })
-        vm.fetchMissingAvatar(alice)
-        vm.fetchMissingAvatar(alice)
+        vm.refreshAccountAvatar(alice)
+        vm.refreshAccountAvatar(alice)
         assertEquals(1, calls)
         pending.complete("https://img.example.test/a.jpg")
         assertEquals("https://img.example.test/a.jpg", alice.avatarUrl)

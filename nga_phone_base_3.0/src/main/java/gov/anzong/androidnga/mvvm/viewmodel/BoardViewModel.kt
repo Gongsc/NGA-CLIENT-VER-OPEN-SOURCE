@@ -68,18 +68,17 @@ class BoardViewModel(
     private val avatarRequests = mutableSetOf<String>()
     private val _avatarUpdated = MutableLiveData<String>()
 
-    /** 账号头像补取成功后发出该账号的 uid。 */
+    /** 账号头像更新后发出该账号的 uid。 */
     val avatarUpdated: LiveData<String> get() = _avatarUpdated
 
-    /** 账号头像只在浏览到自己的帖子时才会记录；缺失时从个人资料补取一次并写回账号。 */
-    fun fetchMissingAvatar(user: User?) {
+    /**
+     * 账号头像以个人资料为准：每次启动为每个账号读取一次并写回账号记录。
+     * 帖子数据中的头像可能是修改前的旧地址，不能用来更新本人账号；读取期间账号没有头像时先显示缓存的头像。
+     */
+    fun refreshAccountAvatar(user: User?) {
         val uid = user?.userId?.takeIf { it.isNotEmpty() } ?: return
-        if (!user.avatarUrl.isNullOrBlank() || !avatarRequests.add(uid)) return
-        val cached = users.getAvatarUrl(uid).orEmpty()
-        if (cached.isNotBlank()) {
-            applyAvatar(uid, cached)
-            return
-        }
+        if (!avatarRequests.add(uid)) return
+        if (user.avatarUrl.isNullOrBlank()) users.getAvatarUrl(uid)?.takeIf { it.isNotBlank() }?.let { applyAvatar(uid, it) }
         val cookie = users.getCookie(user).orEmpty()
         viewModelScope.launch {
             // 请求失败或被取消时允许下次重试；资料中确实没有头像时不再请求
@@ -90,13 +89,12 @@ class BoardViewModel(
                 if (e is CancellationException) throw e
                 return@launch
             }
-            if (url.isNotBlank()) applyAvatar(uid, url)
+            if (url.isNotBlank() && url != user.avatarUrl) applyAvatar(uid, url)
         }
     }
 
     private fun applyAvatar(uid: String, url: String) {
-        users.putAvatarUrl(uid, url)
-        uid.toIntOrNull()?.let { users.setAvatarUrl(it, url) }
+        users.updateAvatarUrl(uid, url)
         _avatarUpdated.value = uid
     }
 }
