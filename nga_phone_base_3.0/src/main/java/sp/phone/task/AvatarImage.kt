@@ -3,6 +3,7 @@ package sp.phone.task
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.util.Base64
 import java.io.ByteArrayOutputStream
@@ -50,6 +51,35 @@ object AvatarImage {
         scaled.compress(Bitmap.CompressFormat.PNG, 100, output)
         if (scaled !== decoded) scaled.recycle()
         decoded.recycle()
+        return "data:image/png;base64," + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+    }
+
+    /** 是否为 GIF；截取后只保留一帧，GIF 可选择原图上传以保留动画。 */
+    @JvmStatic
+    fun isGif(context: Context, uri: Uri) = context.contentResolver.getType(uri) == "image/gif"
+
+    /** 读取用于截取的图片：按 EXIF 方向转正，最长边缩小到不超过 [maxSide]。不是图片或无法读取时抛出带提示的异常。在后台线程调用。 */
+    @JvmStatic
+    fun load(context: Context, uri: Uri, maxSide: Int = 2048): Bitmap = try {
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, info, _ ->
+            val longest = maxOf(info.size.width, info.size.height)
+            if (longest > maxSide) decoder.setTargetSampleSize((longest + maxSide - 1) / maxSide)
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+        }
+    } catch (e: Exception) {
+        throw IllegalArgumentException("无法读取所选图片，请换一张图片或换一个应用选择")
+    }
+
+    /** 截取 [bitmap] 中的 [area]，等比缩小到不超过 180×255 后编码为 PNG data URL。 */
+    @JvmStatic
+    fun dataUrl(bitmap: Bitmap, area: CropPixels): String {
+        val cropped = Bitmap.createBitmap(bitmap, area.x, area.y, area.width, area.height)
+        val (width, height) = fit(cropped.width, cropped.height)
+        val scaled = if (width == cropped.width && height == cropped.height) cropped else Bitmap.createScaledBitmap(cropped, width, height, true)
+        val output = ByteArrayOutputStream()
+        scaled.compress(Bitmap.CompressFormat.PNG, 100, output)
+        if (scaled !== cropped) scaled.recycle()
+        if (cropped !== bitmap) cropped.recycle()
         return "data:image/png;base64," + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
     }
 }

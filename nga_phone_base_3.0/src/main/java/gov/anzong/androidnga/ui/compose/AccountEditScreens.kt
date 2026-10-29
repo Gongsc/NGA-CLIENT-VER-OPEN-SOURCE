@@ -49,7 +49,7 @@ fun SignatureEditScreen(initial: String, sending: Boolean, onSubmit: (String) ->
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
 }
 
-/** 修改头像：填写图片地址预览后提交，或从相册选择图片上传（经论坛的 set_avatar 流程，替换现有头像）。 */
+/** 修改头像：填写图片地址预览后提交，或从相册选择图片截取后上传（经论坛的 set_avatar 流程，替换现有头像）。 */
 @Composable
 fun AvatarEditScreen(url: String, onUrlChange: (String) -> Unit, sending: Boolean, onPick: () -> Unit, onSubmit: () -> Unit,
                      onBack: () -> Unit) {
@@ -62,8 +62,8 @@ fun AvatarEditScreen(url: String, onUrlChange: (String) -> Unit, sending: Boolea
                 label = { Text("头像地址") }, placeholder = { Text("https://…") }, isError = invalid,
                 supportingText = if (invalid) ({ Text("请输入正确的头像 URL 地址") }) else null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false))
-            OutlinedButton(onClick = onPick, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("从相册选择并上传") }
-            Text("上传的图片会缩小到不超过 180×255 并替换现有头像（GIF 原样上传）。",
+            OutlinedButton(onClick = onPick, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("从相册选择并截取") }
+            Text("截取的图片会缩小到不超过 180×255 并替换现有头像；GIF 可选择原图上传以保留动画。",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (AccountEditViewModel.isAvatarUrl(url)) {
                 Text("预览", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
