@@ -12,10 +12,6 @@
     <color name="web_text_color">#FF000000</color>
     <color name="web_quote_background_color">#FFE8E8E8</color>
 
-    <color name="color_state_nuked">#DD0000</color>
-    <color name="color_state_active">#3D9F0E</color>
-    <color name="color_state_inactive">#808080</color>
-    <color name="color_state_muted">#FF4500</color>
 
     <color name="colorAccent">#FF591804</color>
 

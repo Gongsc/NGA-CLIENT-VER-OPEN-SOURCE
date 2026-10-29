@@ -18,7 +18,7 @@ import sp.phone.util.StringUtils;
 /** 个人资料响应解析，自 JsonProfileLoadTask 原样拆出。 */
 final class ProfileParser {
 
-    private static final String TAG = JsonProfileLoadTask.class.getSimpleName();
+    private static final String TAG = "ProfileParser";
 
     private ProfileParser() {}
 

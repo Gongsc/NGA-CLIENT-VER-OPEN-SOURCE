@@ -23,8 +23,6 @@
     <color name="topiclist_selected_color">#151c19</color>
     <color name="md__transparent">#00000000</color>
 
-    <color name="profilebgcolor">#fff5d7</color>
-    <color name="profilefcolor">#551200</color>
     <color name="profile_text_primary">#121c46</color>
     <color name="profile_text_accent">#712d08</color>
 
