@@ -1,9 +1,12 @@
 package gov.anzong.androidnga.util
 
-import org.json.JSONObject
+import gov.anzong.androidnga.base.json.NgaJson
+import gov.anzong.androidnga.coroutines.NgaDispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
+import java.util.concurrent.TimeUnit
 
 const val PROJECT_URL = "https://github.com/Gongsc/NGA-CLIENT-VER-OPEN-SOURCE"
 const val ISSUES_URL = "$PROJECT_URL/issues"
@@ -39,9 +42,9 @@ fun isNewerVersion(candidate: String, current: String): Boolean {
 
 /** Maps a GitHub "latest release" response to a result; release links outside this project fall back to [RELEASES_URL]. */
 fun interpretLatestRelease(code: Int, tag: String?, htmlUrl: String?, notes: String?, currentVersion: String): UpdateResult = when {
-    code == HttpURLConnection.HTTP_NOT_FOUND -> UpdateResult.UpToDate(null)
-    code == HttpURLConnection.HTTP_FORBIDDEN || code == 429 -> UpdateResult.Failed("请求过于频繁，请稍后再试")
-    code != HttpURLConnection.HTTP_OK -> UpdateResult.Failed("GitHub 返回错误（$code）")
+    code == 404 -> UpdateResult.UpToDate(null)
+    code == 403 || code == 429 -> UpdateResult.Failed("请求过于频繁，请稍后再试")
+    code != 200 -> UpdateResult.Failed("GitHub 返回错误（$code）")
     tag.isNullOrBlank() || parseVersion(tag) == null -> UpdateResult.Failed("无法识别发布版本号")
     isNewerVersion(tag, currentVersion) -> UpdateResult.Available(ReleaseInfo(
         tag.trim().removePrefix("v").removePrefix("V"),
@@ -50,27 +53,27 @@ fun interpretLatestRelease(code: Int, tag: String?, htmlUrl: String?, notes: Str
     else -> UpdateResult.UpToDate(tag.trim().removePrefix("v").removePrefix("V"))
 }
 
-/** Blocking network call; run off the main thread. */
-fun checkLatestRelease(currentVersion: String): UpdateResult {
-    val connection = try {
-        URL(LATEST_RELEASE_API).openConnection() as HttpURLConnection
-    } catch (e: IOException) {
-        return UpdateResult.Failed("网络连接失败")
-    }
-    return try {
-        connection.connectTimeout = 10_000
-        connection.readTimeout = 10_000
-        connection.setRequestProperty("Accept", "application/vnd.github+json")
-        connection.setRequestProperty("User-Agent", "NGA-Client/$currentVersion")
-        val code = connection.responseCode
-        if (code != HttpURLConnection.HTTP_OK) return interpretLatestRelease(code, null, null, null, currentVersion)
-        val json = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
-        interpretLatestRelease(code, json.optString("tag_name"), json.optString("html_url"), json.optString("body"), currentVersion)
-    } catch (e: IOException) {
-        UpdateResult.Failed("网络连接失败")
-    } catch (e: org.json.JSONException) {
-        UpdateResult.Failed("无法解析 GitHub 响应")
-    } finally {
-        connection.disconnect()
-    }
+private val updateClient by lazy {
+    OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(10, TimeUnit.SECONDS).build()
 }
+
+/** Queries the latest GitHub release on [NgaDispatchers.io]; never throws for network or parse errors. */
+suspend fun checkLatestRelease(currentVersion: String, client: OkHttpClient = updateClient): UpdateResult =
+    withContext(NgaDispatchers.io) {
+        val request = Request.Builder().url(LATEST_RELEASE_API)
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", "NGA-Client/$currentVersion")
+            .build()
+        try {
+            client.newCall(request).execute().use { response ->
+                if (response.code != 200) return@use interpretLatestRelease(response.code, null, null, null, currentVersion)
+                val json = NgaJson.parseObject(response.body?.string().orEmpty())
+                    ?: return@use UpdateResult.Failed("无法解析 GitHub 响应")
+                interpretLatestRelease(200, json.getString("tag_name"), json.getString("html_url"), json.getString("body"), currentVersion)
+            }
+        } catch (e: IOException) {
+            UpdateResult.Failed("网络连接失败")
+        } catch (e: RuntimeException) {
+            UpdateResult.Failed("无法解析 GitHub 响应")
+        }
+    }

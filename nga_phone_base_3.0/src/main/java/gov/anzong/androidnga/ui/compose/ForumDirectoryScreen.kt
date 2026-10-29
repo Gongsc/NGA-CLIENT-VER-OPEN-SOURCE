@@ -13,12 +13,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.Utils
-import kotlinx.coroutines.Dispatchers
+import gov.anzong.androidnga.coroutines.NgaDispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import sp.phone.common.PhoneConfiguration
 import sp.phone.mvp.model.ForumsListModel
-import sp.phone.util.HttpUtil
+import sp.phone.http.retrofit.NgaApi
+import java.nio.charset.Charset
 
 // Literal matching deliberately accepts characters such as [, ( and *.
 fun filterBoards(boards: List<BoardTile>, query: String): List<BoardTile> =
@@ -30,7 +31,16 @@ class ForumDirectoryState {
     var error by mutableStateOf<String?>(null)
 }
 
-class ForumDirectoryViewModel : ViewModel() {
+/** 版块目录（`app_api.php` 的 category），按响应声明的字符集解码，未声明时按 GBK。 */
+suspend fun requestForumDirectory(api: NgaApi = NgaApi.get(), host: String = Utils.getNGAHost()): String =
+    api.getArticleResponse(host + "app_api.php?__lib=home&__act=category", emptyMap()).use { body ->
+        String(body.bytes(), body.contentType()?.charset() ?: Charset.forName("GBK"))
+    }
+
+class ForumDirectoryViewModel(
+    private val request: suspend () -> String = { requestForumDirectory() },
+    private val worker: CoroutineDispatcher = NgaDispatchers.io,
+) : ViewModel() {
     val state = ForumDirectoryState()
     private var loaded = false
 
@@ -40,10 +50,7 @@ class ForumDirectoryViewModel : ViewModel() {
         state.error = null
         viewModelScope.launch {
             try {
-                val result = withContext(Dispatchers.IO) {
-                    val json = HttpUtil.getHtml(Utils.getNGAHost() + "app_api.php?__lib=home&__act=category", PhoneConfiguration.getInstance().cookie)
-                    NgaJson.parseObject(json, ForumsListModel::class.java)
-                }
+                val result = withContext(worker) { NgaJson.parseObject(request(), ForumsListModel::class.java) }
                 if (result?.result == null) state.error = "版块目录加载失败，请重试"
                 else accept(result)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {

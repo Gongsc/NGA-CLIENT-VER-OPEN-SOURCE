@@ -22,9 +22,7 @@ import gov.anzong.androidnga.BuildConfig
 import gov.anzong.androidnga.debug.Debugger
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.util.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import sp.phone.ui.fragment.dialog.VersionUpgradeDialogFragment
 import sp.phone.util.FunctionUtils
 
@@ -43,7 +41,7 @@ class AboutActivity : BaseActivity() {
                     })
                 }) { padding ->
                     AboutScreen(Modifier.padding(padding), BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE,
-                        checkUpdate = { withContext(Dispatchers.IO) { checkLatestRelease(BuildConfig.VERSION_NAME) } },
+                        checkUpdate = { checkLatestRelease(BuildConfig.VERSION_NAME) },
                         onReleaseNotes = { VersionUpgradeDialogFragment().show(supportFragmentManager, null) },
                         onToggleDebug = { Debugger.toggleDebugMode() },
                         openUrl = ::openInBrowser,

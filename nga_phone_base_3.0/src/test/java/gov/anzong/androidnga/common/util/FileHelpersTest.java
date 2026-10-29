@@ -118,16 +118,6 @@ public class FileHelpersTest {
     }
 
     @Test
-    public void copyUrlToFileCreatesParents() throws IOException {
-        File source = temp.newFile("source.bin");
-        FileUtils.write(source, "图片数据");
-        File target = new File(temp.getRoot(), "avatar/9/a.jpg");
-        FileUtils.copyURLToFile(source.toURI().toURL(), target, 2000, 5000);
-        assertTrue(target.isFile());
-        assertEquals("图片数据", FileUtils.readFileToString(target));
-    }
-
-    @Test
     public void copyInputStreamToFileClosesSource() throws IOException {
         boolean[] closed = {false};
         ByteArrayInputStream input =

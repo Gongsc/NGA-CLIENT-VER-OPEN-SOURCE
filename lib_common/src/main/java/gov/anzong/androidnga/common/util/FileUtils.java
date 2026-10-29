@@ -8,8 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -65,18 +63,6 @@ public class FileUtils {
         }
         if (!directory.delete()) {
             throw new IOException("无法删除目录 " + directory);
-        }
-    }
-
-    /** 下载地址内容到文件，自动创建上级目录。超时单位为毫秒。 */
-    public static void copyURLToFile(URL source, File destination, int connectTimeout, int readTimeout)
-            throws IOException {
-        URLConnection connection = source.openConnection();
-        connection.setConnectTimeout(connectTimeout);
-        connection.setReadTimeout(readTimeout);
-        try (InputStream input = connection.getInputStream();
-                OutputStream output = openOutputStream(destination, false)) {
-            StreamUtils.copy(input, output);
         }
     }
 

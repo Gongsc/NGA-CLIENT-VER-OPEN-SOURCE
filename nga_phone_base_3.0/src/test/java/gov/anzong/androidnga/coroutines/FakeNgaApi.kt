@@ -5,7 +5,7 @@ import okhttp3.ResponseBody
 import sp.phone.http.retrofit.NgaApi
 
 /** 测试用接口：记录每次请求，按 [respond] 返回合成响应或抛出异常。 */
-class FakeNgaApi(var respond: suspend (request: String) -> String = { error("未设置响应：$it") }) : NgaApi {
+open class FakeNgaApi(var respond: suspend (request: String) -> String = { error("未设置响应：$it") }) : NgaApi {
     val requests = mutableListOf<String>()
 
     private suspend fun handle(request: String): String {
@@ -22,7 +22,8 @@ class FakeNgaApi(var respond: suspend (request: String) -> String = { error("未
         handle("POST nuke.php ${queryMap.toSortedMap()} ${fieldMap.toSortedMap()}")
     override suspend fun uploadFile(url: String, body: MultipartBody): ResponseBody = error("未使用")
     override suspend fun get(url: String, map: Map<String, String>) = handle("GET $url ${map.toSortedMap()}")
-    override suspend fun getArticleResponse(url: String, headers: Map<String, String>): ResponseBody = error("未使用")
+    override suspend fun getArticleResponse(url: String, headers: Map<String, String>): ResponseBody =
+        error("未使用")
     override suspend fun forumFavorites(url: String, headers: Map<String, String>, fields: Map<String, String>): ResponseBody =
         error("未使用")
 }
