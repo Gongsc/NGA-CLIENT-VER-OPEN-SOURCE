@@ -2,14 +2,12 @@ package sp.phone.util;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -20,7 +18,6 @@ import android.provider.MediaStore;
 import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -44,7 +41,6 @@ import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.UserManagerImpl;
 import sp.phone.http.bean.MessageArticlePageInfo;
 import sp.phone.http.bean.ThreadRowInfo;
-import sp.phone.proxy.ProxyBridge;
 import sp.phone.theme.ThemeManager;
 import sp.phone.ui.fragment.dialog.BaseDialogFragment;
 import sp.phone.ui.fragment.dialog.ReportDialogFragment;
@@ -117,34 +113,6 @@ public class FunctionUtils {
         contentTV.setTag(row.getLou());
         contentTV.loadDataWithBaseURL(
                 null, row.getFormated_html_data(), "text/html", "utf-8", null);
-    }
-
-    public static void errordialogadmin(Context context, final View listView) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMessage("这白痴是系统账号,神马都看不到");
-        builder.setTitle("看不到");
-        builder.setPositiveButton(
-                "关闭",
-                new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // TODO Auto-generated method stub
-                dialog.dismiss();
-            }
-        });
-
-        final AlertDialog dialog = builder.create();
-        dialog.show();
-        dialog.setOnDismissListener(
-                new AlertDialog.OnDismissListener() {
-
-            @Override
-            public void onDismiss(DialogInterface arg0) {
-                // TODO Auto-generated method stub
-                dialog.dismiss();
-            }
-        });
     }
 
     public static String signatureToHtmlText_Message(

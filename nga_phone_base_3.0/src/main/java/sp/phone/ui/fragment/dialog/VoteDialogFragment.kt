@@ -4,15 +4,22 @@ import android.annotation.SuppressLint
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import gov.anzong.androidnga.base.util.ToastUtils
 import sp.phone.common.PhoneConfiguration
 import sp.phone.proxy.ProxyBridge
 import gov.anzong.androidnga.ui.compose.NgaDialogLayout
@@ -20,18 +27,23 @@ import sp.phone.view.webview.WebViewClientEx
 
 /**
  * 楼层中的投票/投注；arguments 中的 "html" 为投票网页。
- * 网页脚本经 [ProxyBridge] 提交投票，脚本的 alert/confirm 以 Compose 对话框显示。
+ * 网页脚本经 [ProxyBridge] 提交投票，提交中在网页上方显示进度，结果以提示显示；脚本的 alert/confirm 以 Compose 对话框显示。
  */
 class VoteDialogFragment : BaseDialogFragment() {
 
     private class JsPrompt(val message: String, val result: JsResult, val confirm: Boolean)
 
     private var prompt by mutableStateOf<JsPrompt?>(null)
+    private var submitting by mutableStateOf(false)
 
     @SuppressLint("SetJavaScriptEnabled")
     @Composable
     override fun DialogContent() {
         NgaDialogLayout("投票/投注", buttons = { TextButton(onClick = { dismiss() }) { Text("关闭") } }) {
+            if (submitting) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                Text("正在提交…", style = MaterialTheme.typography.bodyMedium)
+            }
             AndroidView(modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp, max = 480.dp), factory = { context ->
                 WebView(context).apply {
                     setBackgroundColor(0)
@@ -40,7 +52,7 @@ class VoteDialogFragment : BaseDialogFragment() {
                     settings.defaultFontSize = PhoneConfiguration.getInstance().webSize
                     settings.javaScriptEnabled = true
                     settings.javaScriptCanOpenWindowsAutomatically = true
-                    addJavascriptInterface(ProxyBridge(requireActivity(), null), "ProxyBridge")
+                    addJavascriptInterface(ProxyBridge({ submitting = it }, ToastUtils::show), "ProxyBridge")
                     webViewClient = WebViewClientEx(requireActivity())
                     webChromeClient = object : WebChromeClient() {
                         override fun onJsAlert(view: WebView, url: String?, message: String?, result: JsResult): Boolean {

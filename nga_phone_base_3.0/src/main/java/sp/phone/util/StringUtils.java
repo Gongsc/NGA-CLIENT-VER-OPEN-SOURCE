@@ -13,17 +13,14 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import gov.anzong.androidnga.R;
 import gov.anzong.androidnga.Utils;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.common.util.EmoticonUtils;
 import gov.anzong.androidnga.core.decode.ForumImageUrl;
 import sp.phone.http.bean.StringFindResult;
-import gov.anzong.androidnga.base.util.ContextUtils;;
 import sp.phone.theme.ThemeManager;
 
 @SuppressLint("SimpleDateFormat")
@@ -37,7 +34,6 @@ public class StringUtils {
     private static final String ignoreCaseTag = "(?i)";
     private static final String endDiv = "</div>";
 
-    private static final String[] SAYING = ContextUtils.getResources().getStringArray(R.array.saying);
 
     /**
      * 验证是否是邮箱
@@ -672,12 +668,6 @@ public class StringUtils {
         s = s.replaceAll("<br/><br/>", "\n");
         s = s.replaceAll("<br/>", "\n");
         return s;
-    }
-
-    public static String getSaying() {
-        Random random = new Random();
-        int num = random.nextInt(SAYING.length);
-        return SAYING[num];
     }
 
     public static String unEscapeHtml(String s) {

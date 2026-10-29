@@ -18,7 +18,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.PopupMenu
-import androidx.appcompat.app.AlertDialog
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.lifecycle.ViewModelProvider
 import sp.phone.mvp.viewmodel.ForumFavoritesViewModel
 import androidx.compose.ui.platform.ComposeView
@@ -70,6 +72,17 @@ class NavigationDrawerFragment : BaseEventFragment() {
             val actions = navigationActions()
             setContent {
                 NgaTheme {
+                    var removing by remember { mutableStateOf<BoardTile?>(null) }
+                    removing?.let { board ->
+                        AlertDialog(onDismissRequest = { removing = null }, text = { Text("是否取消论坛收藏“${board.name}”？") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    removing = null
+                                    favorites.change(sp.phone.http.favorites.ForumFavoriteBoard(board.fid, board.stid, board.name, board.head), false)
+                                }) { Text("确定") }
+                            },
+                            dismissButton = { TextButton(onClick = { removing = null }) { Text("取消") } })
+                    }
                     HomeScreen(state, actions, ::handleAction,
                         onBoard = { showTopicList(it.toBoard()) },
                         onSearch = { (requireActivity() as MainActivity).handleNavigation(R.id.menu_search) },
@@ -81,13 +94,7 @@ class NavigationDrawerFragment : BaseEventFragment() {
                         onSyncFavorites = {
                             if (UserManagerImpl.getInstance().hasValidUser()) favorites.refresh(force = true) else jumpToLogin()
                         },
-                        onRemove = { board ->
-                            AlertDialog.Builder(requireContext()).setMessage("是否取消论坛收藏“${board.name}”？")
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .setPositiveButton(android.R.string.ok) { _, _ -> favorites.change(
-                                    sp.phone.http.favorites.ForumFavoriteBoard(board.fid, board.stid, board.name, board.head), false)
-                                }.show()
-                        },
+                        onRemove = { removing = it },
                         favorites = favorites.snapshot,
                         historyContent = { onControls ->
                             HomeHistoryScreen(history, ::openHistory,
