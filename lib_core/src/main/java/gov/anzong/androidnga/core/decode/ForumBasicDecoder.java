@@ -1,9 +1,14 @@
 package gov.anzong.androidnga.core.decode;
 
-import android.text.TextUtils;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import gov.anzong.androidnga.base.util.StringUtils;
-import gov.anzong.androidnga.common.util.LogUtils;
 import gov.anzong.androidnga.core.data.HtmlData;
 
 /**
@@ -19,6 +24,57 @@ public class ForumBasicDecoder implements IForumDecoder {
     private static final String endDiv = "</div>";
 
     private static final String STYLE_QUOTE = "<div class='quote' >";
+
+    /** 第 1 组为开标签（collapse 的第 2 组为标题），闭标签没有分组。 */
+    private static final Pattern LIST_TAG = Pattern.compile("(?i)\\[(list)\\]|\\[/list\\]");
+    private static final Pattern COLLAPSE_TAG = Pattern.compile("(?i)\\[(collapse)(?:=([^\\]]*))?\\]|\\[/collapse\\]");
+
+    /**
+     * 转换 [list][/list] 与 [*]：开闭标签按配对转换，支持嵌套，未配对的去掉；列表项交给浏览器自动闭合，
+     * 不再以 &lt;br/&gt; 截取内容，避免最后一项吞掉 &lt;/ul&gt; 与其后的折叠等标签。
+     */
+    public static String decodeLists(String content) {
+        content = replacePaired(content, LIST_TAG, match -> "<ul>", "</ul>", "");
+        content = StringUtils.replaceAll(content, "\\[\\*\\]", "<li>");
+        content = StringUtils.replaceAll(content, "(?:<br/>\\s*)+(?=<li>|</ul>)", "");
+        return StringUtils.replaceAll(content, "(<ul>|</ul>)\\s*<br/>", "$1");
+    }
+
+    /**
+     * 把成对的开闭标签转换为 HTML，嵌套时按就近原则配对。[tag] 匹配第 1 组为开标签、否则为闭标签；
+     * [open] 在扫描到开标签时以当前匹配调用。
+     * 未配对的标签替换为 [unmatched]；为 null 时保留原文。
+     */
+    static String replacePaired(String content, Pattern tag, Function<Matcher, String> open, String close, String unmatched) {
+        List<int[]> tokens = new ArrayList<>();
+        List<String> opened = new ArrayList<>();
+        Matcher matcher = tag.matcher(content);
+        while (matcher.find()) {
+            boolean isOpen = matcher.group(1) != null;
+            tokens.add(new int[]{matcher.start(), matcher.end(), isOpen ? 1 : 0, 0});
+            opened.add(isOpen ? open.apply(matcher) : null);
+        }
+        if (tokens.isEmpty()) return content;
+        Deque<Integer> stack = new ArrayDeque<>();
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i)[2] == 1) {
+                stack.push(i);
+            } else if (!stack.isEmpty()) {
+                tokens.get(stack.pop())[3] = 1;
+                tokens.get(i)[3] = 1;
+            }
+        }
+        StringBuilder out = new StringBuilder(content.length() + tokens.size() * 32);
+        int last = 0;
+        for (int i = 0; i < tokens.size(); i++) {
+            int[] token = tokens.get(i);
+            out.append(content, last, token[0]);
+            if (token[3] == 1) out.append(token[2] == 1 ? opened.get(i) : close);
+            else out.append(unmatched != null ? unmatched : content.substring(token[0], token[1]));
+            last = token[1];
+        }
+        return out.append(content, last, content.length()).toString();
+    }
 
     @Override
     public String decode(String content, HtmlData htmlData) {
@@ -218,19 +274,18 @@ public class ForumBasicDecoder implements IForumDecoder {
                 "<span style=\"font-size:$1%;line-height:$1%\">");
         content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[/size\\]", "</span>");
 
-        // [list][/list]
-        // TODO: 2018/9/18  部分页面里和 collapse 标签有冲突 http://bbs.nga.cn/read.php?tid=14949699
-        content = StringUtils.replaceAll(content, IGNORE_CASE_TAG + "\\[list\\](.+?)\\[/list\\]", "<ul>$1</ul>");
-        content = StringUtils.replaceAll(content, IGNORE_CASE_TAG + "\\[list\\]", "");
-        content = StringUtils.replaceAll(content, IGNORE_CASE_TAG + "\\[/list\\]", "");
-        content = StringUtils.replaceAll(content, IGNORE_CASE_TAG + "\\[\\*\\](.+?)<br/>", "<li>$1</li>");
+        // [list][/list]、[*]
+        content = decodeLists(content);
 
         // [h][/h]
         content = StringUtils.replaceAll(content, IGNORE_CASE_TAG + "\\[h](.+?)\\[/h]", "<b>$1</b>");
 
-        // [collapse][/collapse]
-        content = StringUtils.replaceAll(content, "\\[collapse=(.*?)](.*?)\\[/collapse]", "<div><button onclick='toggleCollapse(this,\"$1\")'>点击显示内容 : $1</button><div name='collapse' class='collapse' style='display:none'>$2</div></div>");
-        content = StringUtils.replaceAll(content, "\\[collapse](.*?)\\[/collapse]", "<div><button onclick='toggleCollapse(this)'>点击显示内容</button><div name='collapse' class='collapse'style='display:none' >$1</div></div>");
+        // [collapse][/collapse]、[collapse=标题][/collapse]：按配对转换，支持嵌套与跨行；未配对的标签保留原文
+        content = replacePaired(content, COLLAPSE_TAG, match -> {
+            String title = match.group(2);
+            return "<div><button onclick='toggleCollapse(this)'>点击显示内容" + (title == null ? "" : " : " + title)
+                    + "</button><div name='collapse' class='collapse' style='display:none'>";
+        }, "</div></div>", null);
 
         // [flash=video]/flash]
         content = StringUtils.replaceAll(content, "\\[flash=video].(.*?)\\[/flash]", "<video src='https://img.nga.cn/attachments$1' controls='controls'></video>");

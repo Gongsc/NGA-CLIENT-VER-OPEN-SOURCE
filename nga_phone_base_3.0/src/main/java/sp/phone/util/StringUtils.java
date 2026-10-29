@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import gov.anzong.androidnga.Utils;
 import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.common.util.EmoticonUtils;
+import gov.anzong.androidnga.core.decode.ForumBasicDecoder;
 import gov.anzong.androidnga.core.decode.ForumImageUrl;
 import sp.phone.http.bean.StringFindResult;
 import sp.phone.theme.ThemeManager;
@@ -434,12 +435,7 @@ public class StringUtils {
                         + "\\[img\\]\\s*(http[^\\[|\\]]+)\\s*\\[/img\\]",
                 "<a href='$1'><img src='$1' style= 'max-width:100%' ></a>");
 
-        ret = ret.replaceAll(ignoreCaseTag
-                        + "\\[list\\](.+?)\\[/list\\]",
-                "<ul>$1</ul>");
-        ret = ret.replaceAll(ignoreCaseTag
-                        + "\\[\\*\\](.+?)<br/>",
-                "<li>$1</li>");
+        ret = ForumBasicDecoder.decodeLists(ret);
 
         try {
             ret = buildImage(ret, showImage, imageUrls);
