@@ -254,8 +254,8 @@ class NgaWriteClient(
             throw PostException(AMBIGUOUS)
         }
 
-        /** 兼容 `lite=js` 的 `window.script_muti_get_var_store=` 前缀与尾部注释。 */
-        private fun parseJson(text: String): Any? {
+        /** 兼容 `lite=js` 的 `window.script_muti_get_var_store=` 前缀与尾部注释；不是 JSON 时返回 null。 */
+        internal fun parseJson(text: String): Any? {
             var js = text.trim().removePrefix("window.script_muti_get_var_store=")
             val comment = js.indexOf("/*error fill content")
             if (comment > 0) js = js.substring(0, comment)

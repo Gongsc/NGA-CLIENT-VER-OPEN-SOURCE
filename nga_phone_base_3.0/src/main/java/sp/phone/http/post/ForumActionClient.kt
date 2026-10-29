@@ -1,6 +1,10 @@
 package sp.phone.http.post
 
+import gov.anzong.androidnga.base.json.NgaJsonObject
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import sp.phone.http.post.NgaWriteClient.ActionResult
+import sp.phone.http.post.NgaWriteClient.PostException
 import sp.phone.mvp.model.entity.SubBoard
 import java.io.IOException
 import java.net.URLDecoder
@@ -16,6 +20,38 @@ class ForumActionClient(private val writer: NgaWriteClient) {
         val url = writer.url("nuke.php").addQueryParameter("__inchst", "UTF8").build()
         val fields = listOf("lite" to "js", "noprefix" to "", "func" to "avatar", "icon" to iconUrl)
         return writer.tryPostAction(url, fields, referer = writer.baseUrl())
+    }
+
+    /**
+     * 上传图片并设为 [uid] 的头像，流程与网页“设置头像”（common_res/js_imageEdit.js 的 setAvatar2）一致：
+     * 1. `__lib=set_avatar&__act=get&edit=1` 取得上传校验码与上传地址；
+     * 2. 向上传地址提交 `func=upload&avatar=1`，图片为 `n{uid}_0` 字段中的 data URL（替换全部头像）；
+     * 3. `__lib=set_avatar&__act=set` 把上传结果中的 `url` 设为头像。
+     *
+     * 前两步失败时头像未更改；第 3 步按 [NgaWriteClient.postAction] 判断，结果不明时提示刷新确认。
+     * 成功时返回论坛的提示文字，失败时抛出 [PostException]。
+     */
+    @Throws(IOException::class)
+    fun uploadAvatar(uid: String, image: String): String {
+        val referer = writer.url("nuke.php").addQueryParameter("func", "ucp").addQueryParameter("uid", uid).build().toString()
+        val nuke = writer.url("nuke.php").addQueryParameter("__inchst", "UTF8").build()
+        val target = try {
+            writer.execute(nuke, listOf("__lib" to "set_avatar", "__act" to "get", "uid" to uid, "edit" to "1", "raw" to "3"), referer)
+        } catch (e: PostException) {
+            throw e
+        } catch (e: IOException) {
+            throw PostException("网络错误，头像未更改，请稍后重试")
+        }.let { parseAvatarTarget(it.text, writer.baseUrl()) }
+        val uploaded = try {
+            writer.execute(target.url, listOf("func" to "upload", "avatar" to "1", "uid" to uid, "lite" to "js",
+                "checksum" to target.checksum, "n${uid}_0" to image), referer)
+        } catch (e: PostException) {
+            throw PostException("${e.message}，头像未更改", e.requiresLogin)
+        } catch (e: IOException) {
+            throw PostException("上传失败，头像未更改，请稍后重试")
+        }.let { parseAvatarUpload(it.text) }
+        return writer.postAction(nuke, listOf("__lib" to "set_avatar", "__act" to "set", "uid" to uid, "avatar" to uploaded,
+            "disable" to "", "raw" to "3"), referer)
     }
 
     /**
@@ -56,6 +92,51 @@ class ForumActionClient(private val writer: NgaWriteClient) {
         fun create(): ForumActionClient = ForumActionClient(NgaWriteClient.create())
 
         private val VOTE_ACTIONS = setOf("vote", "settle")
+
+        /** 头像上传地址只接受论坛自己的域名，凭据不会发往其他站点。 */
+        private val FORUM_DOMAINS = listOf("nga.cn", "ngacn.cc", "ngabbs.com", "nga.178.com")
+
+        class AvatarUploadTarget(val checksum: String, val url: HttpUrl)
+
+        /** 解析 `set_avatar` 的 `get` 结果：`data[1]` 为校验码，`data[2]` 为上传地址（去掉其中的 checksum 参数）。 */
+        internal fun parseAvatarTarget(text: String, base: String): AvatarUploadTarget {
+            val root = NgaWriteClient.parseJson(text) as? NgaJsonObject ?: throw PostException("无法取得头像上传地址，头像未更改")
+            errorText(root)?.let { throw PostException(it, requiresLogin = it.contains("登录")) }
+            val data = root.getJSONObject("data") ?: throw PostException("无法取得头像上传地址，头像未更改")
+            val checksum = data.getString("1")?.takeIf { it.isNotBlank() } ?: throw PostException("无法取得头像上传校验码，头像未更改")
+            val address = data.getString("2")?.replace(Regex("checksum=[a-z0-9]+&?"), "")?.trim()
+                ?.takeIf { it.isNotEmpty() } ?: throw PostException("无法取得头像上传地址，头像未更改")
+            val absolute = when {
+                address.startsWith("//") -> "https:$address"
+                address.startsWith("/") -> base.trimEnd('/') + address
+                address.startsWith("http://") -> "https://" + address.removePrefix("http://")
+                else -> address
+            }
+            val url = absolute.toHttpUrlOrNull()
+            if (url == null || !url.isHttps || FORUM_DOMAINS.none { url.host == it || url.host.endsWith(".$it") }) {
+                throw PostException("头像上传地址不是论坛域名，已取消上传")
+            }
+            return AvatarUploadTarget(checksum, url)
+        }
+
+        /** 解析上传结果，返回 `data[0].url`（或 `data.url`）；论坛返回错误或无法识别时抛出 [PostException]。 */
+        internal fun parseAvatarUpload(text: String): String {
+            val root = NgaWriteClient.parseJson(text) as? NgaJsonObject ?: throw PostException("无法识别上传结果，头像未更改")
+            errorText(root)?.let { error ->
+                val code = root.getString("error_code")?.takeIf { it.isNotBlank() && it != "0" }
+                throw PostException(listOfNotNull(code, error).joinToString(" ") + "，头像未更改", requiresLogin = error.contains("登录"))
+            }
+            val data = root["data"]
+            val entry = (data as? NgaJsonObject)?.let { it.getJSONObject("0") ?: it }
+            return entry?.getString("url")?.takeIf { it.isNotBlank() } ?: throw PostException("无法识别上传结果，头像未更改")
+        }
+
+        private fun errorText(root: NgaJsonObject): String? = when (val error = root["error"]) {
+            null, false, "" -> null
+            is NgaJsonObject -> error.values.joinToString(" ") { it.toString() }.trim().takeIf { it.isNotEmpty() }
+            is Iterable<*> -> error.joinToString(" ") { it.toString() }.trim().takeIf { it.isNotEmpty() }
+            else -> error.toString().takeIf { it.isNotBlank() && it != "0" && it != "false" }
+        }
         private val DIGITS = Regex("\\d+")
         private val VOTE_IDS = Regex("[\\w,]+")
 

@@ -34,16 +34,15 @@ class AccountEditScreensTest {
         val events = mutableListOf<String>()
         var url by mutableStateOf("")
         compose.setContent {
-            NgaTheme { AvatarEditScreen(url, { url = it }, false, { events += "submit:$url" }, {}) }
+            NgaTheme { AvatarEditScreen(url, { url = it }, false, { events += "pick" }, { events += "submit:$url" }, {}) }
         }
         compose.onNodeWithText("提交").performClick()
         compose.onNodeWithText("请输入正确的头像 URL 地址").assertIsDisplayed()
         compose.onNodeWithContentDescription("头像预览").assertDoesNotExist()
-        compose.onNodeWithText("从相册选择并上传").assertDoesNotExist()
-        compose.onNodeWithText("设置头像", substring = true).assertIsDisplayed()
+        compose.onNodeWithText("从相册选择并上传").performClick()
         compose.onNodeWithText("头像地址").performTextInput("https://img.nga.cn/avatar.png")
         compose.onNodeWithContentDescription("头像预览").assertExists()
         compose.onNodeWithText("提交").performClick()
-        compose.runOnIdle { assertEquals(listOf("submit:https://img.nga.cn/avatar.png"), events) }
+        compose.runOnIdle { assertEquals(listOf("pick", "submit:https://img.nga.cn/avatar.png"), events) }
     }
 }

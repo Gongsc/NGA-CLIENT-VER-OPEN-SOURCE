@@ -27,6 +27,10 @@ class AccountEditViewModel(
         SignPostTask().submit(SignPostParam().apply { uid = UserManagerImpl.getInstance().userId; this.sign = sign })
     },
     private val avatarRequest: suspend (String) -> NgaWriteClient.ActionResult = { ForumActionClient.create().setAvatar(it) },
+    /** 上传图片并设为头像，参数为图片的 data URL，返回论坛提示；失败时抛出带原因的异常。 */
+    private val avatarUploadRequest: suspend (String) -> String = { image ->
+        ForumActionClient.create().uploadAvatar(UserManagerImpl.getInstance().userId.orEmpty(), image)
+    },
     private val scope: CoroutineScope = AppScope,
     private val worker: CoroutineDispatcher = NgaDispatchers.io,
 ) : ViewModel() {
@@ -46,6 +50,9 @@ class AccountEditViewModel(
         val response = avatarRequest(url)
         Result(response.success, if (response.success) "操作成功" else response.message, url)
     }
+
+    /** 读取并上传图片后设为头像；[image] 在后台线程读取图片并返回 data URL。已有提交进行中时返回 false。 */
+    fun uploadAvatar(image: () -> String) = submit("") { Result(true, avatarUploadRequest(image()), "") }
 
     fun resultShown() {
         result = null

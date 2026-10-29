@@ -16,8 +16,9 @@ class AccountEditViewModelTest {
     private val scope = CoroutineScope(SupervisorJob() + main)
 
     private fun viewModel(sign: suspend (String) -> String = { "修改成功！" },
-                          avatar: suspend (String) -> NgaWriteClient.ActionResult = { NgaWriteClient.ActionResult(true, "") }) =
-        AccountEditViewModel(sign, avatar, scope, main)
+                          avatar: suspend (String) -> NgaWriteClient.ActionResult = { NgaWriteClient.ActionResult(true, "") },
+                          upload: suspend (String) -> String = { "操作成功" }) =
+        AccountEditViewModel(sign, avatar, upload, scope, main)
 
     @Test fun signatureSubmitsOnceAndReturnsTheNewSignature() {
         val pending = PendingResponse<String>()
@@ -62,5 +63,29 @@ class AccountEditViewModelTest {
         assertFalse(AccountEditViewModel.isAvatarUrl("ftp://a.cn/b"))
         assertFalse(AccountEditViewModel.isAvatarUrl("https://"))
         assertFalse(AccountEditViewModel.isAvatarUrl(""))
+    }
+
+    @Test fun avatarUploadReadsImageOnceAndReportsResult() {
+        val pending = PendingResponse<String>()
+        val uploaded = mutableListOf<String>()
+        val vm = viewModel(upload = { uploaded += it; pending.await() })
+        assertTrue(vm.uploadAvatar { "data:image/png;base64,AA==" })
+        assertFalse(vm.uploadAvatar { error("提交中不应再次读取图片") })
+        assertTrue(vm.sending)
+        pending.complete("操作成功")
+        assertEquals(listOf("data:image/png;base64,AA=="), uploaded)
+        assertTrue(vm.result!!.success)
+        assertEquals("操作成功", vm.result!!.message)
+    }
+
+    @Test fun unreadableImageOrUploadFailureKeepsReason() {
+        val vm = viewModel(upload = { throw NgaWriteClient.PostException("上传失败，头像未更改，请稍后重试") })
+        vm.uploadAvatar { throw IllegalArgumentException("所选择的不是图片") }
+        assertEquals("所选择的不是图片", vm.result!!.message)
+        assertFalse(vm.result!!.success)
+        vm.resultShown()
+        vm.uploadAvatar { "data:image/png;base64,AA==" }
+        assertEquals("上传失败，头像未更改，请稍后重试", vm.result!!.message)
+        assertFalse(vm.sending)
     }
 }

@@ -225,4 +225,59 @@ class ForumWriteClientsTest {
             ForumActionClient(FakeForum(Reply("<html></html>", 200, "text/html")).writer()).setSubBoardVisible(board, true)
         }
     }
+
+    private val avatarTarget = json("""{"data":{"0":".a/123_0.jpg","1":"abc123","2":"https://img8.nga.cn/attach.php?checksum=abc123&avatar_upload=1"},"time":1}""")
+
+    @Test fun avatarUploadFollowsWebSetAvatarFlow() {
+        val forum = FakeForum(avatarTarget,
+            json("""window.script_muti_get_var_store={"data":{"0":{"url":".a/123_0.png?57"}},"time":1}"""),
+            json("""{"data":{"0":"操作成功"},"time":1}"""))
+
+        assertEquals("操作成功", ForumActionClient(forum.writer()).uploadAvatar("123", "data:image/png;base64,iVBORw0KGgo="))
+
+        assertEquals(3, forum.requests.size)
+        val get = form(forum.bodies[0])
+        assertEquals("/nuke.php", forum.requests[0].url.encodedPath)
+        assertEquals("set_avatar", get["__lib"]); assertEquals("get", get["__act"]); assertEquals("1", get["edit"]); assertEquals("123", get["uid"])
+
+        val upload = forum.requests[1]
+        assertEquals("img8.nga.cn", upload.url.host)
+        assertEquals("/attach.php", upload.url.encodedPath)
+        assertNull("上传地址中的 checksum 已去掉", upload.url.queryParameter("checksum"))
+        assertEquals("1", upload.url.queryParameter("avatar_upload"))
+        val fields = form(forum.bodies[1])
+        assertEquals("upload", fields["func"]); assertEquals("1", fields["avatar"]); assertEquals("js", fields["lite"])
+        assertEquals("abc123", fields["checksum"])
+        assertEquals("data:image/png;base64,iVBORw0KGgo=", fields["n123_0"])
+        assertEquals("123", fields["access_uid"])
+
+        val set = form(forum.bodies[2])
+        assertEquals("set_avatar", set["__lib"]); assertEquals("set", set["__act"])
+        assertEquals(".a/123_0.png?57", set["avatar"])
+        assertEquals("", set["disable"])
+    }
+
+    @Test fun avatarUploadErrorsLeaveAvatarUnchanged() {
+        val failed = FakeForum(avatarTarget, json("""{"error":"图片格式错误","error_code":3}"""))
+        assertRejected("3 图片格式错误，头像未更改") { ForumActionClient(failed.writer()).uploadAvatar("123", "data:image/png;base64,AA==") }
+        assertEquals("出错后不再设置头像", 2, failed.requests.size)
+
+        val unclear = FakeForum(avatarTarget, json("""{"data":{"0":{}}}"""))
+        assertRejected("无法识别上传结果，头像未更改") { ForumActionClient(unclear.writer()).uploadAvatar("123", "data:image/png;base64,AA==") }
+        assertEquals(2, unclear.requests.size)
+
+        val denied = FakeForum(json("""{"error":{"0":"你没有权限"}}"""))
+        assertRejected("你没有权限") { ForumActionClient(denied.writer()).uploadAvatar("123", "x") }
+        assertEquals(1, denied.requests.size)
+    }
+
+    @Test fun avatarUploadOnlySendsCredentialsToForumHosts() {
+        val forum = FakeForum(json("""{"data":{"1":"abc","2":"https://evil.example.com/attach.php?"}}"""))
+        assertRejected("头像上传地址不是论坛域名，已取消上传") { ForumActionClient(forum.writer()).uploadAvatar("123", "x") }
+        assertEquals(1, forum.requests.size)
+        val target = ForumActionClient.parseAvatarTarget("""{"data":{"1":"abc","2":"//img8.nga.cn/attach.php?checksum=abc&"}}""", "https://bbs.nga.cn/")
+        assertEquals("https://img8.nga.cn/attach.php", target.url.toString().trimEnd('?'))
+        assertEquals("abc", target.checksum)
+        assertRejected("无法取得头像上传校验码，头像未更改") { ForumActionClient.parseAvatarTarget("""{"data":{"2":"https://img8.nga.cn/a"}}""", "https://bbs.nga.cn/") }
+    }
 }

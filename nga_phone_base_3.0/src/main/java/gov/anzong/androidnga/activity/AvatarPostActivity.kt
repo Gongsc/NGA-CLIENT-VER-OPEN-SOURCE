@@ -3,6 +3,7 @@ package gov.anzong.androidnga.activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,11 +15,18 @@ import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.mvvm.viewmodel.AccountEditViewModel
 import gov.anzong.androidnga.ui.compose.AvatarEditScreen
 import gov.anzong.androidnga.ui.compose.NgaTheme
+import sp.phone.task.AvatarImage
 
-/** 修改头像：填写图片地址后提交。成功时返回结果码 123，data 的 "avatar" 为新头像地址。 */
+/** 修改头像：填写图片地址后提交，或从相册选择图片上传。成功时返回结果码 123，填写地址时 data 的 "avatar" 为新头像地址。 */
 class AvatarPostActivity : BaseActivity() {
 
     private val viewModel: AccountEditViewModel by viewModels()
+
+    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        val context = applicationContext
+        if (!viewModel.uploadAvatar { AvatarImage.dataUrl(context, uri) }) ToastUtils.show(getString(R.string.avoidWindfury))
+    }
 
     override fun usesComposeContent() = true
 
@@ -28,7 +36,7 @@ class AvatarPostActivity : BaseActivity() {
         setContent {
             NgaTheme {
                 var url by rememberSaveable { mutableStateOf("") }
-                AvatarEditScreen(url, { url = it }, viewModel.sending, onSubmit = {
+                AvatarEditScreen(url, { url = it }, viewModel.sending, onPick = { pickImage.launch("image/*") }, onSubmit = {
                     if (!viewModel.submitAvatar(url.trim())) ToastUtils.show(getString(R.string.avoidWindfury))
                 }, onBack = ::finish)
                 LaunchedEffect(viewModel.result) {
