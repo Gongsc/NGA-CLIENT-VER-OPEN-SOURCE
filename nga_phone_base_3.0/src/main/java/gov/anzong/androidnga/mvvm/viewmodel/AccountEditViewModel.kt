@@ -16,6 +16,7 @@ import sp.phone.http.post.ForumActionClient
 import sp.phone.http.post.NgaWriteClient
 import sp.phone.param.SignPostParam
 import sp.phone.task.SignPostTask
+import sp.phone.task.requestProfile
 
 /**
  * 修改签名与头像：同一时间只提交一次。
@@ -33,6 +34,11 @@ class AccountEditViewModel(
     },
     private val scope: CoroutineScope = AppScope,
     private val worker: CoroutineDispatcher = NgaDispatchers.io,
+    /** 读取本人资料中的最新头像；修改头像成功后用它更新首页底栏与“我的”页面的账号头像。 */
+    private val ownAvatar: suspend () -> String? = {
+        UserManagerImpl.getInstance().userId?.takeIf { it.isNotEmpty() }?.let { requestProfile("uid=$it").avatarUrl }
+    },
+    private val saveOwnAvatar: (String) -> Unit = { url -> UserManagerImpl.getInstance().let { it.updateAvatarUrl(it.userId, url) } },
 ) : ViewModel() {
 
     /** 提交结果；[value] 为提交的签名或头像地址，成功时返回给上一页。 */
@@ -46,29 +52,40 @@ class AccountEditViewModel(
     fun submitSignature(sign: String) = submit(sign) { Result(true, signRequest(sign), sign) }
 
     /** 开始提交头像地址；已有提交进行中时返回 false。 */
-    fun submitAvatar(url: String) = submit(url) {
+    fun submitAvatar(url: String) = submit(url, avatar = true) {
         val response = avatarRequest(url)
         Result(response.success, if (response.success) "操作成功" else response.message, url)
     }
 
     /** 读取并上传图片后设为头像；[image] 在后台线程读取图片并返回 data URL。已有提交进行中时返回 false。 */
-    fun uploadAvatar(image: () -> String) = submit("") { Result(true, avatarUploadRequest(image()), "") }
+    fun uploadAvatar(image: () -> String) = submit("", avatar = true) { Result(true, avatarUploadRequest(image()), "") }
 
     fun resultShown() {
         result = null
     }
 
-    private fun submit(value: String, request: suspend () -> Result): Boolean {
+    private fun submit(value: String, avatar: Boolean = false, request: suspend () -> Result): Boolean {
         if (sending) return false
         sending = true
         scope.launch {
-            result = try {
+            val outcome = try {
                 withContext(worker) { request() }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Result(false, e.message ?: "提交失败，请稍后重试", value)
             }
+            // 先写回账号头像再公布结果，返回首页时即显示新头像；读取失败不影响修改结果。
+            if (outcome.success && avatar) {
+                try {
+                    withContext(worker) { ownAvatar() }?.takeIf { it.isNotBlank() }?.let(saveOwnAvatar)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // 忽略
+                }
+            }
+            result = outcome
             sending = false
         }
         return true

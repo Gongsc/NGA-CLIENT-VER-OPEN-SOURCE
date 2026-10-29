@@ -152,6 +152,21 @@ public class UserManagerImpl implements UserManager {
     }
 
     @Override
+    public void updateAvatarUrl(String uid, String url) {
+        if (TextUtils.isEmpty(uid) || TextUtils.isEmpty(url)) {
+            return;
+        }
+        mAvatarPreferences.edit().putString(uid, url).apply();
+        for (User user : mUserList) {
+            if (user.getUserId().equals(uid)) {
+                user.setAvatarUrl(url);
+                commit();
+                return;
+            }
+        }
+    }
+
+    @Override
     public String getUserId() {
         User user = getActiveUser();
         return user != null ? user.getUserId() : "";
