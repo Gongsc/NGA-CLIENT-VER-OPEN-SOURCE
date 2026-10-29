@@ -13,15 +13,18 @@ import org.junit.Test
 class AccountEditScreensTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun signatureRejectsEmptyAndSubmitsEditedText() {
+    @Test fun signatureSubmitsEditedTextAndClearsAfterConfirm() {
         val submitted = mutableListOf<String>()
         compose.setContent { NgaTheme { SignatureEditScreen("旧签名", false, { submitted += it }, {}) } }
         compose.onNodeWithText("旧签名").performTextClearance()
         compose.onNodeWithContentDescription("提交").performClick()
-        compose.onNodeWithText("请输入内容").assertIsDisplayed()
+        compose.onNodeWithText("取消").performClick()
+        compose.onNodeWithText("清空签名").assertDoesNotExist()
+        compose.onNodeWithContentDescription("提交").performClick()
+        compose.onNodeWithText("清空").performClick()
         compose.onNodeWithText("签名").performTextInput("新签名")
         compose.onNodeWithContentDescription("提交").performClick()
-        compose.runOnIdle { assertEquals(listOf("新签名"), submitted) }
+        compose.runOnIdle { assertEquals(listOf("", "新签名"), submitted) }
     }
 
     @Test fun signatureSendingHidesSubmit() {

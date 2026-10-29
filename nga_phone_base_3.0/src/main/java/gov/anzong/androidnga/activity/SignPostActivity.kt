@@ -26,7 +26,7 @@ class SignPostActivity : BaseActivity() {
         setContent {
             NgaTheme {
                 SignatureEditScreen(initial, viewModel.sending, onSubmit = { text ->
-                    if (!viewModel.submitSignature(FunctionUtils.ColorTxtCheck(text))) ToastUtils.show(getString(R.string.avoidWindfury))
+                    if (!viewModel.submitSignature(if (text.isBlank()) "" else FunctionUtils.ColorTxtCheck(text))) ToastUtils.show(getString(R.string.avoidWindfury))
                 }, onBack = ::finish)
                 LaunchedEffect(viewModel.result) {
                     val result = viewModel.result ?: return@LaunchedEffect

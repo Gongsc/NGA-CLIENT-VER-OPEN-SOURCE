@@ -26,26 +26,29 @@ import androidx.compose.ui.viewinterop.AndroidView
 import gov.anzong.androidnga.mvvm.viewmodel.AccountEditViewModel
 import sp.phone.util.ImageUtils
 
-/** 修改签名：支持论坛代码；内容为空时不能提交，提交中显示进度。 */
+/** 修改签名：支持论坛代码；内容为空时确认后提交空签名以清空签名，提交中显示进度。 */
 @Composable
 fun SignatureEditScreen(initial: String, sending: Boolean, onSubmit: (String) -> Unit, onBack: () -> Unit) {
     var text by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(initial, TextRange(0, initial.length))) }
-    var empty by rememberSaveable { mutableStateOf(false) }
+    var confirmClear by rememberSaveable { mutableStateOf(false) }
     val focus = remember { FocusRequester() }
     fun submit() {
-        empty = text.text.isBlank()
-        if (!empty) onSubmit(text.text)
+        if (text.text.isBlank()) confirmClear = true else onSubmit(text.text)
     }
     SettingsSubPage("修改签名", onBack, actions = {
         if (sending) CircularProgressIndicator(Modifier.padding(horizontal = 12.dp).size(24.dp))
         else ActionIcon(Icons.AutoMirrored.Filled.Send, "提交", ::submit)
     }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding().padding(16.dp)) {
-            OutlinedTextField(text, { text = it; empty = false }, Modifier.fillMaxWidth().weight(1f).focusRequester(focus),
-                enabled = !sending, label = { Text("签名") }, isError = empty,
-                supportingText = { Text(if (empty) "请输入内容" else "支持论坛代码，如 [b]粗体[/b]、[url]链接[/url]") })
+            OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth().weight(1f).focusRequester(focus),
+                enabled = !sending, label = { Text("签名") },
+                supportingText = { Text("支持论坛代码，如 [b]粗体[/b]、[url]链接[/url]；留空提交即清空签名") })
         }
     }
+    if (confirmClear) AlertDialog(onDismissRequest = { confirmClear = false },
+        title = { Text("清空签名") }, text = { Text("签名内容为空，提交后将清空当前签名。") },
+        confirmButton = { TextButton(onClick = { confirmClear = false; onSubmit("") }) { Text("清空") } },
+        dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("取消") } })
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
 }
 
