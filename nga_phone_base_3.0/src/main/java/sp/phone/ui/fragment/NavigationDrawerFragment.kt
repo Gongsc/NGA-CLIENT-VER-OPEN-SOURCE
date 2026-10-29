@@ -47,6 +47,9 @@ class NavigationDrawerFragment : BaseEventFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerUiEvents()
+        childFragmentManager.setFragmentResultListener(AddBoardDialogFragment.RESULT_KEY, this) { _, result ->
+            addBoard(result.getString("fid").orEmpty(), result.getString("stid").orEmpty())
+        }
         inbox = ViewModelProvider(this)[HomeInboxViewModel::class.java]
         favorites = ViewModelProvider(this)[ForumFavoritesViewModel::class.java]
         boards = ViewModelProvider(this)[BoardViewModel::class.java]
@@ -132,9 +135,7 @@ class NavigationDrawerFragment : BaseEventFragment() {
     private fun handleAction(id: Int) {
         when (id) {
             R.id.menu_add -> startActivity(Intent(requireContext(), ForumListActivity::class.java))
-            R.id.menu_add_id -> AddBoardDialogFragment()
-                .setOnAddBookmarkListener(::addBoard)
-                .show(childFragmentManager)
+            R.id.menu_add_id -> AddBoardDialogFragment().show(childFragmentManager)
             R.id.menu_login -> jumpToLogin()
             else -> (requireActivity() as MainActivity).handleNavigation(id)
         }

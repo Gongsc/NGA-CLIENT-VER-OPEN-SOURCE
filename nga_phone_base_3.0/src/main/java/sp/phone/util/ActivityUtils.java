@@ -26,7 +26,6 @@ import gov.anzong.androidnga.base.util.ContextUtils;
 import gov.anzong.androidnga.base.util.ToastUtils;
 import sp.phone.common.PhoneConfiguration;
 import sp.phone.common.UserManagerImpl;
-import sp.phone.ui.fragment.dialog.SearchDialogFragment;
 
 public class ActivityUtils {
 
@@ -328,27 +327,6 @@ public class ActivityUtils {
         } else {
             intent.setClass(context, PhoneConfiguration.getInstance().topicActivityClass);
             context.startActivity(intent);
-        }
-    }
-
-    public static void startSearchDialog(AppCompatActivity activity, Bundle bundle) {
-        if (UserManagerImpl.getInstance().getActiveUser() == null) {
-            startLoginActivity(activity);
-            return;
-        }
-        DialogFragment df = new SearchDialogFragment();
-        df.setArguments(bundle);
-        final String dialogTag = SearchDialogFragment.class.getSimpleName();
-        FragmentManager fm = activity.getSupportFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        Fragment prev = fm.findFragmentByTag(dialogTag);
-        if (prev != null) {
-            ft.remove(prev);
-        }
-        try {
-            df.show(ft, dialogTag);
-        } catch (Exception e) {
-
         }
     }
 

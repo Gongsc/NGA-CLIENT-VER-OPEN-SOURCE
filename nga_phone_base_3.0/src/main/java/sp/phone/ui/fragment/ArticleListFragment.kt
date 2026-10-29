@@ -184,8 +184,8 @@ open class ArticleListFragment : BaseEventFragment() {
             }
             R.id.menu_post_comment -> showPostCommentDialog(row)
             R.id.menu_report -> FunctionUtils.handleReport(row, request.tid, parentFragmentManager)
-            R.id.menu_signature -> if (!row.getISANONYMOUS()) FunctionUtils.Create_Signature_Dialog(row, requireContext(), requireView())
-            R.id.menu_vote -> FunctionUtils.createVoteDialog(row, requireContext(), requireView(), mToast)
+            R.id.menu_signature -> if (!row.getISANONYMOUS()) FunctionUtils.showSignatureDialog(row, requireContext(), parentFragmentManager)
+            R.id.menu_vote -> FunctionUtils.showVoteDialog(row, requireContext(), parentFragmentManager)
             R.id.menu_ban_this_one -> { showToast(viewModel.toggleBlacklist(row)); loadPage() }
             R.id.menu_show_this_person_only -> AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_TOPIC_CONTENT)
                 .withInt(ParamKey.KEY_TID, row.tid).withInt(ParamKey.KEY_AUTHOR_ID, row.authorid).navigation(requireContext())

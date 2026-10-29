@@ -46,7 +46,10 @@ import sp.phone.http.bean.MessageArticlePageInfo;
 import sp.phone.http.bean.ThreadRowInfo;
 import sp.phone.proxy.ProxyBridge;
 import sp.phone.theme.ThemeManager;
+import sp.phone.ui.fragment.dialog.BaseDialogFragment;
 import sp.phone.ui.fragment.dialog.ReportDialogFragment;
+import sp.phone.ui.fragment.dialog.SignatureDialogFragment;
+import sp.phone.ui.fragment.dialog.VoteDialogFragment;
 import sp.phone.view.webview.WebViewClientEx;
 
 import java.util.Objects;
@@ -171,230 +174,27 @@ public class FunctionUtils {
         return ngaHtml;
     }
 
-    public static void Create_Signature_Dialog(
-            ThreadRowInfo row, final Context context, final View scrollview) {
-        LayoutInflater layoutInflater = ((Activity) context).getLayoutInflater();
-        final View view = layoutInflater.inflate(R.layout.dialog_signature, null);
-        String name = row.getAuthor();
-        AlertDialog.Builder alert = new AlertDialog.Builder(context);
-        alert.setView(view);
-        alert.setTitle(name + "的签名");
-        // COLOR
-
+    /** 显示楼层作者的签名。 */
+    public static void showSignatureDialog(ThreadRowInfo row, Context context, FragmentManager fm) {
         ThemeManager theme = ThemeManager.getInstance();
-        int bgColor = context.getResources().getColor(theme.getBackgroundColor(0));
-        int fgColor = context.getResources().getColor(theme.getForegroundColor());
-        bgColor = bgColor & 0xffffff;
-        final String bgcolorStr = String.format("%06x", bgColor);
-
-        int htmlfgColor = fgColor & 0xffffff;
-        final String fgColorStr = String.format("%06x", htmlfgColor);
-
-        WebViewClient client = new WebViewClientEx();
-        WebView contentTV = view.findViewById(R.id.signature);
-        contentTV.setBackgroundColor(0);
-        contentTV.setFocusableInTouchMode(false);
-        contentTV.setFocusable(false);
-        contentTV.setLongClickable(false);
-        boolean showImage = PhoneConfiguration.getInstance().isImageLoadEnabled();
-        WebSettings setting = contentTV.getSettings();
-        setting.setDefaultFontSize(PhoneConfiguration.getInstance().getWebSize());
-        setting.setJavaScriptEnabled(true);
-        contentTV.setWebViewClient(client);
-        contentTV.loadDataWithBaseURL(
-                        null,
-                FunctionUtils.signatureToHtmlText(
-                        row,
-                        showImage,
-                        ArticleUtil.showImageQuality(),
-                        fgColorStr,
-                        bgcolorStr,
-                        context),
-                "text/html",
-                "utf-8",
-                null);
-        alert.setPositiveButton(
-                "关闭",
-                new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        final AlertDialog dialog = alert.create();
-        dialog.show();
-        dialog.setOnDismissListener(
-                new AlertDialog.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface arg0) {
-                dialog.dismiss();
-            }
-        });
+        String bg = String.format("%06x", context.getResources().getColor(theme.getBackgroundColor(0)) & 0xffffff);
+        String fg = String.format("%06x", context.getResources().getColor(theme.getForegroundColor()) & 0xffffff);
+        Bundle args = new Bundle();
+        args.putString("name", row.getAuthor());
+        args.putString("html", signatureToHtmlText(row, PhoneConfiguration.getInstance().isImageLoadEnabled(),
+                ArticleUtil.showImageQuality(), fg, bg, context));
+        BaseDialogFragment.show(fm, args, SignatureDialogFragment.class);
     }
 
-    @SuppressWarnings("unused")
-    public static void createVoteDialog(
-            ThreadRowInfo row, final Context context, final View scrollview, Toast toast) {
-        LayoutInflater layoutInflater = ((Activity) context).getLayoutInflater();
-        final View view = layoutInflater.inflate(R.layout.dialog_vote, null);
-        String name = row.getAuthor();
-        AlertDialog.Builder alert = new AlertDialog.Builder(context);
-        alert.setView(view);
-        alert.setTitle("投票/投注");
-        // COLOR
-
+    /** 显示楼层中的投票/投注。 */
+    public static void showVoteDialog(ThreadRowInfo row, Context context, FragmentManager fm) {
         ThemeManager theme = ThemeManager.getInstance();
-        int bgColor = context.getResources().getColor(theme.getBackgroundColor(0));
-        int fgColor = context.getResources().getColor(theme.getForegroundColor());
-        bgColor = bgColor & 0xffffff;
-        final String bgcolorStr = String.format("%06x", bgColor);
-
-        int htmlfgColor = fgColor & 0xffffff;
-        final String fgColorStr = String.format("%06x", htmlfgColor);
-
-        WebViewClient client = new WebViewClientEx((FragmentActivity) context);
-        final WebView contentTV = (WebView) view.findViewById(R.id.votewebview);
-        contentTV.setBackgroundColor(0);
-        contentTV.setLongClickable(false);
-        contentTV.setOnLongClickListener(
-                new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                return true;
-            }
-        });
-        ((Activity) context)
-                .getWindow()
-                .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-        boolean showImage = PhoneConfiguration.getInstance().isImageLoadEnabled();
-        WebSettings setting = contentTV.getSettings();
-        setting.setDefaultFontSize(PhoneConfiguration.getInstance().getWebSize());
-        setting.setJavaScriptEnabled(true);
-        setting.setJavaScriptCanOpenWindowsAutomatically(true);
-        contentTV.addJavascriptInterface(new ProxyBridge(context, toast), "ProxyBridge");
-        contentTV.setFocusableInTouchMode(true);
-        contentTV.setFocusable(true);
-        contentTV.setHapticFeedbackEnabled(true);
-        contentTV.setClickable(true);
-        contentTV.requestFocusFromTouch();
-        contentTV.setWebChromeClient(
-                new WebChromeClient() {
-
-            @Override
-            public void onProgressChanged(WebView view, int newProgress) {
-                super.onProgressChanged(view, newProgress);
-                view.requestFocus(View.FOCUS_DOWN);
-                        view.setOnTouchListener(
-                                new View.OnTouchListener() {
-                    @SuppressLint("ClickableViewAccessibility")
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        switch (event.getAction()) {
-                            case MotionEvent.ACTION_DOWN:
-                            case MotionEvent.ACTION_UP:
-                                if (!v.hasFocus()) {
-                                    v.requestFocus(View.FOCUS_DOWN);
-                                }
-                                break;
-                        }
-                        return false;
-                    }
-                });
-            }
-
-            @Override
-                    public boolean onJsAlert(
-                            WebView view,
-                            String url,
-                            String message,
-                                     final android.webkit.JsResult result) {
-                        final AlertDialog.Builder b2 =
-                                new AlertDialog.Builder(context)
-                        .setMessage(message)
-                                        .setPositiveButton(
-                                                "确定",
-                                new AlertDialog.OnClickListener() {
-                                    @Override
-                                                    public void onClick(
-                                                            DialogInterface dialog, int which) {
-                                        result.confirm();
-                                    }
-                                });
-
-                b2.setCancelable(false);
-                b2.create();
-                b2.show();
-                return true;
-            }
-
-            @Override
-                    public boolean onJsConfirm(
-                            WebView view,
-                            String url,
-                            String message,
-                            final android.webkit.JsResult result) {
-                        final AlertDialog.Builder b1 =
-                                new AlertDialog.Builder(context)
-                        .setMessage(message)
-                                        .setPositiveButton(
-                                                "确定",
-                                new AlertDialog.OnClickListener() {
-                                    @Override
-                                                    public void onClick(
-                                                            DialogInterface dialog, int which) {
-                                        result.confirm();
-                                    }
-                                })
-                                        .setNeutralButton(
-                                                "取消",
-                                new AlertDialog.OnClickListener() {
-                                    @Override
-                                                    public void onClick(
-                                                            DialogInterface dialog, int which) {
-                                        result.cancel();
-                                    }
-                                })
-                        .setOnCancelListener(
-                                new AlertDialog.OnCancelListener() {
-                                    @Override
-                                    public void onCancel(DialogInterface dialog) {
-                                        result.cancel();
-                                    }
-                                });
-                b1.create();
-                b1.show();
-                return true;
-            }
-        });
-        contentTV.setWebViewClient(client);
-        contentTV.loadDataWithBaseURL(
-                null,
-                FunctionUtils.VoteToHtmlText(
-                        row, showImage, ArticleUtil.showImageQuality(), fgColorStr, bgcolorStr),
-                "text/html",
-                "utf-8",
-                null);
-        contentTV.requestLayout();
-        alert.setPositiveButton(
-                "关闭",
-                new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        final Dialog dialog = alert.create();
-        dialog.show();
-        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-        dialog.setOnDismissListener(
-                new AlertDialog.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface arg0) {
-                dialog.dismiss();
-            }
-        });
+        String bg = String.format("%06x", context.getResources().getColor(theme.getBackgroundColor(0)) & 0xffffff);
+        String fg = String.format("%06x", context.getResources().getColor(theme.getForegroundColor()) & 0xffffff);
+        Bundle args = new Bundle();
+        args.putString("html", VoteToHtmlText(row, PhoneConfiguration.getInstance().isImageLoadEnabled(),
+                ArticleUtil.showImageQuality(), fg, bg));
+        BaseDialogFragment.show(fm, args, VoteDialogFragment.class);
     }
 
     public static void handleNickName(
