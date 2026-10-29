@@ -187,7 +187,7 @@ Lint 保持错误阻断。由于当前 AGP 的 SARIF 报告器存在数组越界
 └── settings.gradle      # 模块声明与依赖仓库配置
 ```
 
-Compose 界面与公共主题位于应用模块的 `gov.anzong.androidnga.ui.compose` 包中。现有 Activity、Fragment 与业务层通过 `setContent` 或 `ComposeView` 接入 Compose。
+Compose 界面与公共主题位于应用模块的 `gov.anzong.androidnga.ui.compose` 包中。各页面由 Activity 直接通过 `setContent` 显示 Compose 界面；详情分页的 `ArticleListFragment` 由 `AndroidFragment` 嵌入。
 
 ## 平台适配
 

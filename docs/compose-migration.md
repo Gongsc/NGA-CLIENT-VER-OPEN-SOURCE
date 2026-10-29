@@ -36,13 +36,13 @@
 - 网页浏览：`WebViewActivity`、`WebViewerActivity` 为 Compose 外壳（标题、进度、刷新、复制链接与浏览器打开），网页仍为 WebView，返回键先回退网页历史。
 - 对话框：`BaseDialogFragment` 改为 Compose 内容的 DialogFragment（重建后保留），添加版面、头像、更新内容、由 URL 读取、举报、签名、投票/投注与贴条均使用 Compose 绘制；添加版面结果经 Fragment Result 返回。
 
-Compose 页面通过 ComposeView / setContent 接入现有 Activity、Fragment 和业务层；Fragment 中的 composition 跟随 View 生命周期销毁。
+各页面均由 Activity 直接 `setContent`，不再以 Fragment 承载整页（首页、主题列表、帖子详情、发帖与登录已由 Fragment 合并进各自的 Activity）；Fragment 只剩详情分页的 `ArticleListFragment` 与对话框。
 
 登录认证网页与帖子正文保留 WebView，通过 AndroidView 接入 Compose。详情分页采用 Compose Pager，并通过 AndroidFragment 管理单页请求及生命周期。应用模块已不再包含 XML 布局：全部页面与对话框由 Compose 绘制，RecyclerView 适配器、Toolbar 设置代码与旧的加载/空视图组件均已移除。帖子正文、签名、短消息正文、投票与网页浏览仍为 WebView，通过 AndroidView 嵌入。
 
 ## 系统行为
 
-- 统一边到边窗口；Compose Scaffold 处理系统栏，剩余以 Fragment 承载的页面同样由 Compose 处理系统栏、刘海和键盘 Insets。
+- 统一边到边窗口；Compose Scaffold 处理系统栏，各页面均由 Compose 处理系统栏、刘海和键盘 Insets。
 - 返回操作接入 OnBackPressedDispatcher；不再劫持整屏滑动手势。
 - 通知使用不可变 PendingIntent，并处理 Android 13 及以上的通知权限。
 - 保存图片和导出缓存使用 MediaStore，不再声明或请求 WRITE_EXTERNAL_STORAGE，也不启用旧外部存储模式。

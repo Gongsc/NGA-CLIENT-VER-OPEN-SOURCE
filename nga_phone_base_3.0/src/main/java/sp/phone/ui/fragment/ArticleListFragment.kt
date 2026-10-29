@@ -33,6 +33,9 @@ import sp.phone.mvp.viewmodel.ArticleShareViewModel
 import sp.phone.param.ArticleListParam
 import sp.phone.param.ParamKey
 import gov.anzong.androidnga.coroutines.UiEvent
+import gov.anzong.androidnga.coroutines.UiEventBus
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import sp.phone.task.BookmarkTask
 import sp.phone.task.LikeTask
 import sp.phone.ui.fragment.dialog.AvatarDialogFragment
@@ -42,7 +45,7 @@ import sp.phone.util.FunctionUtils
 import sp.phone.util.StringUtils
 
 /** 主题内容的一页：Compose 绘制，加载与缓存由 [ArticleListViewModel] 负责。 */
-open class ArticleListFragment : BaseEventFragment() {
+class ArticleListFragment : Fragment() {
     lateinit var viewModel: ArticleListViewModel
         private set
     protected val request: ArticleListParam get() = viewModel.request
@@ -50,12 +53,12 @@ open class ArticleListFragment : BaseEventFragment() {
     private val post = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) loadPage()
     }
-    private val share get() = getActivityViewModelProvider()[ArticleShareViewModel::class.java]
+    private val share: ArticleShareViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[ArticleListViewModel::class.java]
-        registerUiEvents()
+        UiEventBus.observe(this, ::onUiEvent)
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -158,11 +161,11 @@ open class ArticleListFragment : BaseEventFragment() {
         }
         PostCommentDialogFragment().apply { this.arguments = arguments }.show(parentFragmentManager)
     }
-    override fun onUiEvent(event: UiEvent) {
+    private fun onUiEvent(event: UiEvent) {
         if (event.what == UiEvent.EVENT_ARTICLE_GO_FLOOR && event.arg + 1 == request.page && event.obj != null) {
             state.targetFloor = (request.page - 1) * 20 + (event.obj as Int)
             state.scrollRequest++
-        } else super.onUiEvent(event)
+        }
     }
     fun scrollToFloor(floor: Int) { state.targetFloor = floor; state.scrollRequest++ }
 
@@ -186,7 +189,7 @@ open class ArticleListFragment : BaseEventFragment() {
             R.id.menu_report -> FunctionUtils.handleReport(row, request.tid, parentFragmentManager)
             R.id.menu_signature -> if (!row.getISANONYMOUS()) FunctionUtils.showSignatureDialog(row, requireContext(), parentFragmentManager)
             R.id.menu_vote -> FunctionUtils.showVoteDialog(row, requireContext(), parentFragmentManager)
-            R.id.menu_ban_this_one -> { showToast(viewModel.toggleBlacklist(row)); loadPage() }
+            R.id.menu_ban_this_one -> { ToastUtils.info(viewModel.toggleBlacklist(row)); loadPage() }
             R.id.menu_show_this_person_only -> AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_TOPIC_CONTENT)
                 .withInt(ParamKey.KEY_TID, row.tid).withInt(ParamKey.KEY_AUTHOR_ID, row.authorid).navigation(requireContext())
             R.id.menu_support -> LikeTask().execute(row.tid, row.pid, LikeTask.SUPPORT)

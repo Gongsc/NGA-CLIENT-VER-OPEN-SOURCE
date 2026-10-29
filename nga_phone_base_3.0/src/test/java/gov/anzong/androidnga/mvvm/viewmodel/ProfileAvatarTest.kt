@@ -1,4 +1,4 @@
-package sp.phone.ui.fragment
+package gov.anzong.androidnga.mvvm.viewmodel
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

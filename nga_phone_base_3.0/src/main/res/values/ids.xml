@@ -3,10 +3,5 @@
     <item name="tag_1" type="id" />
     <item name="tag_2" type="id" />
     <item name="tag_3" type="id" />
-    <item type="id" name="compose_home" />
-    <item type="id" name="compose_topic_feed" />
-    <item type="id" name="compose_login" />
-    <item type="id" name="compose_post_editor" />
     <item type="id" name="compose_article_page" />
-    <item type="id" name="compose_article_reader" />
 </resources>

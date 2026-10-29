@@ -40,7 +40,7 @@ class TopicListViewModel(
     private val notify: (String) -> Unit = { ToastUtils.show(it) },
 ) : ViewModel() {
 
-    /** 由 Fragment 的 arguments（[ParamKey.KEY_PARAM]）创建。 */
+    /** 由 Intent extras 中的 [ParamKey.KEY_PARAM] 创建。 */
     constructor(state: SavedStateHandle) : this(requireNotNull(state.get<TopicListParam>(ParamKey.KEY_PARAM)) { "缺少主题列表参数" })
 
     private val _firstPage = MutableLiveData<TopicListInfo>()

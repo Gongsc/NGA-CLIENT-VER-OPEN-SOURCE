@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gov.anzong.androidnga.Utils
+import gov.anzong.androidnga.base.json.NgaJson
+import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.coroutines.NgaDispatchers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -17,7 +19,7 @@ import sp.phone.http.retrofit.NgaApi
 import sp.phone.mvp.model.BoardModel
 import sp.phone.mvp.model.BoardStore
 import sp.phone.mvp.model.entity.BoardCategory
-import sp.phone.ui.fragment.parseProfileAvatar
+import sp.phone.util.FunctionUtils
 
 /** 首页版块页：本地版块收藏、账号切换，以及补取缺失的账号头像。 */
 class BoardViewModel(
@@ -102,4 +104,15 @@ class BoardViewModel(
 private suspend fun requestProfileAvatar(uid: String, cookie: String): String {
     val headers = mapOf("Cookie" to cookie, "Referer" to Utils.getNGAHost() + "nuke.php?func=ucp&lite=jsx&uid=$uid")
     return parseProfileAvatar(NgaApi.get().get(Utils.getNGAHost() + "nuke.php?__lib=ucp&__act=get&lite=js&noprefix&uid=$uid", headers))
+}
+
+/** 从个人资料响应中取头像原始值；解析失败返回空串，由调用方保留默认头像。 */
+internal fun parseProfileAvatar(js: String): String {
+    val body = js.removePrefix("window.script_muti_get_var_store=").replace("/*\$js\$*/", "")
+        .let { if (it.contains("/*error fill content")) it.substringBefore("/*error fill content") else it }
+    val avatar = runCatching {
+        NgaJson.parseObject(body)?.getJSONObject("data")?.getJSONObject("0")?.getString(PreferenceKey.PREFERENCE_AVATAR)
+    }.getOrNull().orEmpty()
+    val url = FunctionUtils.parseAvatarUrl(avatar).orEmpty()
+    return if (url.startsWith("//")) "https:$url" else url
 }
