@@ -13,7 +13,7 @@ class SettingsActivityTest {
         ActivityScenario.launch(AppearanceActivity::class.java).use {
             compose.onNodeWithTag("appearance_screen").assertIsDisplayed()
             compose.onNodeWithText("字体与阅读大小").performScrollTo().performClick()
-            compose.onNodeWithText("正文预览：普通回复与富文本使用相同的基础字号。").assertIsDisplayed()
+            compose.onNodeWithTag("reading_preview").assertIsDisplayed()
             compose.onNodeWithContentDescription("返回").performClick()
             compose.onNodeWithTag("appearance_screen").assertIsDisplayed()
         }

@@ -51,6 +51,7 @@ fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (
     val list = rememberLazyListState()
     val scrollConnection = rememberScrollControlsConnection(list, onControlsExpandedChange)
     val bodySize = rememberArticleFontSize()
+    val avatarSize = remember { articleAvatarSize(PhoneConfiguration.getInstance().avatarSize) }
     val entries = remember(state.rows, state.hotReplies) { articleEntries(state.rows, state.hotReplies) }
     LaunchedEffect(state.scrollRequest, entries) {
         state.targetFloor?.let { floor ->
@@ -86,7 +87,7 @@ fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (
                 Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = { onAvatar(row) }, modifier = Modifier.semantics { contentDescription = "查看头像" }) {
-                            AndroidView(factory = { ImageView(it) }, modifier = Modifier.size(32.dp), update = { image ->
+                            AndroidView(factory = { ImageView(it) }, modifier = Modifier.size(avatarSize), update = { image ->
                                 ImageUtils.loadRoundCornerAvatar(image, FunctionUtils.parseAvatarUrl(row.js_escap_avatar), !PhoneConfiguration.getInstance().isAvatarLoadEnabled)
                                 image.importantForAccessibility = ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO
                             })

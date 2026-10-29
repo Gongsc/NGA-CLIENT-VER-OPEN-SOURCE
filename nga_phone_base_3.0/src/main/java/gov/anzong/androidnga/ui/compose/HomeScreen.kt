@@ -1,7 +1,14 @@
 package gov.anzong.androidnga.ui.compose
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -14,10 +21,13 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import sp.phone.http.favorites.ForumFavoritesSnapshot
 
@@ -118,25 +128,60 @@ fun HomeScreen(
                     }
                 }
             }
-            if (!barGone) NavigationBar(windowInsets = WindowInsets(0, 0, 0, 0),
+            if (!barGone) HomeBottomBar(titles, destination, onSelect = { destination = it; controlsVisible = true },
                 modifier = Modifier.align(Alignment.BottomCenter).testTag("home_bottom_navigation")
                     .onSizeChanged { barHeight = it.height }
-                    .graphicsLayer { translationY = size.height * barHidden.value }) {
-                titles.forEachIndexed { index, title ->
-                    NavigationBarItem(selected = destination == index,
-                        onClick = { destination = index; controlsVisible = true },
-                        modifier = Modifier.testTag("home_tab_$index"), label = { Text(title) }, icon = {
-                            when (index) {
-                                0 -> Icon(Icons.Default.Home, null)
-                                1 -> Icon(ActionIcons.Restore, null)
-                                2 -> BadgedBox(badge = {
-                                    if (state.replyCount > 0 && state.account != null) Badge {
-                                        Text(if (state.replyCount > 99) "99+" else state.replyCount.toString())
-                                    }
-                                }) { Icon(ActionIcons.Reply, null) }
-                                else -> key(state.account?.uid, state.account?.avatarUrl) { AccountAvatar(state.account, 26.dp) }
-                            }
-                        })
+                    .graphicsLayer { translationY = size.height * barHidden.value }) { index, selected ->
+                when (index) {
+                    0 -> Icon(Icons.Default.Home, null)
+                    1 -> Icon(ActionIcons.Restore, null)
+                    2 -> BadgedBox(badge = {
+                        if (state.replyCount > 0 && state.account != null) Badge {
+                            Text(if (state.replyCount > 99) "99+" else state.replyCount.toString())
+                        }
+                    }) { Icon(ActionIcons.Reply, null) }
+                    else -> key(state.account?.uid, state.account?.avatarUrl) { AccountAvatar(state.account, if (selected) 32.dp else 24.dp) }
+                }
+            }
+        }
+    }
+}
+
+private val HomeBarHeight = 56.dp
+/** 选中项的图标凸出底栏顶部的高度。 */
+private val HomeBarLift = 14.dp
+
+/**
+ * 首页底栏：比标准导航栏矮；选中项的图标放大为主题色圆形并凸出底栏，名称加粗变色，切换时以动画过渡。
+ * 凸出部分之外的透明区域不拦截点击，下方列表仍可操作。
+ */
+@Composable
+private fun HomeBottomBar(titles: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier,
+                          icon: @Composable (index: Int, selected: Boolean) -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Box(modifier.fillMaxWidth().height(HomeBarHeight + HomeBarLift)) {
+        Surface(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(HomeBarHeight),
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp), color = colors.surfaceContainer,
+            shadowElevation = 8.dp) {}
+        Row(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(HomeBarHeight).selectableGroup()) {
+            titles.forEachIndexed { index, title ->
+                val active = index == selected
+                val bubble by animateDpAsState(if (active) 46.dp else 28.dp, label = "home_tab_bubble")
+                val top by animateDpAsState(if (active) -HomeBarLift else 6.dp, label = "home_tab_lift")
+                val bubbleColor by animateColorAsState(if (active) colors.primary else colors.surfaceContainer, label = "home_tab_color")
+                val iconColor by animateColorAsState(if (active) colors.onPrimary else colors.onSurfaceVariant, label = "home_tab_icon")
+                Box(Modifier.weight(1f).fillMaxHeight().testTag("home_tab_$index")
+                    .selectable(selected = active, interactionSource = null, indication = ripple(bounded = false, radius = 32.dp),
+                        role = Role.Tab, onClick = { onSelect(index) })) {
+                    Box(Modifier.align(Alignment.TopCenter).offset(y = top).size(bubble)
+                        .shadow(if (active) 6.dp else 0.dp, CircleShape).background(bubbleColor, CircleShape),
+                        contentAlignment = Alignment.Center) {
+                        CompositionLocalProvider(LocalContentColor provides iconColor) { icon(index, active) }
+                    }
+                    Text(title, Modifier.align(Alignment.BottomCenter).padding(bottom = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                        color = if (active) colors.primary else colors.onSurfaceVariant)
                 }
             }
         }

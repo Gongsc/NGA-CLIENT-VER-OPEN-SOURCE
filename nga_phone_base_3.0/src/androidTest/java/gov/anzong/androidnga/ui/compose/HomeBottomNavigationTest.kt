@@ -25,7 +25,10 @@ class HomeBottomNavigationTest {
         } }
         compose.onNodeWithContentDescription("打开导航").assertDoesNotExist()
         for (index in 0..3) compose.onNodeWithTag("home_tab_$index").assertIsDisplayed()
+        compose.onNodeWithTag("home_tab_0").assertIsSelected()
         compose.onNodeWithTag("home_tab_1").performClick().assertIsSelected()
+        compose.onNodeWithTag("home_tab_0").assertIsNotSelected()
+        compose.onAllNodes(isSelectable() and isSelected()).filter(hasAnyAncestor(hasTestTag("home_bottom_navigation"))).assertCountEquals(1)
         compose.onNodeWithText("本地浏览记录").assertIsDisplayed()
         compose.onNodeWithTag("home_tab_2").performClick()
         compose.onNodeWithText("回复通知").assertIsDisplayed()

@@ -24,6 +24,8 @@ object ActionIcons {
     val First = vector("First") { moveTo(5f,5f);lineTo(5f,19f);moveTo(17f,5f);lineTo(10f,12f);lineTo(17f,19f) }
     val Left = vector("Left") { moveTo(15f,5f);lineTo(8f,12f);lineTo(15f,19f) }
     val Right = vector("Right") { moveTo(9f,5f);lineTo(16f,12f);lineTo(9f,19f) }
+    val Add = vector("Add") { moveTo(12f,5f);lineTo(12f,19f);moveTo(5f,12f);lineTo(19f,12f) }
+    val Remove = vector("Remove") { moveTo(5f,12f);lineTo(19f,12f) }
     val Down = vector("Down") { moveTo(7f,10f);lineTo(12f,15f);lineTo(17f,10f) }
     val Reply = vector("Reply") { moveTo(4f,5f);lineTo(20f,5f);lineTo(20f,17f);lineTo(9f,17f);lineTo(4f,21f);close();moveTo(8f,9f);lineTo(16f,9f);moveTo(8f,13f);lineTo(13f,13f) }
     val ThumbUp = vector("ThumbUp") { moveTo(7f,10f);lineTo(7f,21f);moveTo(4f,10f);lineTo(7f,10f);lineTo(12f,3f);curveTo(13.8f,3f,15.3f,4.6f,14.8f,6.3f);lineTo(14f,10f);lineTo(19.6f,10f);curveTo(20.9f,10f,21.9f,11.3f,21.5f,12.6f);lineTo(19.4f,19.6f);curveTo(19.1f,20.4f,18.4f,21f,17.5f,21f);lineTo(4f,21f);curveTo(3.4f,21f,3f,20.6f,3f,20f);lineTo(3f,11f);curveTo(3f,10.4f,3.4f,10f,4f,10f);close() }
