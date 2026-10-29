@@ -2,6 +2,8 @@ package sp.phone.http.bean;
 
 import java.util.List;
 
+import sp.phone.task.ProfileStatus;
+
 public class ProfileData {
 
     private List<AdminForumsData> mAdminForums;
@@ -22,7 +24,11 @@ public class ProfileData {
 
     private String mMutedTime;
 
-    private boolean mNuked;
+    /** 激活状态，响应中没有相关字段时为 null。 */
+    private ProfileStatus.Active mActive;
+
+    /** 各项状态（道具、称号等）的说明，与禁言无关。 */
+    private List<String> mBuffs = java.util.Collections.emptyList();
 
     private String mPhoneNumber;
 
@@ -116,12 +122,20 @@ public class ProfileData {
         mMuted = muted;
     }
 
-    public boolean isNuked() {
-        return mNuked;
+    public ProfileStatus.Active getActive() {
+        return mActive;
     }
 
-    public void setNuked(boolean nuked) {
-        mNuked = nuked;
+    public void setActive(ProfileStatus.Active active) {
+        mActive = active;
+    }
+
+    public List<String> getBuffs() {
+        return mBuffs;
+    }
+
+    public void setBuffs(List<String> buffs) {
+        mBuffs = buffs;
     }
 
     public String getUserName() {

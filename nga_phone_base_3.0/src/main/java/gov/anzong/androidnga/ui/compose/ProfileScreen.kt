@@ -23,6 +23,7 @@ import gov.anzong.androidnga.mvvm.viewmodel.ProfileViewModel
 import sp.phone.common.PhoneConfiguration
 import sp.phone.http.bean.AdminForumsData
 import sp.phone.http.bean.ProfileData
+import sp.phone.task.ProfileStatus
 import sp.phone.util.ImageUtils
 
 /** 资料页菜单项；可见性由资料是否加载、是否本人决定。 */
@@ -73,7 +74,10 @@ fun ProfileScreen(profile: ProfileData?, signatureHtml: String?, loading: Boolea
                     TextButton(onClick = onRefresh, enabled = !loading) { Text("重试") }
                 }
                 if (profile == null) return@Column
-                ProfileHeader(profile)
+                ProfileHeader(profile, currentUser)
+                if (profile.buffs.isNotEmpty()) ProfileSection("状态") {
+                    profile.buffs.forEach { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                }
                 ProfileSection("基本信息") {
                     InfoRow("用户组", profile.memberGroup)
                     InfoRow("发帖数", profile.postCount)
@@ -104,7 +108,7 @@ fun ProfileScreen(profile: ProfileData?, signatureHtml: String?, loading: Boolea
 }
 
 @Composable
-private fun ProfileHeader(profile: ProfileData) {
+private fun ProfileHeader(profile: ProfileData, currentUser: Boolean) {
     ElevatedCard(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             val avatar = sp.phone.util.FunctionUtils.parseAvatarUrl(profile.avatarUrl)
@@ -117,22 +121,22 @@ private fun ProfileHeader(profile: ProfileData) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(profile.userName.orEmpty(), style = MaterialTheme.typography.titleLarge)
                 Text("用户ID：${profile.uid.orEmpty()}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                val (state, color) = profileState(profile)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(state, color = color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
-                    if (profile.isMuted && !profile.mutedTime.isNullOrBlank())
-                        Text(profile.mutedTime, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // 与网页一致：他人的激活状态只在被禁用、锁定或注销时显示
+                profile.active?.takeIf { currentUser || it.level == ProfileStatus.Level.BANNED }?.let { active ->
+                    val color = when (active.level) {
+                        ProfileStatus.Level.NORMAL -> Color(0xFF3D9F0E)
+                        ProfileStatus.Level.WARNING -> MaterialTheme.colorScheme.tertiary
+                        ProfileStatus.Level.BANNED -> MaterialTheme.colorScheme.error
+                    }
+                    Text(listOf(active.label, active.description).filter { it.isNotBlank() }.joinToString(" · "), color = color,
+                        fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                }
+                profile.mutedTime?.takeIf { profile.isMuted }?.let {
+                    Text(it, color = Color(0xFFFF4500), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
     }
-}
-
-@Composable
-private fun profileState(profile: ProfileData): Pair<String, Color> = when {
-    profile.isMuted -> "已禁言" to Color(0xFFFF4500)
-    profile.isNuked -> "NUKED(?)" to MaterialTheme.colorScheme.error
-    else -> "已激活" to Color(0xFF3D9F0E)
 }
 
 @Composable

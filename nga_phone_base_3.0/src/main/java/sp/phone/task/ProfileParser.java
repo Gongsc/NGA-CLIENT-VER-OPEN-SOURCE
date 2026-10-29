@@ -104,25 +104,13 @@ final class ProfileParser {
         String group = obj.getString("group");
         ret.setMemberGroup(StringUtils.isEmpty(group) ? defaultValue : group);
 
-        String verified = obj.getString("verified");
-        if (!StringUtils.isEmpty(verified)) {
-            int state = Integer.parseInt(verified);
-            if (state == -1) {
-                ret.setNuked(true);
-            } else if (state < -1) {
-                ret.setMuted(true);
-            }
-        }
-        if (!ret.isNuked()) {
-            NgaJsonObject buffObj = obj.getJSONObject("buffs");
-            if (buffObj != null && buffObj.containsKey("0")) {
-                ret.setMutedTime(buffObj.getString("0"));
-                ret.setMuted(true);
-            } else if (!StringUtils.isEmpty(obj.getString("muteTime")) && !"0".equals(obj.getString("muteTime"))) {
-                ret.setMuted(true);
-                ret.setMutedTime("禁言至: " + StringUtils.timeStamp2Date1(obj.getString("muteTime")));
-            }
-        }
+        // 状态规则与论坛网页一致，见 ProfileStatus
+        ret.setActive(ProfileStatus.active(obj.getInteger("verified"), obj.getLong("bit")));
+        String muteText = ProfileStatus.muteText(obj.getLongValue("muteTime"), obj.getLongValue("maxBuffMute"),
+                time -> StringUtils.timeStamp2Date(String.valueOf(time), "yyyy-MM-dd HH:mm"));
+        ret.setMuted(muteText != null);
+        ret.setMutedTime(muteText);
+        ret.setBuffs(ProfileStatus.buffDescriptions(obj.get("buffs")));
         String regdate = obj.getString("regdate");
         ret.setRegisterDate(StringUtils.isEmpty(regdate) ? defaultValue : StringUtils.timeStamp2Date1(regdate));
 

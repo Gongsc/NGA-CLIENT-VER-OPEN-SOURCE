@@ -8,6 +8,7 @@ import org.junit.Test
 import sp.phone.http.bean.AdminForumsData
 import sp.phone.http.bean.ProfileData
 import sp.phone.http.bean.ReputationData
+import sp.phone.task.ProfileStatus
 
 /** 用户资料页；只使用本地合成资料，菜单与链接只触发回调。 */
 class ProfileScreenTest {
@@ -28,7 +29,7 @@ class ProfileScreenTest {
             }
         }
         compose.onNodeWithText("用户ID：42").assertIsDisplayed()
-        compose.onNodeWithText("已激活").assertIsDisplayed()
+        compose.onNodeWithText("已激活", substring = true).assertDoesNotExist()
         compose.onNodeWithText("12 金 34 银 56 铜").assertIsDisplayed()
         compose.onNodeWithText("1.5").assertExists()
         compose.onNodeWithText("修改签名").assertDoesNotExist()
@@ -55,6 +56,31 @@ class ProfileScreenTest {
         compose.onNodeWithText("发送短消息").assertDoesNotExist()
         compose.onNodeWithText("修改头像").performClick()
         compose.runOnIdle { assertEquals(listOf("sign", "ModifyAvatar"), events) }
+    }
+
+    @Test fun statusFollowsForumRules() {
+        val user = ProfileData().apply {
+            uid = "7"; userName = "乙"; money = "0"; frame = "0"
+            active = ProfileStatus.active(null, 4194304L)
+            isMuted = true; mutedTime = "禁言至 2027-01-01 00:00"
+            buffs = listOf("改名卡")
+        }
+        compose.setContent { NgaTheme { ProfileScreen(user, null, false, null, false, false, {}, {}, {}, {}, {}) } }
+        compose.onNodeWithText("NUKED", substring = true).assertIsDisplayed()
+        compose.onNodeWithText("禁言至 2027-01-01 00:00").assertIsDisplayed()
+        compose.onNodeWithText("状态").assertIsDisplayed()
+        compose.onNodeWithText("改名卡").assertIsDisplayed()
+    }
+
+    @Test fun ownActivationIsShownAndBuffsAloneDoNotMute() {
+        val self = ProfileData().apply {
+            uid = "8"; userName = "丙"; money = "0"; frame = "0"
+            active = ProfileStatus.active(null, 1048576L); buffs = listOf("头像框")
+        }
+        compose.setContent { NgaTheme { ProfileScreen(self, null, false, null, true, false, {}, {}, {}, {}, {}) } }
+        compose.onNodeWithText("已激活 · 已绑定手机激活").assertIsDisplayed()
+        compose.onNodeWithText("禁言", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("头像框").assertIsDisplayed()
     }
 
     @Test fun errorBeforeLoadOffersRetryAndOnlyLinkActions() {
