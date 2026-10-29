@@ -280,4 +280,22 @@ class ForumWriteClientsTest {
         assertEquals("abc", target.checksum)
         assertRejected("无法取得头像上传校验码，头像未更改") { ForumActionClient.parseAvatarTarget("""{"data":{"2":"https://img8.nga.cn/a"}}""", "https://bbs.nga.cn/") }
     }
+
+    /** 论坛把 set_avatar 的结果包在 HTML 页面的 script 中返回（结构取自实际响应，值为合成数据）。 */
+    @Test fun avatarTargetIsReadFromHtmlWrappedScript() {
+        val html = "<html><head><meta http-equiv='Content-Type' content='text/html; charset=GBK'></head><body><script>" +
+            "window.script_muti_get_var_store={\"data\":{\"0\":\"https://img.nga.cn/avatars/1.jpg?3\",\"1\":\"abc123\"," +
+            "\"2\":\"https://img8.nga.cn/attach.php?checksum=abc123&opt=\"},\"time\":1}</script></body></html>"
+        val target = ForumActionClient.parseAvatarTarget(html, "https://bbs.nga.cn/")
+        assertEquals("abc123", target.checksum)
+        assertEquals("img8.nga.cn", target.url.host)
+        assertNull(target.url.queryParameter("checksum"))
+        assertEquals("", target.url.queryParameter("opt"))
+
+        val forum = FakeForum(Reply(html, contentType = "text/html; charset=GBK"),
+            Reply("<html><body><script>window.script_muti_get_var_store={\"data\":{\"0\":{\"url\":\".a/1_0.png\"}}};</script></body></html>", contentType = "text/html"),
+            Reply("<html><body><script>window.script_muti_get_var_store={\"data\":{\"0\":\"操作成功\"}}</script></body></html>", contentType = "text/html"))
+        assertEquals("操作成功", ForumActionClient(forum.writer()).uploadAvatar("123", "data:image/png;base64,AA=="))
+        assertEquals(".a/1_0.png", form(forum.bodies[2])["avatar"])
+    }
 }

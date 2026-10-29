@@ -152,6 +152,8 @@ class NgaWriteClient(
 
         private val GB18030: Charset = Charset.forName("GB18030")
 
+        private const val JS_STORE = "window.script_muti_get_var_store="
+
         private val MESSAGE_ENVELOPE = Regex("<__MESSAGE\\b[^>]*>([\\s\\S]*?)</__MESSAGE>", RegexOption.IGNORE_CASE)
         private val MESSAGE_ITEM = Regex("<item\\b[^>]*>([\\s\\S]*?)</item>", RegexOption.IGNORE_CASE)
         private val JSON_ERROR = Regex("\"error\"\\s*:\\s*\\[\\s*\"(?:\\d+:)?((?:[^\"\\\\]|\\\\.)*)\"")
@@ -254,9 +256,19 @@ class NgaWriteClient(
             throw PostException(AMBIGUOUS)
         }
 
-        /** 兼容 `lite=js` 的 `window.script_muti_get_var_store=` 前缀与尾部注释；不是 JSON 时返回 null。 */
+        /**
+         * 兼容 `lite=js` 的 `window.script_muti_get_var_store=` 前缀与尾部注释，
+         * 以及把它包在 `<html>…<script>…</script>` 页面中的响应（如 `set_avatar` 的 `get`）；不是 JSON 时返回 null。
+         */
         internal fun parseJson(text: String): Any? {
-            var js = text.trim().removePrefix("window.script_muti_get_var_store=")
+            var js = text.trim()
+            val start = js.indexOf(JS_STORE)
+            if (start >= 0) {
+                js = js.substring(start + JS_STORE.length)
+                val end = js.indexOf("</script>", ignoreCase = true)
+                if (end >= 0) js = js.substring(0, end)
+                js = js.trim().removeSuffix(";")
+            }
             val comment = js.indexOf("/*error fill content")
             if (comment > 0) js = js.substring(0, comment)
             js = js.replace("/*\$js\$*/", "").trim()
