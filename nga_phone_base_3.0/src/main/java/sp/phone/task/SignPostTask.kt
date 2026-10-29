@@ -23,22 +23,29 @@ class SignPostTask @JvmOverloads constructor(private val api: () -> NgaApi = Nga
 
     fun execute(postParam: SignPostParam, callBack: OnHttpCallBack<String>) {
         if (isRunning()) return
+        job = AppScope.launchWithCallback({ s: String ->
+            job = null
+            callBack.onSuccess(s)
+        }, {
+            job = null
+            callBack.onError(it.message)
+        }) { submit(postParam) }
+    }
+
+    /** 提交签名；成功返回提示文字，论坛返回其他内容时以该内容作为错误抛出。 */
+    suspend fun submit(postParam: SignPostParam): String {
         var sign = postParam.sign
         try {
             sign = URLEncoder.encode(sign, "gbk")
         } catch (e: UnsupportedEncodingException) {
             e.printStackTrace()
         }
-        paramMap["uid"] = postParam.uid
-        paramMap["sign"] = sign
         val fields = HashMap(paramMap)
-        job = AppScope.launchWithCallback({ s: String ->
-            job = null
-            if (s.contains("操作成功")) callBack.onSuccess("修改成功！") else callBack.onError(s)
-        }, {
-            job = null
-            callBack.onError(it.message)
-        }) { api().post(fields) }
+        fields["uid"] = postParam.uid
+        fields["sign"] = sign
+        val response = api().post(fields)
+        if (!response.contains("操作成功")) throw IllegalStateException(response)
+        return "修改成功！"
     }
 
     fun cancel() {
