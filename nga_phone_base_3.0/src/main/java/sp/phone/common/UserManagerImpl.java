@@ -35,8 +35,6 @@ public class UserManagerImpl implements UserManager {
 
     private SharedPreferences mAvatarPreferences;
 
-    // TODO: 2018/4/15  temp solution
-
     private static class SingletonHolder {
 
         static UserManager sInstance = new UserManagerImpl();

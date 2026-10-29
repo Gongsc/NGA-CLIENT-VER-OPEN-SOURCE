@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 版块图标由 BoardGrid 按名称（p{fid}、p_{-fid}）查找，代码中没有 R.drawable 引用。 -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/p*" />

@@ -59,26 +59,6 @@ public class TopicConvertFactory {
 
     private void filter(TopicListInfo data) {
 
-//        // 低版本android 没有stream方法
-//        // TODO: 如果第一页全部都是被屏蔽的，可能会认为加载失败
-//        data.setThreadPageList(
-//                data.getThreadPageList().stream().filter((ThreadPageInfo threadPageInfo) -> {
-//                    return FilterKeywordsManagerImpl
-//                            .getInstance()
-//                            .getKeywords()
-//                            .parallelStream()
-//                            .noneMatch(filterKeyword -> {
-//                                if (filterKeyword.isEnabled()) {
-//                                    return threadPageInfo
-//                                            .getSubject()
-//                                            .contains(filterKeyword.getKeyword());
-//                                } else {
-//                                    return false;
-//                                }
-//                            });
-//                }).collect(Collectors.toList())
-//               );
-
         Iterator<ThreadPageInfo> iterator = data.getThreadPageList().iterator();
 
         List<User> blackList = UserManagerImpl.getInstance().getBlackList();

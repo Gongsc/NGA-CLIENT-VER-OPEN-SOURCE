@@ -13,18 +13,11 @@
     <color name="foreground_color">#FF999999</color>
 
     <!-- 个人资料页卡片：与卡片内网页正文同底色 -->
-    <color name="profile_text_primary">@color/text_color</color>
-    <color name="profile_text_accent">#FFD7A47A</color>
 
     <color name="colorAccentBrown">#FF128F80</color>
     <color name="colorPrimaryBrown">#FF1F2021</color>
     <color name="colorPrimaryDarkBrown">#FF1F2021</color>
 
-    <color name="material_window_background">#FF080C10</color>
-    <color name="material_card_background">#FF424242</color>
-    <color name="material_icon_color">#FFEDEDED</color>
-    <color name="material_title_color">#FFFFFFFF</color>
-    <color name="material_sub_title_color">#B4FFFFFF</color>
 
     <color name="title_blue">#ff3181f4</color>
     <color name="title_red">#ffc63e37</color>
