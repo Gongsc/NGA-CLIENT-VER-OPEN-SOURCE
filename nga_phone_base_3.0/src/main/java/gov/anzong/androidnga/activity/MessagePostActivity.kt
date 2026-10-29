@@ -22,6 +22,7 @@ class MessagePostActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // ViewModel 从 extras 的 "param" 创建；重建时沿用，保留进行中的提交
         if (!intent.hasExtra("param")) intent.putExtra("param", postParam())
+        setToolbarEnabled(true)
         super.onCreate(savedInstanceState)
         setContent {
             NgaTheme {

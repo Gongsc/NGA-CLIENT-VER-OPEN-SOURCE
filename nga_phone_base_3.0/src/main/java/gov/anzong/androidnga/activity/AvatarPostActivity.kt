@@ -32,6 +32,7 @@ class AvatarPostActivity : BaseActivity(), AvatarFileUploadTask.onFileUploaded {
     override fun usesComposeContent() = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setToolbarEnabled(true)
         super.onCreate(savedInstanceState)
         setContent {
             NgaTheme {

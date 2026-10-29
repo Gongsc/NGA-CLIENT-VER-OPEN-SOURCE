@@ -20,6 +20,7 @@ class SignPostActivity : BaseActivity() {
     override fun usesComposeContent() = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setToolbarEnabled(true)
         super.onCreate(savedInstanceState)
         val initial = intent.getStringExtra("prefix").orEmpty()
         setContent {

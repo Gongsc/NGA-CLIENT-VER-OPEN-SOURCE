@@ -6,7 +6,6 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
@@ -47,12 +46,6 @@ public abstract class BaseFragment extends Fragment {
     public void finish() {
         if (mActivity != null) {
             mActivity.finish();
-        }
-    }
-
-    protected void setupToolbar(Toolbar toolbar) {
-        if (mActivity != null) {
-            mActivity.setupToolbar(toolbar);
         }
     }
 

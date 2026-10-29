@@ -9,9 +9,7 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 
 import gov.anzong.androidnga.R;
@@ -84,33 +82,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         mHardwareAcceleratedEnabled = enabled;
     }
 
-    public void setupToolbar(Toolbar toolbar) {
-        if (toolbar != null && getSupportActionBar() == null) {
-            setSupportActionBar(toolbar);
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setHomeButtonEnabled(true);
-            }
-        }
-    }
-
-    public void setupToolbar() {
-        setupToolbar((Toolbar) findViewById(R.id.toolbar));
-    }
-
-    public void setupActionBar() {
-        if (mToolbarEnabled) {
-            setupToolbar();
-        } else {
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setHomeButtonEnabled(true);
-            }
-        }
-    }
-
     protected void updateThemeUi() {
         ThemeManager tm = ThemeManager.getInstance();
         setTheme(tm.getTheme(mToolbarEnabled));
@@ -123,18 +94,6 @@ public abstract class BaseActivity extends AppCompatActivity {
             flag = flag | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
         }
         getWindow().addFlags(flag);
-    }
-
-    @Deprecated
-    public void setupActionBar(Toolbar toolbar) {
-        if (toolbar != null && getSupportActionBar() == null) {
-            setSupportActionBar(toolbar);
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setHomeButtonEnabled(true);
-            }
-        }
     }
 
     @Override
