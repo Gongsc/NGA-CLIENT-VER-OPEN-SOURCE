@@ -16,7 +16,7 @@ import gov.anzong.androidnga.ui.compose.NgaDialogLayout
 class SignatureDialogFragment : BaseDialogFragment() {
 
     @Composable
-    override fun Content() {
+    override fun DialogContent() {
         NgaDialogLayout("${arguments?.getString("name").orEmpty()}的签名", buttons = { TextButton(onClick = { dismiss() }) { Text("关闭") } }) {
             Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
                 ArticleHtml(arguments?.getString("html").orEmpty(), emptyList())

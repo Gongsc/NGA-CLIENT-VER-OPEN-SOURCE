@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.viewinterop.AndroidView
 import gov.anzong.androidnga.gallery.ImageZoomActivity
 import gov.anzong.androidnga.ui.compose.NgaDialogLayout
@@ -19,12 +21,12 @@ import sp.phone.util.ImageUtils
 class AvatarDialogFragment : BaseDialogFragment() {
 
     @Composable
-    override fun Content() {
+    override fun DialogContent() {
         val name = arguments?.getString("name").orEmpty()
         val url = arguments?.getString("url")
         NgaDialogLayout("${name}的头像", buttons = { TextButton(onClick = { dismiss() }) { Text("关闭") } }) {
-            AndroidView(factory = { ImageView(it).apply { contentDescription = "${name}的头像" } },
-                modifier = Modifier.size(160.dp).align(Alignment.CenterHorizontally).clickable(enabled = !url.isNullOrEmpty()) {
+            AndroidView(factory = { ImageView(it).apply { importantForAccessibility = ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO } },
+                modifier = Modifier.size(160.dp).semantics { contentDescription = "${name}的头像，点击查看大图" }.align(Alignment.CenterHorizontally).clickable(enabled = !url.isNullOrEmpty()) {
                     startActivity(Intent(requireContext(), ImageZoomActivity::class.java).putExtra(ImageZoomActivity.KEY_GALLERY_CUR_URL, url))
                 }, update = { ImageUtils.loadAvatar(it, url) })
         }

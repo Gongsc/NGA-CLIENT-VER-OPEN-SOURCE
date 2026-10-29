@@ -25,7 +25,7 @@ class VersionUpgradeDialogFragment : BaseDialogFragment() {
     }
 
     @Composable
-    override fun Content() {
+    override fun DialogContent() {
         NgaDialogLayout("提示", buttons = { TextButton(onClick = { dismiss() }) { Text("确定") } }) {
             Text(tip.orEmpty(), Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()))
         }

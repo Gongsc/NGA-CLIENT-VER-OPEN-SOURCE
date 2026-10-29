@@ -30,7 +30,7 @@ class VoteDialogFragment : BaseDialogFragment() {
 
     @SuppressLint("SetJavaScriptEnabled")
     @Composable
-    override fun Content() {
+    override fun DialogContent() {
         NgaDialogLayout("投票/投注", buttons = { TextButton(onClick = { dismiss() }) { Text("关闭") } }) {
             AndroidView(modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp, max = 480.dp), factory = { context ->
                 WebView(context).apply {

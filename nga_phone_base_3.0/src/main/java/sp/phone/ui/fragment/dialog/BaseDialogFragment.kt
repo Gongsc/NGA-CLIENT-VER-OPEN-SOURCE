@@ -18,20 +18,20 @@ import gov.anzong.androidnga.ui.compose.NgaTheme
 import sp.phone.util.NLog
 
 /**
- * 内容由 Compose 绘制的对话框：窗口透明，[Content] 绘制在带圆角的 Surface 中。
+ * 内容由 Compose 绘制的对话框：窗口透明，[DialogContent] 绘制在带圆角的 Surface 中。
  * 使用 DialogFragment 以便旋转屏幕等重建后保留对话框与输入内容。
  */
 abstract class BaseDialogFragment : AppCompatDialogFragment() {
 
     @Composable
-    protected abstract fun Content()
+    protected abstract fun DialogContent()
 
     fun show(fm: FragmentManager) = show(fm, javaClass.simpleName)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { NgaTheme { Surface(shape = MaterialTheme.shapes.extraLarge) { Content() } } }
+            setContent { NgaTheme { Surface(shape = MaterialTheme.shapes.extraLarge) { DialogContent() } } }
         }
 
     override fun onStart() {

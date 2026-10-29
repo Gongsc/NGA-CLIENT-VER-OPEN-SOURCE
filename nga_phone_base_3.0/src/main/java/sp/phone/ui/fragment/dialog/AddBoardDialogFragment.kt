@@ -17,7 +17,7 @@ import gov.anzong.androidnga.ui.compose.NgaDialogLayout
 class AddBoardDialogFragment : BaseDialogFragment() {
 
     @androidx.compose.runtime.Composable
-    override fun Content() {
+    override fun DialogContent() {
         var fid by rememberSaveable { mutableStateOf("") }
         var stid by rememberSaveable { mutableStateOf("") }
         NgaDialogLayout("输入版面名称及ID添加版面", buttons = {

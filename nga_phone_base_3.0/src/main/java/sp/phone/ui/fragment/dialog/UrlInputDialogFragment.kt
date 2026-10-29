@@ -27,7 +27,7 @@ import java.util.Locale
 class UrlInputDialogFragment : BaseDialogFragment() {
 
     @Composable
-    override fun Content() {
+    override fun DialogContent() {
         var input by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(clipboardText().let { TextFieldValue(it, TextRange(0, it.length)) }) }
         var error by rememberSaveable { mutableStateOf<String?>(null) }
         fun open() {

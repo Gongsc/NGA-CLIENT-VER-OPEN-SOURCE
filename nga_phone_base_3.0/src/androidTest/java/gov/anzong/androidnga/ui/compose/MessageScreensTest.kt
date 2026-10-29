@@ -34,7 +34,7 @@ class MessageScreensTest {
             }
         }
         compose.onNodeWithText("会话2").performClick()
-        compose.onNodeWithText("写短消息").performClick()
+        compose.onNodeWithText("写短消息", useUnmergedTree = true).performClick()
         compose.onNodeWithContentDescription("切换账号").performClick()
         compose.onNodeWithText("乙").performClick()
         error = "网络错误"
@@ -47,7 +47,7 @@ class MessageScreensTest {
         compose.setContent {
             NgaTheme { MessageListScreen(emptyList(), 0, emptyList(), false, null, false, {}, {}, {}, {}, {}, {}, { login = true }, {}) }
         }
-        compose.onNodeWithText("写短消息").assertDoesNotExist()
+        compose.onNodeWithText("写短消息", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithText("登录 NGA 账号").performClick()
         compose.runOnIdle { assertEquals(true, login) }
     }

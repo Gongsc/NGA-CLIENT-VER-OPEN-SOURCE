@@ -17,7 +17,7 @@ import gov.anzong.androidnga.ui.compose.NgaDialogLayout
 class ReportDialogFragment : BaseDialogFragment() {
 
     @Composable
-    override fun Content() {
+    override fun DialogContent() {
         var reason by rememberSaveable { mutableStateOf("") }
         NgaDialogLayout("举报", buttons = {
             TextButton(onClick = { dismiss() }) { Text("取消") }

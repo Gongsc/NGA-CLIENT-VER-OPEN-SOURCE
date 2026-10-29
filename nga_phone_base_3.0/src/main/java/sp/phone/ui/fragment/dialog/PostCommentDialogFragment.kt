@@ -16,7 +16,7 @@ class PostCommentDialogFragment : BaseDialogFragment() {
     private var error by mutableStateOf<String?>(null)
 
     @Composable
-    override fun Content() {
+    override fun DialogContent() {
         var body by rememberSaveable { mutableStateOf("") }
         var anonymous by rememberSaveable { mutableStateOf(false) }
         Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

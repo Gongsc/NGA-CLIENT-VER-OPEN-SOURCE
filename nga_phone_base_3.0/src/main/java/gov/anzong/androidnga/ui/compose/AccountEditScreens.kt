@@ -20,6 +20,8 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.viewinterop.AndroidView
 import gov.anzong.androidnga.mvvm.viewmodel.AccountEditViewModel
 import sp.phone.util.ImageUtils
@@ -65,8 +67,8 @@ fun AvatarEditScreen(url: String, onUrlChange: (String) -> Unit, sending: Boolea
             }
             if (AccountEditViewModel.isAvatarUrl(url)) {
                 Text("预览", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Box(Modifier.size(96.dp).clip(CircleShape).align(Alignment.CenterHorizontally)) {
-                    AndroidView(factory = { ImageView(it).apply { contentDescription = "头像预览" } }, modifier = Modifier.fillMaxSize(),
+                Box(Modifier.size(96.dp).clip(CircleShape).align(Alignment.CenterHorizontally).semantics { contentDescription = "头像预览" }) {
+                    AndroidView(factory = { ImageView(it).apply { importantForAccessibility = ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO } }, modifier = Modifier.fillMaxSize(),
                         update = { image -> ImageUtils.loadRoundCornerAvatar(image, url.trim()) })
                 }
             }
