@@ -96,15 +96,7 @@ fun HomeMessagesScreen(account: HomeAccount?, inbox: HomeInboxViewModel, replyCo
                         }
                     } else {
                         if (!loading && error == null && inbox.messages.isEmpty()) item { Text("暂无短消息") }
-                        items(inbox.messages, key = { it.mid }) { message ->
-                            OutlinedCard(onClick = { onMessage(message) }, modifier = Modifier.fillMaxWidth()) {
-                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Text(message.from_username?.ifBlank { "系统消息" } ?: "系统消息", style = MaterialTheme.typography.titleSmall)
-                                    Text(StringUtils.removeBrTag(StringUtils.unEscapeHtml(message.subject.orEmpty())), style = MaterialTheme.typography.bodyLarge)
-                                    Text("${message.posts} 条消息 · ${message.lastTime.orEmpty()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                            }
-                        }
+                        items(inbox.messages, key = { it.mid }) { message -> MessageThreadCard(message) { onMessage(message) } }
                         if (inbox.nextPage > 0) item { TextButton(onClick = { inbox.loadMessages(more = true) }, enabled = !loading) { Text("加载更多") } }
                     }
                 }
