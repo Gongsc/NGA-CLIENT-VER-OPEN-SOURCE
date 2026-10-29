@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
-import com.google.android.material.progressindicator.LinearProgressIndicator;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -90,16 +89,6 @@ public class ActivityUtils {
         }
     }
 
-    public void noticeSayingWithProgressBar(Context context) {
-
-        String str = StringUtils.getSaying();
-        if (str.indexOf(";") != -1) {
-            noticebar("", str.replace(";", "-----"), context);
-        } else {
-            noticebar("", str, context);
-        }
-    }
-
     public void noticeSaying(String str, Context context) {
 
         if (str.indexOf(";") != -1) {
@@ -151,50 +140,6 @@ public class ActivityUtils {
 
     }
 
-    private void noticebar(String title, String content, Context c) {
-
-        if (c == null)
-            return;
-        NLog.d(TAG, "saying dialog");
-        Bundle b = new Bundle();
-        b.putString("title", title);
-        b.putString("content", content);
-        synchronized (lock) {
-            try {
-
-                DialogFragment df = new SayingDialogFragmentWithProgressBar();
-                df.setArguments(b);
-
-                FragmentActivity fa = (FragmentActivity) c;
-                FragmentManager fm = fa.getSupportFragmentManager();
-                FragmentTransaction ft = fm.beginTransaction();
-
-                Fragment prev = fm.findFragmentByTag(dialogTag);
-                if (prev != null) {
-                    ft.remove(prev);
-                }
-
-                ft.commit();
-                df.show(fm, dialogTag);
-                this.df = df;
-            } catch (Exception e) {
-                NLog.e(this.getClass().getSimpleName(), NLog.getStackTraceString(e));
-
-            }
-
-        }
-
-    }
-
-    public void noticebarsetprogress(int i) {
-        NLog.d(TAG, "trying setprocess" + String.valueOf(i));
-        if (df != null && df.getActivity() != null) {
-            if (df instanceof SayingDialogFragmentWithProgressBar) {
-                ((SayingDialogFragmentWithProgressBar) df).setProgress(i);
-            }
-        }
-    }
-
     public void clear() {
         synchronized (lock) {
             this.df = null;
@@ -232,26 +177,6 @@ public class ActivityUtils {
             }
 
         }
-    }
-
-    /** 带进度条的提示框（如上传头像），进度由 {@link #setProgress} 更新。 */
-    public static class SayingDialogFragmentWithProgressBar extends DialogFragment {
-
-        LinearProgressIndicator progress;
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            progress = new LinearProgressIndicator(requireContext());
-            progress.setMax(100);
-            return progressDialog(requireContext(), getArguments(), progress, false);
-        }
-
-        public void setProgress(int i) {
-            if (progress != null) {
-                progress.setProgressCompat(i, true);
-            }
-        }
-
     }
 
     /** 不确定进度的提示框（如“正在提交”）。 */

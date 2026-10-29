@@ -99,7 +99,6 @@
     <string name="group_search">搜索</string>
     <string name="share">分享到…</string>
     <string name="image_to_big">图片超过1M，自动缩小</string>
-    <string name="image_to_big2">图片宽高超过180*255分辨率，自动缩小</string>
     <string name="page">页</string>
     <string name="search">搜索</string>
     <string name="menu_nearby_user">yooooo</string>

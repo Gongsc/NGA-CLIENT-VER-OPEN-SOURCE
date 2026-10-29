@@ -49,10 +49,14 @@ fun SignatureEditScreen(initial: String, sending: Boolean, onSubmit: (String) ->
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
 }
 
-/** 修改头像：填写图片地址或从相册选择后上传（上传进度由上传任务的对话框显示），预览后提交。 */
+/**
+ * 修改头像：填写图片地址，预览后提交。
+ *
+ * 原相册上传依赖的第三方图床已失效（返回 404）；论坛自己的头像上传需经 set_avatar 取得校验码后上传，暂未接入，
+ * 上传本地图片请使用网页版用户中心的“设置头像”。
+ */
 @Composable
-fun AvatarEditScreen(url: String, onUrlChange: (String) -> Unit, sending: Boolean,
-                     onPick: () -> Unit, onSubmit: () -> Unit, onBack: () -> Unit) {
+fun AvatarEditScreen(url: String, onUrlChange: (String) -> Unit, sending: Boolean, onSubmit: () -> Unit, onBack: () -> Unit) {
     var invalid by rememberSaveable { mutableStateOf(false) }
     val busy = sending
     SettingsSubPage("修改头像", onBack) { padding ->
@@ -62,9 +66,8 @@ fun AvatarEditScreen(url: String, onUrlChange: (String) -> Unit, sending: Boolea
                 label = { Text("头像地址") }, placeholder = { Text("https://…") }, isError = invalid,
                 supportingText = if (invalid) ({ Text("请输入正确的头像 URL 地址") }) else null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false))
-            OutlinedButton(onClick = onPick, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
-                Text("从相册选择并上传")
-            }
+            Text("填写可公开访问的图片地址（http 或 https）。上传本地图片请使用网页版用户中心的“设置头像”。",
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (AccountEditViewModel.isAvatarUrl(url)) {
                 Text("预览", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
                 Box(Modifier.size(96.dp).clip(CircleShape).align(Alignment.CenterHorizontally).semantics { contentDescription = "头像预览" }) {
