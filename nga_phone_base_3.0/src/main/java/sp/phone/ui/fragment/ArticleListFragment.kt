@@ -189,9 +189,9 @@ open class ArticleListFragment : BaseEventFragment() {
             R.id.menu_ban_this_one -> { showToast(viewModel.toggleBlacklist(row)); loadPage() }
             R.id.menu_show_this_person_only -> AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_TOPIC_CONTENT)
                 .withInt(ParamKey.KEY_TID, row.tid).withInt(ParamKey.KEY_AUTHOR_ID, row.authorid).navigation(requireContext())
-            R.id.menu_support -> LikeTask().execute(row.tid, row.pid, LikeTask.SUPPORT, ToastUtils::success)
-            R.id.menu_oppose -> LikeTask().execute(row.tid, row.pid, LikeTask.OPPOSE, ToastUtils::success)
-            R.id.menu_favorite -> BookmarkTask.execute(row.tid.toString(), row.pid.toString())
+            R.id.menu_support -> LikeTask().execute(row.tid, row.pid, LikeTask.SUPPORT)
+            R.id.menu_oppose -> LikeTask().execute(row.tid, row.pid, LikeTask.OPPOSE)
+            R.id.menu_favorite -> BookmarkTask().execute(row.tid.toString(), row.pid.toString())
         }
     }
 }

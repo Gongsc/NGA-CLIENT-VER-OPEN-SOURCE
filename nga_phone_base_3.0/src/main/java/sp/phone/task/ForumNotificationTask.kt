@@ -6,6 +6,7 @@ import gov.anzong.androidnga.coroutines.AppScope
 import gov.anzong.androidnga.coroutines.launchWithCallback
 import gov.anzong.androidnga.coroutines.scopeOf
 import gov.anzong.androidnga.http.OnHttpCallBack
+import sp.phone.http.post.ForumActionClient
 import sp.phone.http.retrofit.NgaApi
 import sp.phone.mvp.model.convert.ForumNotificationFactory
 import sp.phone.mvp.model.entity.NotificationInfo
@@ -19,6 +20,7 @@ class ForumNotificationTask @JvmOverloads constructor(
     private val owner: LifecycleOwner?,
     private val api: () -> NgaApi = NgaApi::get,
     private val host: () -> String = Utils::getNGAHost,
+    private val client: () -> ForumActionClient = ForumActionClient::create,
 ) {
     private val notificationUrl get() = host() + "nuke.php?__lib=noti&__output=8&__act=get_all"
 
@@ -36,9 +38,8 @@ class ForumNotificationTask @JvmOverloads constructor(
         }
     }
 
+    /** 清空论坛提醒，经 [ForumActionClient] 提交；失败只记录日志。 */
     fun clearAllNotification() {
-        AppScope.launchWithCallback({ s: String -> NLog.d(s) }, { NLog.e(it.message) }) {
-            api().post(host() + "nuke.php?__lib=noti&raw=3&__act=del")
-        }
+        AppScope.launchWithCallback({ s: String -> NLog.d(s) }, { NLog.e(it.message) }) { client().clearNotifications() }
     }
 }

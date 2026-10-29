@@ -92,7 +92,7 @@ class ArticleTabFragment : BaseEventFragment() {
     }
     private fun handleAction(id: Int) {
         when (id) {
-            R.id.menu_add_bookmark -> BookmarkTask.execute(request.tid)
+            R.id.menu_add_bookmark -> BookmarkTask().execute(request.tid.toString())
             R.id.menu_goto_floor -> state.showJump = true
             R.id.menu_share -> FunctionUtils.share(requireContext(), getString(R.string.share), "${state.title}\n${currentUrl()}")
             R.id.menu_copy_url -> {

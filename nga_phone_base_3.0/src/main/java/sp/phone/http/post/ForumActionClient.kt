@@ -10,7 +10,7 @@ import java.io.IOException
 import java.net.URLDecoder
 
 /**
- * `nuke.php` 上的头像设置、主题投票与子版块显示开关，结果按 [NgaWriteClient.postAction] 判断。
+ * `nuke.php` 上的头像、签名、主题投票、点赞、收藏、举报、清空提醒与子版块显示开关，结果按 [NgaWriteClient.postAction] 判断。
  * 方法会发起阻塞请求，需在后台线程调用；头像与投票失败时返回 [ActionResult]，不抛异常。
  */
 class ForumActionClient(private val writer: NgaWriteClient) {
@@ -85,6 +85,43 @@ class ForumActionClient(private val writer: NgaWriteClient) {
         writer.postAction(url, fields, referer)
         return if (visible) "已取消屏蔽，刷新后生效" else "已屏蔽子版块，刷新后生效"
     }
+
+    /** 点赞（[value] 为 1）或点踩（-1）楼层，返回论坛提示。 */
+    @Throws(IOException::class)
+    fun like(tid: Int, pid: Int, value: Int): String = topicAction(tid, listOf(
+        "__lib" to "topic_recommend", "__act" to "add", "tid" to tid.toString(), "pid" to pid.toString(),
+        "value" to value.toString(), "raw" to "3"))
+
+    /** 收藏主题，[pid] 不为空时收藏该楼层；返回论坛提示。 */
+    @Throws(IOException::class)
+    fun bookmark(tid: String, pid: String? = null): String = topicAction(tid.toIntOrNull() ?: 0, buildList {
+        add("__lib" to "topic_favor"); add("__act" to "topic_favor"); add("action" to "add"); add("tid" to tid)
+        if (!pid.isNullOrEmpty()) add("pid" to pid)
+        add("raw" to "3")
+    })
+
+    /** 举报楼层，[reason] 为举报理由；返回论坛提示。 */
+    @Throws(IOException::class)
+    fun report(tid: Int, pid: Int, reason: String): String = topicAction(tid, listOf(
+        "__lib" to "log_post", "__act" to "report", "tid" to tid.toString(), "pid" to pid.toString(),
+        "info" to reason, "raw" to "3"))
+
+    /** 修改 [uid] 的签名，返回论坛提示。 */
+    @Throws(IOException::class)
+    fun setSignature(uid: String, sign: String): String {
+        val referer = writer.url("nuke.php").addQueryParameter("func", "ucp").addQueryParameter("uid", uid).build().toString()
+        return writer.postAction(nukeUrl(), listOf("__lib" to "set_sign", "__act" to "set", "uid" to uid, "sign" to sign, "raw" to "3"), referer)
+    }
+
+    /** 清空论坛提醒，返回论坛提示。 */
+    @Throws(IOException::class)
+    fun clearNotifications(): String =
+        writer.postAction(nukeUrl(), listOf("__lib" to "noti", "__act" to "del", "raw" to "3"), writer.baseUrl())
+
+    private fun nukeUrl() = writer.url("nuke.php").addQueryParameter("__inchst", "UTF8").build()
+
+    private fun topicAction(tid: Int, fields: List<Pair<String, String>>): String =
+        writer.postAction(nukeUrl(), fields, writer.url("read.php").addQueryParameter("tid", tid.toString()).build().toString())
 
     companion object {
 

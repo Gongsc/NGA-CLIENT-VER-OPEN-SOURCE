@@ -5,22 +5,26 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import gov.anzong.androidnga.coroutines.FakeNgaApi
 import gov.anzong.androidnga.coroutines.NgaDispatchers
-import gov.anzong.androidnga.coroutines.PendingResponse
 import gov.anzong.androidnga.http.OnHttpCallBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
+import sp.phone.http.post.FakeForum
+import sp.phone.http.post.ForumActionClient
+import sp.phone.http.post.NgaWriteClient
+import sp.phone.http.post.Reply
+import sp.phone.http.post.form
 import sp.phone.param.SignPostParam
 
-/** 后台任务改用协程后的行为：请求内容、回调文字、失败处理与取消。响应均为合成数据。 */
+/** 后台任务改用协程后的行为：请求内容、回调文字与失败处理。响应均为合成数据。 */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TaskCoroutinesTest {
 
@@ -47,59 +51,6 @@ class TaskCoroutinesTest {
         override val lifecycle: Lifecycle get() = registry
     }
 
-    @Test fun reportDistinguishesServerErrorDataAndFailures() {
-        val api = FakeNgaApi()
-        val task = ReportTask { api }
-        val recorder = Recorder<String>()
-        for (response in listOf(
-            "{\"error\":{\"0\":\"你在217秒后方可举报\"},\"time\":1}",
-            "{\"data\":{\"0\":\"操作成功\"},\"time\":1}",
-            "{\"time\":1}",
-        )) {
-            api.respond = { response }
-            task.pos(mapOf("__lib" to "log_post"), mapOf("info" to "原因"), recorder)
-        }
-        api.respond = { throw IllegalStateException("网络不可用") }
-        task.pos(emptyMap(), emptyMap(), recorder)
-        api.respond = { "<html>无法解析</html>" }
-        task.pos(emptyMap(), emptyMap(), recorder)
-        assertEquals("POST nuke.php {__lib=log_post} {info=原因}", api.requests.first())
-        assertEquals(4, recorder.events.size)
-        assertEquals(listOf("error:你在217秒后方可举报", "success:操作成功", "error:网络不可用"), recorder.events.take(3))
-        assertTrue(recorder.events[3].startsWith("error:"))
-    }
-
-    @Test fun signPostReportsResultAndIgnoresRepeatWhileRunning() {
-        val pending = PendingResponse<String>()
-        val api = FakeNgaApi { pending.await() }
-        val task = SignPostTask { api }
-        val recorder = Recorder<String>()
-        val param = SignPostParam().apply { uid = "9"; sign = "签名 a" }
-        task.execute(param, recorder)
-        assertTrue(task.isRunning())
-        task.execute(param, recorder)
-        assertEquals(1, api.requests.size)
-        assertTrue(api.requests.single().contains("sign=%C7%A9%C3%FB+a"))
-        assertTrue(api.requests.single().contains("uid=9"))
-        pending.complete("{\"0\":\"操作成功\"}")
-        assertFalse(task.isRunning())
-        api.respond = { "签名过长" }
-        task.execute(param, recorder)
-        assertEquals(listOf("success:修改成功！", "error:签名过长"), recorder.events)
-    }
-
-    @Test fun signPostCancelDropsCallback() {
-        val pending = PendingResponse<String>()
-        val task = SignPostTask { FakeNgaApi { pending.await() } }
-        val recorder = Recorder<String>()
-        task.execute(SignPostParam().apply { uid = "9"; sign = "a" }, recorder)
-        task.cancel()
-        pending.complete("操作成功")
-        assertTrue(pending.cancelled)
-        assertFalse(task.isRunning())
-        assertTrue(recorder.events.isEmpty())
-    }
-
     @Test fun notificationsParseOffMainAndClearUsesDeleteEndpoint() {
         val reply = "{\"0\":1,\"1\":\"7\",\"2\":\"示例\",\"5\":\"主题\",\"6\":\"100\",\"7\":\"200\",\"9\":\"1\"}"
         val api = FakeNgaApi { "{\"data\":{\"0\":{\"0\":[$reply],\"1\":[{\"0\":\"5\",\"2\":\"发信人\"}],\"unread\":1}}}" }
@@ -120,14 +71,57 @@ class TaskCoroutinesTest {
         )
     }
 
-    @Test fun likeSendsVoteAndReportsServerText() {
-        val api = FakeNgaApi { "{\"data\":{\"0\":\"操作成功\"}}" }
-        val results = mutableListOf<String>()
-        LikeTask { api }.execute(12, 34, LikeTask.OPPOSE) { results += it }
-        assertEquals(listOf("操作成功"), results)
-        assertEquals(
-            "POST nuke.php {__act=add, __lib=topic_recommend, __output=8, pid=34, raw=3, tid=12, value=-1}",
-            api.requests.single(),
+    private fun json(body: String) = Reply(body, contentType = "application/json; charset=utf-8")
+
+    @Test fun likeBookmarkAndReportReportForumResultOrReason() {
+        val forum = FakeForum(
+            json("{\"data\":{\"0\":\"操作成功\",\"1\":1}}"),
+            json("{\"error\":{\"0\":\"你在217秒后方可举报\"},\"time\":1}"),
+            json("{\"data\":{\"0\":\"已加入收藏\"}}"),
+            Reply("<html>无法解析</html>", contentType = "text/html; charset=utf-8"),
         )
+        val client = { ForumActionClient(forum.writer()) }
+        val recorder = Recorder<String>()
+        LikeTask(client).execute(12, 34, LikeTask.OPPOSE, recorder)
+        ReportTask(client).execute(12, 34, "原因", recorder)
+        BookmarkTask(client).execute("12", "34", recorder)
+        BookmarkTask(client).execute("12", null, recorder)
+        assertEquals(listOf("success:操作成功", "error:你在217秒后方可举报", "success:已加入收藏", "error:" + NgaWriteClient.AMBIGUOUS),
+            recorder.events)
+        assertEquals(listOf("topic_recommend", "log_post", "topic_favor", "topic_favor"), forum.bodies.map { form(it)["__lib"] })
+        assertEquals("-1", form(forum.bodies[0])["value"])
+        assertEquals(null, form(forum.bodies[3])["pid"])
+        val report = forum.requests[1]
+        assertEquals("/nuke.php", report.url.encodedPath)
+        assertEquals("UTF8", report.url.queryParameter("__inchst"))
+        assertEquals("https://bbs.nga.cn/read.php?tid=12", report.header("Referer"))
+        assertEquals(NgaWriteClient.USER_AGENT, report.header("User-Agent"))
+        assertEquals("原因", form(forum.bodies[1])["info"])
+        assertEquals("secret-token", form(forum.bodies[1])["access_token"])
+    }
+
+    @Test fun signatureSubmitsOnWorkerAndThrowsForumReason() = runTest(dispatcher) {
+        val forum = FakeForum(json("{\"data\":{\"0\":\"操作成功\"}}"), json("{\"error\":{\"0\":\"签名过长\"}}"))
+        val task = SignPostTask { ForumActionClient(forum.writer()) }
+        val param = SignPostParam().apply { uid = "9"; sign = "签名 a" }
+        assertEquals("操作成功", task.submit(param))
+        try {
+            task.submit(param)
+            fail("应当失败")
+        } catch (e: NgaWriteClient.PostException) {
+            assertEquals("签名过长", e.message)
+        }
+        val fields = form(forum.bodies.first())
+        assertEquals("set_sign", fields["__lib"])
+        assertEquals("9", fields["uid"])
+        assertEquals("签名 a", fields["sign"])
+    }
+
+    @Test fun clearNotificationsGoesThroughWriteClient() {
+        val forum = FakeForum(json("{\"data\":{\"0\":\"操作成功\"}}"))
+        ForumNotificationTask(null, { FakeNgaApi() }, { "https://bbs.nga.cn/" }, { ForumActionClient(forum.writer()) }).clearAllNotification()
+        val fields = form(forum.bodies.single())
+        assertEquals(listOf("noti", "del"), listOf(fields["__lib"], fields["__act"]))
+        assertEquals("123", fields["access_uid"])
     }
 }

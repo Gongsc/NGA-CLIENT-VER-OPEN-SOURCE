@@ -8,8 +8,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import gov.anzong.androidnga.base.util.ToastUtils
-import gov.anzong.androidnga.http.OnHttpCallBack
 import sp.phone.task.ReportTask
 import gov.anzong.androidnga.ui.compose.NgaDialogLayout
 
@@ -30,11 +28,6 @@ class ReportDialogFragment : BaseDialogFragment() {
 
     private fun report(reason: String) {
         val args = arguments ?: return
-        val common = mapOf("__lib" to "log_post", "__act" to "report", "__output" to "8", "charset" to "gbk")
-        val fields = common + mapOf("pid" to args.getInt("pid").toString(), "tid" to args.getInt("tid").toString(), "info" to reason)
-        ReportTask().pos(common, fields, object : OnHttpCallBack<String> {
-            override fun onError(text: String?) = ToastUtils.error(text)
-            override fun onSuccess(data: String?) = ToastUtils.success(data)
-        })
+        ReportTask().execute(args.getInt("tid"), args.getInt("pid"), reason)
     }
 }
