@@ -11,12 +11,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.common.UserManagerImpl
-import sp.phone.http.post.ForumActionClient
-import sp.phone.http.post.NgaWriteClient
-import sp.phone.param.SignPostParam
-import sp.phone.task.SignPostTask
-import sp.phone.task.requestProfile
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.network.post.ForumActionClient
+import gov.anzong.androidnga.network.post.NgaWriteClient
+import gov.anzong.androidnga.mvvm.model.param.SignPostParam
+import gov.anzong.androidnga.task.SignPostTask
+import gov.anzong.androidnga.task.requestProfile
 
 /**
  * 修改签名与头像：同一时间只提交一次。

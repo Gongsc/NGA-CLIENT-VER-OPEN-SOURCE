@@ -11,8 +11,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.mvp.model.entity.TopicListInfo
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.entity.TopicListInfo
 
 /** 离线缓存的主题：读取、删除、导入与导出，文件操作都在后台线程执行。 */
 class TopicCacheViewModel(

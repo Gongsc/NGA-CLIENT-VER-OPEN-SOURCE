@@ -7,7 +7,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.task.CropPixels
+import gov.anzong.androidnga.task.CropPixels
 
 /** 头像截取页面；使用合成图片，上传只触发回调。 */
 class AvatarCropScreenTest {

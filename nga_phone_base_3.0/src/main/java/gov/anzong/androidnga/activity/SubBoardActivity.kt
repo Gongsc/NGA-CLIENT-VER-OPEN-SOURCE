@@ -11,7 +11,7 @@ import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.mvvm.viewmodel.SubBoardViewModel
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.SubBoardScreen
-import sp.phone.param.ParamKey
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
 
 /** 主题列表菜单中的子版块；extras 为 [ParamKey.KEY_TITLE] 与 "subBoard"。修改过开关时返回 RESULT_OK。 */
 class SubBoardActivity : BaseActivity() {

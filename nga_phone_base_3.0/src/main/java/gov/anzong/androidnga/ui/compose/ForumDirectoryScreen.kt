@@ -17,8 +17,8 @@ import gov.anzong.androidnga.coroutines.NgaDispatchers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import sp.phone.mvp.model.ForumsListModel
-import sp.phone.http.retrofit.NgaApi
+import gov.anzong.androidnga.mvvm.model.ForumsListModel
+import gov.anzong.androidnga.network.retrofit.NgaApi
 import java.nio.charset.Charset
 
 // Literal matching deliberately accepts characters such as [, ( and *.
@@ -67,7 +67,7 @@ class ForumDirectoryViewModel(
         state.boards = result.result.orEmpty().flatMap { it.groups.orEmpty() }
             .flatMap { it.forums.orEmpty() }
             .filter { !it.name.isNullOrBlank() }
-            .map { BoardTile(it.id, it.stid, it.name) }.distinctBy { it.key }
+            .map { BoardTile(it.id, it.stid, it.name.orEmpty()) }.distinctBy { it.key }
         state.error = null
         loaded = true
     }

@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.bumptech.glide.Glide
 import gov.anzong.androidnga.R
-import sp.phone.common.ApiConstants
-import sp.phone.mvp.model.entity.Board
+import gov.anzong.androidnga.network.ApiConstants
+import gov.anzong.androidnga.mvvm.model.entity.Board
 
 // Snapshot mutable legacy models before publishing them to Compose.
 data class BoardTile(val fid: Int, val stid: Int, val name: String, val head: String? = null) {

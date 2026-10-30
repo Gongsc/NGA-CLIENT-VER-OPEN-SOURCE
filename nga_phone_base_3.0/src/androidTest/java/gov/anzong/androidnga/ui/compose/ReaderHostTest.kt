@@ -9,8 +9,8 @@ import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import org.junit.Rule
 import org.junit.Test
 import gov.anzong.androidnga.activity.ArticleListActivity
-import sp.phone.param.ArticleListParam
-import sp.phone.param.ParamKey
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
 
 class ReaderHostTest {
     @get:Rule val compose = createEmptyComposeRule()
@@ -35,14 +35,14 @@ class ReaderHostTest {
         ActivityScenario.launch<ArticleListActivity>(intent).use { scenario ->
             compose.waitUntil(timeoutMillis = 10000) { compose.onAllNodesWithText("读取缓存失败！").fetchSemanticsNodes().isNotEmpty() }
             scenario.onActivity { activity ->
-                fun findReader(fragment: androidx.fragment.app.Fragment): sp.phone.ui.fragment.ArticleListFragment? {
-                    if (fragment is sp.phone.ui.fragment.ArticleListFragment) return fragment
+                fun findReader(fragment: androidx.fragment.app.Fragment): gov.anzong.androidnga.ui.fragment.ArticleListFragment? {
+                    if (fragment is gov.anzong.androidnga.ui.fragment.ArticleListFragment) return fragment
                     return fragment.childFragmentManager.fragments.firstNotNullOfOrNull(::findReader)
                 }
                 val fragment = activity.supportFragmentManager.fragments.firstNotNullOf(::findReader)
                 // 换成按网络加载、且总是返回无法解析的响应，不发起真实请求
                 fragment.viewModel.request.loadCache = false
-                fragment.viewModel.pageLoader = { throw sp.phone.http.article.ArticlePageLoader.ResponseFormatException() }
+                fragment.viewModel.pageLoader = { throw gov.anzong.androidnga.network.article.ArticlePageLoader.ResponseFormatException() }
                 fragment.loadPage()
                 org.junit.Assert.assertFalse(activity.isFinishing)
             }
@@ -60,14 +60,14 @@ class ReaderHostTest {
         ActivityScenario.launch<ArticleListActivity>(intent).use { scenario ->
             compose.waitUntil(10000) { compose.onAllNodesWithText("读取缓存失败！").fetchSemanticsNodes().isNotEmpty() }
             scenario.onActivity { activity ->
-                fun findReader(fragment: androidx.fragment.app.Fragment): sp.phone.ui.fragment.ArticleListFragment? {
-                    if (fragment is sp.phone.ui.fragment.ArticleListFragment) return fragment
+                fun findReader(fragment: androidx.fragment.app.Fragment): gov.anzong.androidnga.ui.fragment.ArticleListFragment? {
+                    if (fragment is gov.anzong.androidnga.ui.fragment.ArticleListFragment) return fragment
                     return fragment.childFragmentManager.fragments.firstNotNullOfOrNull(::findReader)
                 }
                 val fragment = activity.supportFragmentManager.fragments.firstNotNullOf(::findReader)
-                fragment.setData(sp.phone.http.bean.ThreadData().apply {
-                    set__ROWS(20)
-                    rowList = (0..19).map { floor -> sp.phone.http.bean.ThreadRowInfo().apply {
+                fragment.setData(gov.anzong.androidnga.network.bean.ThreadData().apply {
+                    __ROWS = 20
+                    rowList = (0..19).map { floor -> gov.anzong.androidnga.network.bean.ThreadRowInfo().apply {
                         tid = request.tid; pid = floor; lou = floor; author = "离线示例 $floor"
                         content = "此处是离线正文，用于验证真实分页宿主中的上下滑动收起与展开。".repeat(4)
                     } }

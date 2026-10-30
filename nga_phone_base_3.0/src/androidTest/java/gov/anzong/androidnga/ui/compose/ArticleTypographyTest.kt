@@ -14,8 +14,8 @@ import org.json.JSONTokener
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.http.bean.ThreadRowInfo
-import sp.phone.common.PhoneConfiguration
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import java.util.concurrent.atomic.AtomicReference
 
 class ArticleTypographyTest {

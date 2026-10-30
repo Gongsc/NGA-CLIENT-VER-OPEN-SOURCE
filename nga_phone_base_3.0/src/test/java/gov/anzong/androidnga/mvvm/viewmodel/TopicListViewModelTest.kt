@@ -15,11 +15,11 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.mvp.model.BoardStore
-import sp.phone.mvp.model.entity.Board
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.mvp.model.entity.TopicListInfo
-import sp.phone.param.TopicListParam
+import gov.anzong.androidnga.mvvm.model.BoardStore
+import gov.anzong.androidnga.mvvm.model.entity.Board
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.entity.TopicListInfo
+import gov.anzong.androidnga.mvvm.model.param.TopicListParam
 import java.io.IOException
 import java.lang.reflect.Proxy
 
@@ -32,7 +32,7 @@ class TopicListViewModelTest {
     @After fun resetMain() = Dispatchers.resetMain()
 
     private fun topic(tid: Int, replies: Int = 0, postDate: Int = 0) = ThreadPageInfo().apply {
-        setTid(tid); setReplies(replies); setPostDate(postDate)
+        this.tid = tid; this.replies = replies; this.postDate = postDate
     }
 
     private fun page(vararg topics: ThreadPageInfo, now: Int = 0) = TopicListInfo().apply {

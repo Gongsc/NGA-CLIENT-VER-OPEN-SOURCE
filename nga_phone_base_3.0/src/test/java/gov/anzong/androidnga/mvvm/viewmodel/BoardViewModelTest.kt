@@ -13,11 +13,11 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.common.User
-import sp.phone.common.UserManager
-import sp.phone.mvp.model.BoardStore
-import sp.phone.mvp.model.entity.Board
-import sp.phone.mvp.model.entity.BoardCategory
+import gov.anzong.androidnga.account.User
+import gov.anzong.androidnga.account.UserManager
+import gov.anzong.androidnga.mvvm.model.BoardStore
+import gov.anzong.androidnga.mvvm.model.entity.Board
+import gov.anzong.androidnga.mvvm.model.entity.BoardCategory
 import java.io.IOException
 import java.lang.reflect.Proxy
 
@@ -34,22 +34,22 @@ class BoardViewModelTest {
         override fun getBookmarkCategory() = bookmarks
         override fun isBookmark(fid: Int, stid: Int) = bookmarks.boardList.any { it.fid == fid && it.stid == stid }
         override fun getBoardName(fid: Int, stid: Int) = names[fid to stid]
-        override fun addBookmark(fid: Int, stid: Int, boardName: String) = bookmarks.addBoard(Board(fid, stid, boardName))
+        override fun addBookmark(fid: Int, stid: Int, boardName: String?) = bookmarks.addBoard(Board(fid, stid, boardName))
     }
 
     private class FakeUsers(val list: MutableList<User> = mutableListOf()) : UserManager by unusedUsers() {
         var active = 0
         val avatars = mutableMapOf<String, String>()
         override fun hasValidUser() = list.isNotEmpty()
-        override fun getUserSize() = list.size
-        override fun getActiveUserIndex() = active
+        override val userSize get() = list.size
+        override val activeUserIndex get() = active
         override fun setActiveUser(index: Int) { active = index }
-        override fun getActiveUser() = list.getOrNull(active)
+        override val activeUser get() = list.getOrNull(active)
         override fun getCookie(user: User) = "cookie-${user.userId}"
-        override fun getAvatarUrl(uid: String) = avatars[uid].orEmpty()
-        override fun putAvatarUrl(uid: String, url: String) { avatars[uid] = url }
-        override fun setAvatarUrl(userId: Int, url: String) { list.filter { it.userId == userId.toString() }.forEach { it.avatarUrl = url } }
-        override fun updateAvatarUrl(uid: String, url: String) { avatars[uid] = url; list.filter { it.userId == uid }.forEach { it.avatarUrl = url } }
+        override fun getAvatarUrl(uid: String?) = avatars[uid].orEmpty()
+        override fun putAvatarUrl(uid: String?, url: String?) { avatars[uid!!] = url!! }
+        override fun setAvatarUrl(userId: Int, url: String?) { list.filter { it.userId == userId.toString() }.forEach { it.avatarUrl = url } }
+        override fun updateAvatarUrl(uid: String?, url: String?) { avatars[uid!!] = url!!; list.filter { it.userId == uid }.forEach { it.avatarUrl = url } }
     }
 
     private fun user(uid: String, name: String = "用户$uid") = User(uid, name, "cid")

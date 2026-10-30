@@ -8,8 +8,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.http.bean.ThreadRowInfo
-import sp.phone.mvp.model.convert.ArticleConvertFactory
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
+import gov.anzong.androidnga.mvvm.model.convert.ArticleConvertFactory
 
 class HotRepliesTest {
     @get:Rule val compose = createComposeRule()
@@ -19,14 +19,14 @@ class HotRepliesTest {
         val source="""{"data":{"__T":{"tid":12,"fid":7},"__ROWS":40,"__R__ROWS":2,"__U":{"9":{"uid":9,"username":"测试用户"}},"__R":{"0":{"tid":12,"fid":7,"pid":0,"lou":0,"content":"主楼","hotreply":{"2":{"pid":115,"lou":15,"authorid":9,"content":"[img]./mon_test/a.webp[/img]","from_client":"7 iOS"},"10":{"pid":115,"lou":15,"content":"重复"},"11":{"pid":118,"content":"异常","score":{}},"12":{"pid":119,"content":"另一个热点","authorid":9}}},"1":{"tid":12,"pid":101,"lou":1,"content":"第一楼"}}}}"""
         val data=ArticleConvertFactory.getArticleInfo(source)
         assertNotNull(data)
-        assertEquals(2,data.rowList.size)
-        assertEquals(listOf(115,119),data.hotReplyList.map{it.pid})
-        assertEquals(12,data.hotReplyList.first().tid)
-        assertEquals("测试用户",data.hotReplyList.first().author)
-        assertEquals("ios",data.hotReplyList.first().fromClientModel)
-        assertTrue(data.hotReplyList.first().imageUrls.single().startsWith("https://img.nga.cn/"))
-        assertEquals(-1,data.hotReplyList.last().lou)
-        assertEquals(2,ArticleConvertFactory.getArticleInfo(data.rawData).hotReplyList.size)
+        assertEquals(2,data!!.rowList!!.size)
+        assertEquals(listOf(115,119),data!!.hotReplyList.map{it.pid})
+        assertEquals(12,data!!.hotReplyList.first().tid)
+        assertEquals("测试用户",data!!.hotReplyList.first().author)
+        assertEquals("ios",data!!.hotReplyList.first().fromClientModel)
+        assertTrue(data!!.hotReplyList.first().imageUrls.single().startsWith("https://img.nga.cn/"))
+        assertEquals(-1,data!!.hotReplyList.last().lou)
+        assertEquals(2,ArticleConvertFactory.getArticleInfo(data!!.rawData!!)!!.hotReplyList.size)
     }
 
     @Test fun hotSectionHasThemeBackgroundAndQuoteKeepsOriginalFloor() {

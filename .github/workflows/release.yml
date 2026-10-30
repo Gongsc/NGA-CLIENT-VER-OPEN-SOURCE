@@ -104,8 +104,8 @@ jobs:
           python3 - "${{ steps.version.outputs.code }}" > dist/notes.md <<'EOF'
           import re, sys
           code = sys.argv[1]
-          src = open("nga_phone_base_3.0/src/main/java/sp/phone/common/VersionUpgradeTips.java", encoding="utf-8").read()
-          match = re.search(r"String TIPS_%s\s*=\s*(.*?);" % code, src, re.S)
+          src = open("nga_phone_base_3.0/src/main/java/sp/phone/common/VersionUpgradeTips.kt", encoding="utf-8").read()
+          match = re.search(r'const val TIPS_%s\s*=\s*((?:\s*\+?\s*"(?:[^"\\]|\\.)*")+)' % code, src)
           if not match:
               sys.exit(0)
           text = "".join(re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(1)))

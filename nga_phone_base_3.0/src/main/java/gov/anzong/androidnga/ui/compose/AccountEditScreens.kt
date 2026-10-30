@@ -24,7 +24,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.viewinterop.AndroidView
 import gov.anzong.androidnga.mvvm.viewmodel.AccountEditViewModel
-import sp.phone.util.ImageUtils
+import gov.anzong.androidnga.util.ImageUtils
 
 /** 修改签名：支持论坛代码；内容为空时确认后提交空签名以清空签名，提交中显示进度。 */
 @Composable

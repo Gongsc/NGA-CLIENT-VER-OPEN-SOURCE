@@ -4,11 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import sp.phone.common.FilterKeyword
-import sp.phone.common.FilterKeywordsManager
-import sp.phone.common.FilterKeywordsManagerImpl
-import sp.phone.common.UserManager
-import sp.phone.common.UserManagerImpl
+import gov.anzong.androidnga.settings.FilterKeyword
+import gov.anzong.androidnga.settings.FilterKeywordsManager
+import gov.anzong.androidnga.settings.FilterKeywordsManagerImpl
+import gov.anzong.androidnga.account.UserManager
+import gov.anzong.androidnga.account.UserManagerImpl
 
 /** 设置中的关键词屏蔽、用户黑名单与账号管理；数据都在本机，读写是同步的。 */
 class SettingsListsViewModel(

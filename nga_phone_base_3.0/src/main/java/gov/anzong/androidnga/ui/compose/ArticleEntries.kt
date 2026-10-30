@@ -1,6 +1,6 @@
 package gov.anzong.androidnga.ui.compose
 
-import sp.phone.http.bean.ThreadRowInfo
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
 
 data class ArticleEntry(val row: ThreadRowInfo?, val hot: Boolean = false) {
     val key: String get() = row?.let { "${if (hot) "hot" else "floor"}:${it.tid}:${it.pid}:${it.lou}" } ?: "hot_header"

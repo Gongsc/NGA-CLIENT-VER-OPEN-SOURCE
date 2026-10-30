@@ -11,9 +11,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Assert.*
 import org.junit.Test
-import sp.phone.http.bean.MessageListInfo
-import sp.phone.http.bean.MessageThreadPageInfo
-import sp.phone.mvp.model.entity.RecentReplyInfo
+import gov.anzong.androidnga.network.bean.MessageListInfo
+import gov.anzong.androidnga.network.bean.MessageThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeInboxViewModelTest {
@@ -21,7 +21,7 @@ class HomeInboxViewModelTest {
     @Before fun setMain() = Dispatchers.setMain(main)
     @After fun resetMain() = Dispatchers.resetMain()
     private fun page(number: Int, next: Int, vararg mids: Int) = MessageListInfo().apply {
-        set__currentPage(number); set__nextPage(next)
+        __currentPage = number; __nextPage = next
         messageEntryList = mids.map { mid -> MessageThreadPageInfo().apply { this.mid = mid } }
     }
 
@@ -92,9 +92,9 @@ class HomeInboxViewModelTest {
         val prefix = "window.script_muti_get_var_store="
         assertNull(homeReplyError(prefix + "{\"data\":{},\"time\":1}"))
         assertNull(homeReplyError("{\"data\":{\"0\":{\"0\":[]}}}"))
-        assertTrue(sp.phone.mvp.model.convert.ForumNotificationFactory.buildRecentReplyList(prefix + "{\"data\":{}}").isEmpty())
+        assertTrue(gov.anzong.androidnga.mvvm.model.convert.ForumNotificationFactory.buildRecentReplyList(prefix + "{\"data\":{}}").isEmpty())
         val reply = "{\"0\":1,\"1\":\"7\",\"2\":\"示例\",\"5\":\"主题\",\"6\":\"100\",\"7\":\"200\",\"9\":\"1\"}"
-        assertEquals(1, sp.phone.mvp.model.convert.ForumNotificationFactory.buildRecentReplyList("{\"data\":{\"0\":{\"0\":[$reply]}}}").size)
+        assertEquals(1, gov.anzong.androidnga.mvvm.model.convert.ForumNotificationFactory.buildRecentReplyList("{\"data\":{\"0\":{\"0\":[$reply]}}}").size)
     }
 
     @Test fun replyResponseWithServerErrorFails() {

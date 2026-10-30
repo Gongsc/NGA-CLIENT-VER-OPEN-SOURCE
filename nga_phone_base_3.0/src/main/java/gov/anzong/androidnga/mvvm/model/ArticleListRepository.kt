@@ -2,16 +2,16 @@ package gov.anzong.androidnga.mvvm.model
 
 import gov.anzong.androidnga.base.util.ContextUtils
 import gov.anzong.androidnga.common.util.FileUtils
-import sp.phone.common.UserManagerImpl
-import sp.phone.http.article.ArticlePageLoader
-import sp.phone.http.bean.ThreadData
-import sp.phone.http.bean.ThreadRowInfo
-import sp.phone.http.retrofit.NgaApi
-import sp.phone.mvp.model.convert.ArticleConvertFactory
-import sp.phone.param.ArticleListParam
-import sp.phone.util.ForumUtils
-import sp.phone.util.FunctionUtils
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.network.article.ArticlePageLoader
+import gov.anzong.androidnga.network.bean.ThreadData
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
+import gov.anzong.androidnga.network.retrofit.NgaApi
+import gov.anzong.androidnga.mvvm.model.convert.ArticleConvertFactory
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.util.ForumUtils
+import gov.anzong.androidnga.util.FunctionUtils
+import gov.anzong.androidnga.util.StringUtils
 import java.io.File
 
 /** 帖子内容的网络请求与离线缓存；均为阻塞或挂起调用，由调用方切到后台线程执行。 */
@@ -59,7 +59,7 @@ fun quoteBlock(param: ArticleListParam, row: ThreadRowInfo,
         .replace(Regex("\\[quote\\]([\\s\\S])*\\[/quote\\]"), "")
         .replace(Regex("\\[b\\]Reply to \\[pid=\\d+,\\d+,\\d+\\]Reply\\[/pid\\] Post by .+?\\[/b\\]"), ""))
     val tid = if (param.tid != 0) param.tid else row.tid
-    val author = if (row.getISANONYMOUS()) {
+    val author = if (row.isAnonymous) {
         "[uid=-1]${row.author}[/uid][color=gray](${row.lou}楼)[/color]"
     } else {
         "[uid=${row.authorid}]${row.author}[/uid]"

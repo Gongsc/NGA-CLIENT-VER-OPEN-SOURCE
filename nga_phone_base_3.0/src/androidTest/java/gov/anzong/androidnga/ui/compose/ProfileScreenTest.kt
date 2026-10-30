@@ -5,10 +5,10 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.http.bean.AdminForumsData
-import sp.phone.http.bean.ProfileData
-import sp.phone.http.bean.ReputationData
-import sp.phone.task.ProfileStatus
+import gov.anzong.androidnga.network.bean.AdminForumsData
+import gov.anzong.androidnga.network.bean.ProfileData
+import gov.anzong.androidnga.network.bean.ReputationData
+import gov.anzong.androidnga.task.ProfileStatus
 
 /** 用户资料页；只使用本地合成资料，菜单与链接只触发回调。 */
 class ProfileScreenTest {

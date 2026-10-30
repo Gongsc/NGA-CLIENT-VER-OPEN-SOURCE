@@ -63,9 +63,8 @@ NGA 论坛（bbs.nga.cn）的开源 Android 客户端，提供版块浏览、主
 
 功能层面的重构已完成，下列为代码整理与验证方面的后续工作，均不影响现有功能：
 
-- **Java 转 Kotlin**：应用模块仍有 105 个 Java 文件（Kotlin 116 个），`lib_core` 18 个、`lib_common` 26 个、`lib_network` 1 个基本为 Java。主要是旧工具类（`StringUtils`、`FunctionUtils`、`PhoneConfiguration`）、正文解码与数据实体。
-- **包结构统一**：`sp.phone.*` 与 `gov.anzong.androidnga.*` 两套包并存，部分位置不合理，例如 `sp.phone.ui.fragment` 只剩详情单页 `ArticleListFragment` 与对话框。
-- **Lint 警告**：无错误，仍有 86 项警告，主要为可改用 KTX 写法（24）、硬编码文字（17）、链接过滤器写法（16）、可能泄漏的静态字段（5）。
+- **Lint 警告**：无错误，仍有 98 项警告，主要为可改用 KTX 写法、硬编码文字、链接过滤器写法与可能泄漏的静态字段。
+- **测试代码**：单元测试中仍有 14 个 Java 文件（`NgaJson` 特征测试、正文解码 golden 测试等），可按需转为 Kotlin。
 - **预览截图**：首页底栏与字体设置页已更新，`docs/previews/implemented` 中的截图需重新生成。
 - **设备验证**：Android 17 模拟器存在启动挂起，尚未完成该版本的设备测试；登录、发帖、上传、点赞、收藏、举报、签名、头像等服务端操作无法自动化测试，发布前需用测试账号人工检查。
 
@@ -173,6 +172,7 @@ Windows 环境使用 `gradlew.bat`。调试版的包名为 `gov.anzong.androidng
 └── settings.gradle      # 模块声明与依赖仓库配置
 ```
 
+- **包与语言**：代码均位于 `gov.anzong.androidnga.*`（原 `sp.phone.*` 已并入：`account` 账号、`settings` 设置、`network` 网络请求与提交、`mvvm` ViewModel 与数据、`ui` 界面、`task` 后台任务、`util` 工具）。除 Room 实体与 DAO（`User`、`UserDao`、`AppDatabase`）及 Glide 模块需要 Java 注解处理器而保留 Java 外，主代码均为 Kotlin。
 - **页面**：每个页面是一个 Activity，直接通过 `setContent` 显示 Compose 界面；整页 Fragment 已全部移除，只有详情分页的 `ArticleListFragment`（由 `AndroidFragment` 嵌入）与对话框仍是 Fragment。帖子正文、签名、短消息正文、投票、网页浏览与登录页为通过 `AndroidView` 嵌入的 WebView。Compose 界面与主题位于 `gov.anzong.androidnga.ui.compose`。
 - **业务逻辑**：由 ViewModel 承担，经 `SavedStateHandle` 读取页面参数；读取请求随页面结束取消，论坛提交在应用级作用域执行，离开页面也不会中途放弃；首次加载只执行一次，页面重建不重复请求。
 - **网络**：读取请求为 Retrofit 挂起接口 `NgaApi`，异步统一使用 Kotlin 协程；论坛写操作统一经 `NgaWriteClient` 提交，见[发帖与论坛操作](#发帖与论坛操作)。
@@ -231,6 +231,7 @@ Windows 环境使用 `gradlew.bat`。调试版的包名为 `gov.anzong.androidng
 ## 版本记录
 
 - **4.3.1**：所有页面与对话框改为 Compose，整页 Fragment 合并进 Activity；用户资料的禁言与激活状态按网页规则判断，buff 单独显示为“状态”；头像支持从相册截取后上传，修改后首页头像同步更新；签名可清空；点赞、收藏、举报、签名与清空提醒改经 `NgaWriteClient` 提交，失败时提示原因；投票提交时在对话框内显示进度；首页底栏缩小并突出当前页签；字体与阅读大小加入实时预览，头像大小设置实际生效；修复列表与折叠标签冲突。代码方面移除剩余的 `HttpURLConnection`，删除无引用的资源与遗留 TODO，Lint 警告由 173 项降至 86 项。
+- **未发布**：主代码与三个库模块由 Java 转为 Kotlin（仅保留 Room 与 Glide 注解处理所需的 4 个 Java 文件），删除无引用的旧代码；`sp.phone.*` 并入 `gov.anzong.androidnga.*`；修复调整账号顺序后当前账号跳到第一个、短消息列表遇到异常条目时卡住、主题按发帖时间排序可能出错。
 - **4.3.0**：Presenter 全部迁移至 ViewModel；发帖、回复、短消息、头像与投票改用新的提交方式；设置子页面、浏览历史、回复通知与子版块改为 Compose；修复账号删除与排序、版块图标与音视频加载等问题；移除 Bugly 与友盟统计。
 - **4.2.1**：修复 4.1.0、4.2.0 正式版因库模块被混淆而启动闪退。
 - **4.2.0**：fastjson 替换为自有的 `NgaJson`（本地数据格式保持兼容，见 [fastjson 替换说明](docs/fastjson-migration.md)），RxJava 与 `AsyncTask` 替换为 Kotlin 协程（见 [RxJava 替换说明](docs/rxjava-migration.md)），Retrofit、OkHttp、Glide 升级，图片浏览页改用 Compose，移除 Guava、commons-io、PhotoView 等依赖。

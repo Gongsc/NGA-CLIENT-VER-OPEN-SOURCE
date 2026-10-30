@@ -23,8 +23,8 @@ import gov.anzong.androidnga.debug.Debugger
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.util.*
 import kotlinx.coroutines.launch
-import sp.phone.ui.fragment.dialog.VersionUpgradeDialogFragment
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.ui.dialog.VersionUpgradeDialogFragment
+import gov.anzong.androidnga.util.FunctionUtils
 
 class AboutActivity : BaseActivity() {
     override fun usesComposeContent() = true

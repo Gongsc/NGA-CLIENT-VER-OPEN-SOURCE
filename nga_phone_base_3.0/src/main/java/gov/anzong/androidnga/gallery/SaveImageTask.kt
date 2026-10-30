@@ -15,8 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import sp.phone.http.OnSimpleHttpCallBack
-import sp.phone.util.ActivityUtils
+import gov.anzong.androidnga.network.OnSimpleHttpCallBack
+import gov.anzong.androidnga.util.ActivityUtils
 import java.io.File
 import java.util.Locale
 import java.util.UUID

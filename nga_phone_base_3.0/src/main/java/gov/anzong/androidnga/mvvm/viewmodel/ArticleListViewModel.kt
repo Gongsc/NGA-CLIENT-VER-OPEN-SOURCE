@@ -16,13 +16,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.common.UserManager
-import sp.phone.common.UserManagerImpl
-import sp.phone.http.bean.ThreadData
-import sp.phone.http.bean.ThreadRowInfo
-import sp.phone.mvp.model.convert.ErrorConvertFactory
-import sp.phone.param.ArticleListParam
-import sp.phone.param.ParamKey
+import gov.anzong.androidnga.account.UserManager
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.network.bean.ThreadData
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
+import gov.anzong.androidnga.mvvm.model.convert.ErrorConvertFactory
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
 
 /**
  * 主题内容的一页：加载（网络或离线缓存）、缓存本页与屏蔽楼层作者。
@@ -110,14 +110,14 @@ class ArticleListViewModel(
     /** 屏蔽或取消屏蔽楼层作者，返回提示文字；匿名楼层不能屏蔽。 */
     @StringRes
     fun toggleBlacklist(row: ThreadRowInfo): Int {
-        if (row.getISANONYMOUS()) return R.string.cannot_add_to_blacklist_cause_anony
+        if (row.isAnonymous) return R.string.cannot_add_to_blacklist_cause_anony
         val users = users()
-        return if (row.get_isInBlackList()) {
-            row.set_IsInBlackList(false)
+        return if (row.isInBlackList) {
+            row.isInBlackList = false
             users.removeFromBlackList(row.authorid.toString())
             R.string.remove_from_blacklist_success
         } else {
-            row.set_IsInBlackList(true)
+            row.isInBlackList = true
             users.addToBlackList(row.author, row.authorid.toString())
             R.string.add_to_blacklist_success
         }

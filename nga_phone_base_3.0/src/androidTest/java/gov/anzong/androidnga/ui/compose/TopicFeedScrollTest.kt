@@ -16,7 +16,7 @@ import gov.anzong.androidnga.common.PreferenceKey
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.common.PhoneConfiguration
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import java.io.File
 
 class TopicFeedScrollTest {

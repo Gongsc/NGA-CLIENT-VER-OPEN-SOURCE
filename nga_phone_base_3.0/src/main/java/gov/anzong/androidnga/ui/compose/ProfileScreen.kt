@@ -20,11 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import gov.anzong.androidnga.mvvm.viewmodel.ProfileViewModel
-import sp.phone.common.PhoneConfiguration
-import sp.phone.http.bean.AdminForumsData
-import sp.phone.http.bean.ProfileData
-import sp.phone.task.ProfileStatus
-import sp.phone.util.ImageUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.network.bean.AdminForumsData
+import gov.anzong.androidnga.network.bean.ProfileData
+import gov.anzong.androidnga.task.ProfileStatus
+import gov.anzong.androidnga.util.ImageUtils
 
 /** 资料页菜单项；可见性由资料是否加载、是否本人决定。 */
 enum class ProfileAction(val label: String) {
@@ -111,7 +111,7 @@ fun ProfileScreen(profile: ProfileData?, signatureHtml: String?, loading: Boolea
 private fun ProfileHeader(profile: ProfileData, currentUser: Boolean) {
     ElevatedCard(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            val avatar = sp.phone.util.FunctionUtils.parseAvatarUrl(profile.avatarUrl)
+            val avatar = gov.anzong.androidnga.util.FunctionUtils.parseAvatarUrl(profile.avatarUrl)
             Box(Modifier.size(72.dp).clip(CircleShape)) {
                 AndroidView(factory = { ImageView(it).apply { importantForAccessibility = ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO } },
                     modifier = Modifier.fillMaxSize(), update = { image ->

@@ -7,7 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import gov.anzong.androidnga.db.user.UserDao;
-import sp.phone.common.User;
+import gov.anzong.androidnga.account.User;
 
 /**
  * @author yangyihang

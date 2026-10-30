@@ -10,7 +10,7 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
-import sp.phone.mvp.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
 
 class HomeBottomNavigationTest {
     @get:Rule val compose = createComposeRule()

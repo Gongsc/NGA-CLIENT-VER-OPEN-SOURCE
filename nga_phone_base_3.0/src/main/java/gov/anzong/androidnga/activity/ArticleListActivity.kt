@@ -20,15 +20,15 @@ import gov.anzong.androidnga.R
 import gov.anzong.androidnga.Utils
 import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.ui.compose.*
-import sp.phone.common.PhoneConfiguration
-import sp.phone.common.UserManagerImpl
-import sp.phone.mvp.viewmodel.ArticleShareViewModel
-import sp.phone.param.ArticleListParam
-import sp.phone.param.ParamKey
-import sp.phone.task.BookmarkTask
-import sp.phone.theme.ThemeManager
-import sp.phone.ui.fragment.ArticleListFragment
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.mvvm.viewmodel.ArticleShareViewModel
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.task.BookmarkTask
+import gov.anzong.androidnga.ui.theme.ThemeManager
+import gov.anzong.androidnga.ui.fragment.ArticleListFragment
+import gov.anzong.androidnga.util.FunctionUtils
 
 /**
  * 帖子详情：参数为 extras 中的 [ParamKey.KEY_PARAM]、单独的 extras 字段或 read.php 形式的链接。
@@ -73,7 +73,7 @@ class ArticleListActivity : BaseActivity() {
         }
         share.replyCount.observe(this) { count -> state.rows = count; state.pages = articlePageCount(count); updateActions() }
         share.topicId.observe(this) { request.tid = it }
-        share.title.observe(this) { state.title = it }
+        share.title.observe(this) { state.title = it.orEmpty() }
         updateActions()
     }
 
@@ -134,8 +134,8 @@ class ArticleListActivity : BaseActivity() {
                 getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("帖子链接", currentUrl()))
                 ToastUtils.info("链接已复制。")
             }
-            R.id.menu_nightmode -> { ThemeManager.getInstance().setNightMode(true); recreate() }
-            R.id.menu_daymode -> { ThemeManager.getInstance().setNightMode(false); recreate() }
+            R.id.menu_nightmode -> { ThemeManager.getInstance().isNightMode = true; recreate() }
+            R.id.menu_daymode -> { ThemeManager.getInstance().isNightMode = false; recreate() }
             R.id.menu_download -> share.setCachePage(state.currentPage + 1)
             R.id.menu_open_by_browser -> startActivity(Intent(this, WebViewActivity::class.java).putExtra("url", currentUrl()).putExtra("title", state.title))
         }

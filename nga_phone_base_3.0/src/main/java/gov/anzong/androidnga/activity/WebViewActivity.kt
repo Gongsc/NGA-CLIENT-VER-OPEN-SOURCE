@@ -13,7 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.WebPageScreen
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.util.FunctionUtils
 
 /** 应用内打开网页；extras 为 "url" 与可选的 "title"（未提供时显示网页标题）。返回键先回退网页历史。 */
 class WebViewActivity : BaseActivity() {

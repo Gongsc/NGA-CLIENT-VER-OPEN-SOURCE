@@ -24,9 +24,9 @@ import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.activity.SearchActivity
 import gov.anzong.androidnga.arouter.ARouterConstants
 import gov.anzong.androidnga.common.PreferenceKey
-import sp.phone.common.UserManagerImpl
-import sp.phone.param.ParamKey
-import sp.phone.task.SearchBoardTask
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.task.SearchBoardTask
 
 fun updatedSearchHistory(history: List<String>, query: String): List<String> =
     if (query.isBlank()) history else listOf(query) + history.filterNot { it == query }

@@ -18,10 +18,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
-import sp.phone.http.bean.MessageThreadPageInfo
-import sp.phone.common.ApiConstants
-import sp.phone.mvp.model.entity.RecentReplyInfo
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.network.bean.MessageThreadPageInfo
+import gov.anzong.androidnga.network.ApiConstants
+import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
+import gov.anzong.androidnga.util.StringUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

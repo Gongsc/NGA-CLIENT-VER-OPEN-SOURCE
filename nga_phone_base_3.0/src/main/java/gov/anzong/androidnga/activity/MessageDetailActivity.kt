@@ -15,7 +15,7 @@ import gov.anzong.androidnga.mvvm.viewmodel.MessageDetailViewModel
 import gov.anzong.androidnga.ui.compose.MessageDetailScreen
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.observedValue
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.util.StringUtils
 
 /** 短消息会话内容；extras 为 "mid"，或由 nuke.php?…&mid= 链接打开。回复成功后刷新。 */
 class MessageDetailActivity : BaseActivity() {
@@ -48,7 +48,7 @@ class MessageDetailActivity : BaseActivity() {
                 }
                 MessageDetailScreen(viewModel.title?.takeIf { it.isNotBlank() } ?: getString(R.string.label_activity_message_detail),
                     pages.flatMap { it.messageEntryList.orEmpty() }, loading, error,
-                    hasNextPage = pages.lastOrNull()?.let { it.get__nextPage() > 0 } ?: true,
+                    hasNextPage = pages.lastOrNull()?.let { it.__nextPage > 0 } ?: true,
                     onRefresh = { load(viewModel::refresh) }, onLoadMore = { load(viewModel::loadNextPage) },
                     onReply = ::startReply, onBack = ::finish)
             }

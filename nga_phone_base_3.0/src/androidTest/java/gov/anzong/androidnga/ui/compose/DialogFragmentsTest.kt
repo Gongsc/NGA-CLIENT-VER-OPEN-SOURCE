@@ -12,7 +12,7 @@ import gov.anzong.androidnga.activity.AboutActivity
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.ui.fragment.dialog.*
+import gov.anzong.androidnga.ui.dialog.*
 
 /** 迁移到 Compose 的对话框；以关于页为宿主，只使用本地数据，不点击会提交到论坛的按钮。 */
 class DialogFragmentsTest {

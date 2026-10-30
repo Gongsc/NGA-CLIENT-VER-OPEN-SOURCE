@@ -8,7 +8,7 @@ import androidx.room.Transaction;
 
 import java.util.List;
 
-import sp.phone.common.User;
+import gov.anzong.androidnga.account.User;
 
 /**
  * @author yangyihang

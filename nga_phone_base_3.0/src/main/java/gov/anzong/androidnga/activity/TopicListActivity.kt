@@ -16,17 +16,17 @@ import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.arouter.TopicNavigation
 import gov.anzong.androidnga.mvvm.viewmodel.TopicListViewModel
 import gov.anzong.androidnga.ui.compose.*
-import sp.phone.common.UserManagerImpl
-import sp.phone.mvp.model.BoardModel
-import sp.phone.mvp.model.entity.Board
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.mvp.model.entity.TopicListInfo
-import sp.phone.mvp.viewmodel.ForumFavoritesViewModel
-import sp.phone.param.ParamKey
-import sp.phone.param.TopicListParam
-import sp.phone.param.TopicTitleHelper
-import sp.phone.util.ActivityUtils
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.mvvm.model.BoardModel
+import gov.anzong.androidnga.mvvm.model.entity.Board
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.entity.TopicListInfo
+import gov.anzong.androidnga.mvvm.viewmodel.ForumFavoritesViewModel
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.mvvm.model.param.TopicListParam
+import gov.anzong.androidnga.util.TopicTitleHelper
+import gov.anzong.androidnga.util.ActivityUtils
+import gov.anzong.androidnga.util.StringUtils
 
 /**
  * 主题列表：版块、搜索、收藏、精华区与 24 小时热帖。参数为 extras 中的 [ParamKey.KEY_PARAM]、
@@ -159,9 +159,10 @@ class TopicListActivity : BaseActivity() {
         store.entries = merged
         store.page++
         store.ui.error = null
-        if (param.title.isNullOrBlank() && !result.name.isNullOrBlank()) {
-            param.title = result.name
-            store.ui.title = result.name
+        val name = result.name
+        if (param.title.isNullOrBlank() && !name.isNullOrBlank()) {
+            param.title = name
+            store.ui.title = name
         }
         publishRows()
         updateActions()
@@ -215,7 +216,7 @@ class TopicListActivity : BaseActivity() {
             R.id.menu_remove_bookmark -> { viewModel.removeBookmarkBoard(); updateActions() }
             R.id.menu_history -> ActivityUtils.startHistoryTopicActivity(this)
             R.id.menu_board_head -> AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_TOPIC_CONTENT)
-                .withInt(ParamKey.KEY_TID, param.boardHead.toInt())
+                .withInt(ParamKey.KEY_TID, param.boardHead?.toIntOrNull() ?: 0)
                 .withString(ParamKey.KEY_TITLE, "${param.title} - 版头")
                 .navigation(this)
             R.id.menu_sub_board -> subBoardLauncher.launch(Intent(this, SubBoardActivity::class.java).apply {

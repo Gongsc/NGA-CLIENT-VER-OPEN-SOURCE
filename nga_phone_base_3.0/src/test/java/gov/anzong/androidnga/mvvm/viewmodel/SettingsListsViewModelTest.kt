@@ -3,20 +3,20 @@ package gov.anzong.androidnga.mvvm.viewmodel
 import android.content.Context
 import org.junit.Assert.*
 import org.junit.Test
-import sp.phone.common.FilterKeyword
-import sp.phone.common.FilterKeywordsManager
-import sp.phone.common.User
-import sp.phone.common.UserManager
+import gov.anzong.androidnga.settings.FilterKeyword
+import gov.anzong.androidnga.settings.FilterKeywordsManager
+import gov.anzong.androidnga.account.User
+import gov.anzong.androidnga.account.UserManager
 import java.lang.reflect.Proxy
 
 class SettingsListsViewModelTest {
 
     private class Keywords : FilterKeywordsManager {
         val list = mutableListOf<FilterKeyword>()
-        override fun initialize(context: Context?) = Unit
+        override fun initialize(context: Context) = Unit
         override fun toggleKeyword(position: Int) { list[position].isEnabled = !list[position].isEnabled }
         override fun addKeyword(keyword: FilterKeyword) { list += keyword }
-        override fun getKeywords() = list
+        override val keywords get() = list
         override fun removeKeyword(index: Int) { list.removeAt(index) }
     }
 
@@ -25,8 +25,8 @@ class SettingsListsViewModelTest {
         val accounts = mutableListOf<User>()
         val blocked = mutableListOf<User>()
         var active = 0
-        override fun getUserList() = accounts
-        override fun getActiveUserIndex() = active
+        override val userList get() = accounts
+        override val activeUserIndex get() = active
         override fun setActiveUser(index: Int) { active = index }
         override fun removeUser(index: Int) {
             accounts.removeAt(index)
@@ -37,8 +37,8 @@ class SettingsListsViewModelTest {
             accounts.add(to, accounts.removeAt(from))
             if (current != null) active = accounts.indexOf(current)
         }
-        override fun getBlackList() = blocked
-        override fun removeFromBlackList(authorId: String) { blocked.removeIf { it.userId == authorId } }
+        override val blackList get() = blocked
+        override fun removeFromBlackList(authorId: String?) { blocked.removeIf { it.userId == authorId } }
         override fun removeAllBlackList() = blocked.clear()
     }
 

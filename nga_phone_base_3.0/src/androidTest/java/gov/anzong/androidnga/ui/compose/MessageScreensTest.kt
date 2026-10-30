@@ -8,8 +8,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.http.bean.MessageArticlePageInfo
-import sp.phone.http.bean.MessageThreadPageInfo
+import gov.anzong.androidnga.network.bean.MessageArticlePageInfo
+import gov.anzong.androidnga.network.bean.MessageThreadPageInfo
 
 /** 短消息列表、会话与写信页面；只使用本地合成数据与回调，不发送短消息。 */
 class MessageScreensTest {

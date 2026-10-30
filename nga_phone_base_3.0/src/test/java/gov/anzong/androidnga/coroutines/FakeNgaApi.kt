@@ -2,7 +2,7 @@ package gov.anzong.androidnga.coroutines
 
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
-import sp.phone.http.retrofit.NgaApi
+import gov.anzong.androidnga.network.retrofit.NgaApi
 
 /** 测试用接口：记录每次请求，按 [respond] 返回合成响应或抛出异常。 */
 open class FakeNgaApi(var respond: suspend (request: String) -> String = { error("未设置响应：$it") }) : NgaApi {

@@ -22,8 +22,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import sp.phone.common.Constants
-import sp.phone.common.PhoneConfiguration
+import gov.anzong.androidnga.settings.Constants
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import kotlin.math.roundToInt
 
 /** 阅读大小的一组取值；[zoom] 为正文缩放百分比，其余与 [PhoneConfiguration] 中的设置一致。 */
@@ -54,8 +54,8 @@ fun ReadingSettingsScreen(onBack: () -> Unit) {
         onSave = { sizes ->
             config.webViewTextZoom = sizes.zoom
             config.setTopicTitleSize(sizes.title)
-            config.setAvatarSize(sizes.avatar)
-            config.setEmoticonSize(sizes.emoticon)
+            config.avatarSize = sizes.avatar
+            config.emoticonSize = sizes.emoticon
         },
         onBack = onBack)
 }

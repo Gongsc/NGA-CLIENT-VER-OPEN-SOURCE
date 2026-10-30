@@ -10,7 +10,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import sp.phone.http.bean.ProfileData
+import gov.anzong.androidnga.network.bean.ProfileData
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)

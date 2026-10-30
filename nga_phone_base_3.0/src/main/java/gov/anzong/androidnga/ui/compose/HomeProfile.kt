@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import gov.anzong.androidnga.R
-import sp.phone.common.PhoneConfiguration
-import sp.phone.util.ImageUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.util.ImageUtils
 
 @Composable
 internal fun HomeProfileContent(

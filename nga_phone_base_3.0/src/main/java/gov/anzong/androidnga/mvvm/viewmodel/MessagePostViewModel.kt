@@ -11,8 +11,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.http.post.MessagePostClient
-import sp.phone.param.MessagePostParam
+import gov.anzong.androidnga.network.post.MessagePostClient
+import gov.anzong.androidnga.mvvm.model.param.MessagePostParam
 
 /**
  * 发送或回复短消息：同一时间只提交一次。

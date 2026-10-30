@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import sp.phone.mvp.model.entity.RecentReplyInfo
+import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
 
 /** 回复通知页：下拉刷新、点击进入对应楼层、确认后清空全部通知。 */
 @OptIn(ExperimentalMaterial3Api::class)

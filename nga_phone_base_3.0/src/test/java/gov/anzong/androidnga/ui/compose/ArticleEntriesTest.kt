@@ -2,7 +2,7 @@ package gov.anzong.androidnga.ui.compose
 
 import org.junit.Assert.*
 import org.junit.Test
-import sp.phone.http.bean.ThreadRowInfo
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
 
 class ArticleEntriesTest {
     private fun row(floor: Int) = ThreadRowInfo().apply { tid=12; lou=floor; pid=if(floor==0) 0 else 100+floor }

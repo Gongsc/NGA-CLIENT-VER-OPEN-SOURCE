@@ -29,20 +29,20 @@ import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.mvvm.viewmodel.BoardViewModel
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
 import gov.anzong.androidnga.ui.compose.*
-import sp.phone.common.PhoneConfiguration
-import sp.phone.common.TopicHistoryManager
-import sp.phone.common.User
-import sp.phone.common.UserManagerImpl
-import sp.phone.http.favorites.ForumFavoriteBoard
-import sp.phone.mvp.model.entity.Board
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.mvp.viewmodel.ForumFavoritesViewModel
-import sp.phone.param.ParamKey
-import sp.phone.theme.ThemeManager
-import sp.phone.ui.fragment.dialog.AddBoardDialogFragment
-import sp.phone.ui.fragment.dialog.UrlInputDialogFragment
-import sp.phone.ui.fragment.dialog.VersionUpgradeDialogFragment
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.mvvm.model.TopicHistoryManager
+import gov.anzong.androidnga.account.User
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.network.favorites.ForumFavoriteBoard
+import gov.anzong.androidnga.mvvm.model.entity.Board
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.viewmodel.ForumFavoritesViewModel
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.ui.theme.ThemeManager
+import gov.anzong.androidnga.ui.dialog.AddBoardDialogFragment
+import gov.anzong.androidnga.ui.dialog.UrlInputDialogFragment
+import gov.anzong.androidnga.ui.dialog.VersionUpgradeDialogFragment
+import gov.anzong.androidnga.util.FunctionUtils
 
 /** 首页：界面由 Compose 绘制，版块收藏与账号由 [BoardViewModel] 处理，论坛收藏与消息各有 ViewModel。 */
 class MainActivity : BaseActivity() {

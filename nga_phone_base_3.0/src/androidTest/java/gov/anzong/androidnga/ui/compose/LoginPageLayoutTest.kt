@@ -15,7 +15,7 @@ import org.json.JSONTokener
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.view.webview.LoginWebView
+import gov.anzong.androidnga.ui.webview.LoginWebView
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 

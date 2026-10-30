@@ -22,7 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.param.PostParam
+import gov.anzong.androidnga.mvvm.model.param.PostParam
 
 /**
  * 发帖、回复与编辑页：编辑内容、预检得到的 auth 与已上传的附件都保存在这里，页面重建后保留。
@@ -43,7 +43,7 @@ class TopicPostViewModel(
 
     val editor = PostEditorState()
 
-    val action: String get() = param.postAction
+    val action: String get() = param.postAction.orEmpty()
 
     /** 提交成功，页面应关闭。 */
     var posted by mutableStateOf(false)
@@ -95,7 +95,7 @@ class TopicPostViewModel(
         }
         editor.submitting = true
         editor.error = null
-        param.setAnonymous(editor.anonymous)
+        param.isAnonymous = editor.anonymous
         param.postSubject = title
         param.postContent = body
         submitScope.launch {

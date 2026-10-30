@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import gov.anzong.androidnga.ui.compose.*
-import sp.phone.common.UserManagerImpl
-import sp.phone.view.webview.LoginWebView
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.ui.webview.LoginWebView
 
 /** 通过 NGA 官方登录网页登录，读取 Cookie 中的账号信息；完成登录时返回 RESULT_OK，否则为 RESULT_CANCELED。 */
 class LoginActivity : BaseActivity() {

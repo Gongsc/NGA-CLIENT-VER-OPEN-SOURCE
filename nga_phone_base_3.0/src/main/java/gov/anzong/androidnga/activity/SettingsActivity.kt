@@ -12,8 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import gov.anzong.androidnga.mvvm.viewmodel.SettingsListsViewModel
-import sp.phone.common.PhoneConfiguration
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.util.FunctionUtils
 import com.bumptech.glide.Glide
 import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.coroutines.AppScope
@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.ui.compose.*
-import sp.phone.common.UserManagerImpl
+import gov.anzong.androidnga.account.UserManagerImpl
 
 class SettingsActivity : BaseActivity() {
     override fun usesComposeContent()=true

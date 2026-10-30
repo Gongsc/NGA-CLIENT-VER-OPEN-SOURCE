@@ -7,7 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.*
 import org.junit.Test
-import sp.phone.http.post.NgaWriteClient
+import gov.anzong.androidnga.network.post.NgaWriteClient
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)

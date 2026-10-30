@@ -6,7 +6,7 @@ import gov.anzong.androidnga.mvvm.viewmodel.SubBoardViewModel.Row
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.mvp.model.entity.SubBoard
+import gov.anzong.androidnga.mvvm.model.entity.SubBoard
 
 /** 子版块页；只使用本地合成数据，开关只触发回调，不请求论坛。 */
 class SubBoardScreenTest {

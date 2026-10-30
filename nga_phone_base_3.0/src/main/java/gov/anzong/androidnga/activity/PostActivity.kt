@@ -10,8 +10,8 @@ import gov.anzong.androidnga.mvvm.model.ContentUploadImage
 import gov.anzong.androidnga.mvvm.viewmodel.TopicPostViewModel
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.PostEditorScreen
-import sp.phone.param.ParamKey
-import sp.phone.param.PostParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.mvvm.model.param.PostParam
 
 /**
  * 发帖、回复与编辑。extras：action（new/reply/modify）、tid、fid、pid、stid、title、prefix（初始正文）。

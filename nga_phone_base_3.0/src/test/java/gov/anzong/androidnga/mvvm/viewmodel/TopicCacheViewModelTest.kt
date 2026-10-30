@@ -11,8 +11,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.mvp.model.entity.TopicListInfo
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.entity.TopicListInfo
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -22,7 +22,7 @@ class TopicCacheViewModelTest {
     @Before fun setMain() = Dispatchers.setMain(main)
     @After fun resetMain() = Dispatchers.resetMain()
 
-    private fun topic(tid: Int) = ThreadPageInfo().apply { setTid(tid) }
+    private fun topic(tid: Int) = ThreadPageInfo().apply { this.tid = tid }
 
     private val TopicCacheViewModel.noticeText get() = notice.value?.let { (if (it.success) "✓" else "✗") + it.text }
 

@@ -6,8 +6,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.http.favorites.ForumFavoriteBoard
-import sp.phone.http.favorites.ForumFavoritesSnapshot
+import gov.anzong.androidnga.network.favorites.ForumFavoriteBoard
+import gov.anzong.androidnga.network.favorites.ForumFavoritesSnapshot
 
 class HomeFavoritesTest {
     @get:Rule val compose = createComposeRule()

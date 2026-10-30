@@ -21,11 +21,11 @@ import gov.anzong.androidnga.mvvm.viewmodel.ProfileViewModel
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.ProfileAction
 import gov.anzong.androidnga.ui.compose.ProfileScreen
-import sp.phone.common.PhoneConfiguration
-import sp.phone.common.UserManagerImpl
-import sp.phone.http.bean.ProfileData
-import sp.phone.param.ParamKey
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.network.bean.ProfileData
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.util.FunctionUtils
 
 /** 用户资料；extras 为 "uid" 或 "username"（“UID123” 形式按 uid 查询）。 */
 class ProfileActivity : BaseActivity() {

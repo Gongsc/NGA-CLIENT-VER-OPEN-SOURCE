@@ -8,7 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.*
 import org.junit.Test
-import sp.phone.mvp.model.entity.SubBoard
+import gov.anzong.androidnga.mvvm.model.entity.SubBoard
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SubBoardViewModelTest {

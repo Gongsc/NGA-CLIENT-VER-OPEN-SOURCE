@@ -15,10 +15,10 @@ import gov.anzong.androidnga.mvvm.viewmodel.TopicCacheViewModel
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.TopicCacheScreen
 import gov.anzong.androidnga.ui.compose.observedValue
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.param.ArticleListParam
-import sp.phone.param.ParamKey
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.util.StringUtils
 
 /** 离线缓存的主题列表：点击阅读缓存，确认后删除，菜单中导入或导出缓存。 */
 class TopicCacheActivity : BaseActivity() {

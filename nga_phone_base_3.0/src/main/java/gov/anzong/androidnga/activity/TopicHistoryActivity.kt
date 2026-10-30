@@ -13,8 +13,8 @@ import gov.anzong.androidnga.arouter.TopicNavigation
 import gov.anzong.androidnga.ui.compose.HomeHistoryScreen
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.SettingsSubPage
-import sp.phone.common.TopicHistoryManager
-import sp.phone.mvp.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.TopicHistoryManager
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
 
 /** 主题列表菜单中的浏览历史；与首页“历史”使用同一个列表。 */
 class TopicHistoryActivity : BaseActivity() {

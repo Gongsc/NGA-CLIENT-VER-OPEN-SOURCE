@@ -13,8 +13,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.http.bean.MessageArticlePageInfo
-import sp.phone.http.bean.MessageDetailInfo
+import gov.anzong.androidnga.network.bean.MessageArticlePageInfo
+import gov.anzong.androidnga.network.bean.MessageDetailInfo
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MessageDetailViewModelTest {
@@ -24,11 +24,11 @@ class MessageDetailViewModelTest {
     @After fun resetMain() = Dispatchers.resetMain()
 
     private fun page(number: Int, next: Int, title: String = "标题") = MessageDetailInfo().apply {
-        set__currentPage(number); set__nextPage(next); set_Title(title); set_Alluser("甲 乙")
+        __currentPage = number; __nextPage = next; _Title = title; _Alluser = "甲 乙"
         messageEntryList = listOf(MessageArticlePageInfo())
     }
 
-    private val MessageDetailViewModel.pageNumbers get() = pages.value.orEmpty().map { it.get__currentPage() }
+    private val MessageDetailViewModel.pageNumbers get() = pages.value.orEmpty().map { it.__currentPage }
 
     @Test fun pagesAccumulateUntilLastPageAndRefreshStartsOver() {
         val requested = mutableListOf<Pair<Int, Int>>()

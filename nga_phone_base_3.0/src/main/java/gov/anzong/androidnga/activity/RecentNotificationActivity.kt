@@ -10,10 +10,10 @@ import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.RecentNotificationScreen
-import sp.phone.common.PhoneConfiguration
-import sp.phone.common.UserManagerImpl
-import sp.phone.mvp.model.entity.RecentReplyInfo
-import sp.phone.param.ParamKey
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
 
 /** 回复通知；系统通知栏的“被喷提醒”也打开这里，并带上其中的未读通知。 */
 class RecentNotificationActivity : BaseActivity() {

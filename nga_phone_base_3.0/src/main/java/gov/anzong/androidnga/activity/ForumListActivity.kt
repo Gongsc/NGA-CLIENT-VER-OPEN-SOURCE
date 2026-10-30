@@ -5,8 +5,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.lifecycle.ViewModelProvider
 import gov.anzong.androidnga.ui.compose.*
-import sp.phone.common.PhoneConfiguration
-import sp.phone.mvp.model.ForumsListModel
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.mvvm.model.ForumsListModel
 
 class ForumListActivity : BaseActivity() {
     override fun usesComposeContent() = true

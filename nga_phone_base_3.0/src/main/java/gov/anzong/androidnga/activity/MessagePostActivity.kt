@@ -10,7 +10,7 @@ import gov.anzong.androidnga.mvvm.viewmodel.MessagePostViewModel
 import gov.anzong.androidnga.ui.compose.MessagePostScreen
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.observedValue
-import sp.phone.param.MessagePostParam
+import gov.anzong.androidnga.mvvm.model.param.MessagePostParam
 
 /** 写短消息（action=new）或回复会话（action=reply，带 mid、title）；extras 中的 "to" 为预填收件人。发送成功返回 RESULT_OK。 */
 class MessagePostActivity : BaseActivity() {

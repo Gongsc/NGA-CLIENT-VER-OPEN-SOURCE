@@ -10,7 +10,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.param.MessagePostParam
+import gov.anzong.androidnga.mvvm.model.param.MessagePostParam
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)

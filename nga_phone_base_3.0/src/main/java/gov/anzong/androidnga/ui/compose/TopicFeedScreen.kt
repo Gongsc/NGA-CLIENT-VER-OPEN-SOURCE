@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import sp.phone.common.PhoneConfiguration
+import gov.anzong.androidnga.settings.PhoneConfiguration
 
 // Preserve the legacy title formatter's attachment, lock, collection and font spans.
 fun CharSequence.toComposeText(): AnnotatedString {

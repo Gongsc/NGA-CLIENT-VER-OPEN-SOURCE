@@ -24,7 +24,7 @@ import gov.anzong.androidnga.ui.compose.AvatarEditScreen
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import sp.phone.task.AvatarImage
+import gov.anzong.androidnga.task.AvatarImage
 
 /**
  * 修改头像：填写图片地址后提交，或从相册选择图片、截取后上传。

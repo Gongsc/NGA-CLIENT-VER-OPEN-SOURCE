@@ -12,9 +12,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import sp.phone.common.PhoneConfiguration
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.util.StringUtils
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

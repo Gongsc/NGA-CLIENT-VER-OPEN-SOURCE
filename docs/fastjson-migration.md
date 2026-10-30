@@ -21,7 +21,7 @@ NGA 接口返回的 JSON 并不规范，业务代码隐式依赖 fastjson 的宽
 
 ## 特征测试
 
-`nga_phone_base_3.0/src/test/java/sp/phone/json/` 下的三个测试类记录了 fastjson 的实际行为，数据均为合成数据。迁移期间每个用例同时针对 fastjson 与 `NgaJson` 运行；删除 fastjson 后只约束 `NgaJson`，期望值保持不变：
+`nga_phone_base_3.0/src/test/java/gov/anzong/androidnga/json/（原 `sp/phone/json/`）` 下的三个测试类记录了 fastjson 的实际行为，数据均为合成数据。迁移期间每个用例同时针对 fastjson 与 `NgaJson` 运行；删除 fastjson 后只约束 `NgaJson`，期望值保持不变：
 
 - `NgaJsonParsingTest`：宽松输入、拒绝的输入、空文档、数字类型、键顺序、序列化转义。
 - `NgaJsonCoercionTest`：11 个取值方法对 29 种原始值的转换结果表。

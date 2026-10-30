@@ -3,14 +3,14 @@ package gov.anzong.androidnga.arouter
 import android.content.Context
 import android.content.Intent
 import gov.anzong.androidnga.base.json.NgaJson
-import sp.phone.common.ApiConstants
-import sp.phone.common.PhoneConfiguration
-import sp.phone.common.TopicHistoryManager
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.param.ArticleListParam
-import sp.phone.param.ParamKey
-import sp.phone.param.TopicListParam
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.network.ApiConstants
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.mvvm.model.TopicHistoryManager
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.mvvm.model.param.TopicListParam
+import gov.anzong.androidnga.util.StringUtils
 
 /** 打开主题列表中的一项：镜像版面与合集进入对应的主题列表，其余进入主题内容并记入浏览历史。 */
 object TopicNavigation {

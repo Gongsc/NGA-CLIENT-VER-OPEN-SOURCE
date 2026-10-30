@@ -16,14 +16,14 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.common.UserManagerImpl
-import sp.phone.http.bean.MessageListInfo
-import sp.phone.http.bean.MessageThreadPageInfo
-import sp.phone.http.retrofit.NgaApi
-import sp.phone.mvp.model.convert.ForumNotificationFactory
-import sp.phone.mvp.model.convert.MessageConvertFactory
-import sp.phone.task.ForumNotificationTask
-import sp.phone.mvp.model.entity.RecentReplyInfo
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.network.bean.MessageListInfo
+import gov.anzong.androidnga.network.bean.MessageThreadPageInfo
+import gov.anzong.androidnga.network.retrofit.NgaApi
+import gov.anzong.androidnga.mvvm.model.convert.ForumNotificationFactory
+import gov.anzong.androidnga.mvvm.model.convert.MessageConvertFactory
+import gov.anzong.androidnga.task.ForumNotificationTask
+import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
 
 /** 首页消息只接收当前账号、当前代次的响应；切换账号即清空旧内容。 */
 class HomeInboxViewModel(
@@ -91,7 +91,7 @@ class HomeInboxViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (error: Exception) {
-                runCatching { sp.phone.util.NLog.e("HomeInbox", "回复通知加载失败", error) }
+                runCatching { gov.anzong.androidnga.util.NLog.e("HomeInbox", "回复通知加载失败", error) }
                 if (current(token, uid)) { repliesLoading = false; replyError = error.message ?: "回复通知加载失败" }
                 return@launch
             }
@@ -118,7 +118,7 @@ class HomeInboxViewModel(
             }
             if (current(token, uid)) {
                 messages = ((if (more) messages else emptyList()) + data.messageEntryList.orEmpty()).distinctBy { it.mid }
-                nextPage = data.get__nextPage().takeIf { it > page } ?: 0
+                nextPage = data.__nextPage.takeIf { it > page } ?: 0
                 messagesLoaded = true; messagesLoading = false
             }
         }

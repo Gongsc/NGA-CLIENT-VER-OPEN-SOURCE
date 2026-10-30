@@ -11,8 +11,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.param.ArticleListParam
-import sp.phone.param.ParamKey
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
 import java.io.File
 
 /** 离线缓存阅读页的分页与页码标签（Compose Pager）；只用本地合成缓存，不发起请求。 */

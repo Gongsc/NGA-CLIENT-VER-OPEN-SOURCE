@@ -10,7 +10,7 @@ import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.mvvm.viewmodel.AccountEditViewModel
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.SignatureEditScreen
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.util.FunctionUtils
 
 /** 修改签名；extras 中的 "prefix" 为当前签名。成功时返回 RESULT_OK，data 的 "sign" 为新签名。 */
 class SignPostActivity : BaseActivity() {

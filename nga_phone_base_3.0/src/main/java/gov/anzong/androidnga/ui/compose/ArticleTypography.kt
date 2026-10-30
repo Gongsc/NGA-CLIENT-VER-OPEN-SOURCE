@@ -6,8 +6,8 @@ import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.base.util.ContextUtils
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import sp.phone.common.Constants
-import sp.phone.common.PhoneConfiguration
+import gov.anzong.androidnga.settings.Constants
+import gov.anzong.androidnga.settings.PhoneConfiguration
 
 /** 原生正文与网页正文共享同一个阅读字号，保留现有正文缩放设置。 */
 fun articleFontSize(baseSize: Int, zoom: Int): Float = (baseSize.coerceAtLeast(1) * zoom.coerceIn(1, 100) / 100f)

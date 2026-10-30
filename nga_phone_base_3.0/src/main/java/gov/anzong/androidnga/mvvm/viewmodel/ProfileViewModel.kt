@@ -13,8 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.http.bean.ProfileData
-import sp.phone.task.requestProfile
+import gov.anzong.androidnga.network.bean.ProfileData
+import gov.anzong.androidnga.task.requestProfile
 
 /**
  * 用户资料：按 uid 或用户名读取一次，页面重建后保留；请求随 ViewModel 结束取消。

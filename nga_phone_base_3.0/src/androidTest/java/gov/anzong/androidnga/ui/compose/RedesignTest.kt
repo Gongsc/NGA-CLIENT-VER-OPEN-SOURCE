@@ -16,8 +16,8 @@ import gov.anzong.androidnga.common.PreferenceKey
 import org.json.JSONTokener
 import org.junit.*
 import org.junit.Assert.*
-import sp.phone.http.favorites.ForumFavoriteBoard
-import sp.phone.http.favorites.ForumFavoritesSnapshot
+import gov.anzong.androidnga.network.favorites.ForumFavoriteBoard
+import gov.anzong.androidnga.network.favorites.ForumFavoritesSnapshot
 import java.util.concurrent.atomic.AtomicReference
 
 class RedesignTest {
@@ -84,7 +84,7 @@ class RedesignTest {
         assertTrue("标准列表应保留更大的图标与留白", standard > compact * 1.5f)
         compose.runOnIdle {
             assertFalse(AppearanceSettings(prefs).compact)
-            assertNotEquals(0, sp.phone.theme.ThemeManager.getInstance().webTextColor)
+            assertNotEquals(0, gov.anzong.androidnga.ui.theme.ThemeManager.getInstance().webTextColor)
             showAppearance.value = true
         }
         compose.onNodeWithContentDescription("紧凑模式").performScrollTo().performClick()
@@ -117,7 +117,7 @@ class RedesignTest {
         val state = ArticleReaderState().apply { title = "主题阅读 · 离线示例"; pages = 3; rows = 60 }
         val pageState = ArticlePageState().apply {
             loading = false
-            rows = (0..7).map { floor -> sp.phone.http.bean.ThreadRowInfo().apply {
+            rows = (0..7).map { floor -> gov.anzong.androidnga.network.bean.ThreadRowInfo().apply {
                 tid = 100; pid = floor; lou = floor; author = "示例用户 $floor"
                 content = "这是一段用于检查阅读布局的离线正文。\n翻页与回复入口集中在屏幕下角，正文可以连续阅读。"
                 postdate = "2026-10-27"

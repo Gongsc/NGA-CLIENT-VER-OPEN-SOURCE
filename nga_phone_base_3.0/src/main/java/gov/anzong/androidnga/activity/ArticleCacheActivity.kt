@@ -9,9 +9,9 @@ import androidx.lifecycle.Lifecycle
 import gov.anzong.androidnga.ui.compose.ArticleCacheScreen
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.cachedArticlePages
-import sp.phone.param.ArticleListParam
-import sp.phone.param.ParamKey
-import sp.phone.ui.fragment.ArticleListFragment
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.ui.fragment.ArticleListFragment
 import java.io.File
 
 /** 离线缓存阅读；extras 为 [ParamKey.KEY_PARAM]（loadCache 的 [ArticleListParam]），每个缓存页为一个分页。 */

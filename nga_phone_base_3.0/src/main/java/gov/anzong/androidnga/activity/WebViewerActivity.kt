@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import gov.anzong.androidnga.ui.compose.NgaTheme
 import gov.anzong.androidnga.ui.compose.WebPageScreen
-import sp.phone.view.webview.WebViewClientEx
+import gov.anzong.androidnga.ui.webview.WebViewClientEx
 
 /** 查看文档或图片等内容；extras 中的 "path" 为要打开的地址（如关于页中的说明文档）。 */
 class WebViewerActivity : BaseActivity() {

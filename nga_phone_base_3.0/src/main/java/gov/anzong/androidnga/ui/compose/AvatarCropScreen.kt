@@ -35,9 +35,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import sp.phone.task.AvatarCrop
-import sp.phone.task.CropBox
-import sp.phone.task.CropPixels
+import gov.anzong.androidnga.task.AvatarCrop
+import gov.anzong.androidnga.task.CropBox
+import gov.anzong.androidnga.task.CropPixels
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 

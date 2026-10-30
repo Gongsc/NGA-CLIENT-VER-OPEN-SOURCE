@@ -12,14 +12,14 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.common.User
-import sp.phone.common.UserManager
-import sp.phone.common.UserManagerImpl
-import sp.phone.http.retrofit.NgaApi
-import sp.phone.mvp.model.BoardModel
-import sp.phone.mvp.model.BoardStore
-import sp.phone.mvp.model.entity.BoardCategory
-import sp.phone.util.FunctionUtils
+import gov.anzong.androidnga.account.User
+import gov.anzong.androidnga.account.UserManager
+import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.network.retrofit.NgaApi
+import gov.anzong.androidnga.mvvm.model.BoardModel
+import gov.anzong.androidnga.mvvm.model.BoardStore
+import gov.anzong.androidnga.mvvm.model.entity.BoardCategory
+import gov.anzong.androidnga.util.FunctionUtils
 
 /** 首页版块页：本地版块收藏、账号切换，以及补取缺失的账号头像。 */
 class BoardViewModel(
@@ -36,10 +36,10 @@ class BoardViewModel(
         data class Invalid(val message: String) : AddBoardResult
     }
 
-    val categories: List<BoardCategory> get() = boards.boardCategories
+    val categories: List<BoardCategory> get() = boards.getBoardCategories()
 
     /** 首次进入时，没有收藏且未登录则默认显示第二个分类。 */
-    val defaultCategory get() = if (boards.bookmarkCategory.size() == 0 && !users.hasValidUser()) 1 else 0
+    val defaultCategory get() = if (boards.getBookmarkCategory().size() == 0 && !users.hasValidUser()) 1 else 0
 
     /** 按输入的版块编号或合集编号收藏版块。 */
     fun addBoard(fidText: String, stidText: String): AddBoardResult {

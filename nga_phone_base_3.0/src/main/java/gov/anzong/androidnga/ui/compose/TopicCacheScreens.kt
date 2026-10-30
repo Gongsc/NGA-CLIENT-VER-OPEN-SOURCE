@@ -21,9 +21,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import sp.phone.common.PhoneConfiguration
-import sp.phone.mvp.model.entity.ThreadPageInfo
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.util.StringUtils
 import java.io.File
 
 /** 离线缓存的主题：点击阅读，长按或删除按钮确认后删除；菜单中导入、导出缓存文件。 */

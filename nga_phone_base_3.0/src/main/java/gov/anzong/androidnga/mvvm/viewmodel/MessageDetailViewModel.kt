@@ -11,9 +11,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.http.bean.MessageDetailInfo
-import sp.phone.http.retrofit.NgaApi
-import sp.phone.mvp.model.convert.MessageConvertFactory
+import gov.anzong.androidnga.network.bean.MessageDetailInfo
+import gov.anzong.androidnga.network.retrofit.NgaApi
+import gov.anzong.androidnga.mvvm.model.convert.MessageConvertFactory
 
 /**
  * 短消息详情：按页累积会话内容，页面重建后保留已加载的页；请求随 ViewModel 结束取消。
@@ -44,11 +44,11 @@ class MessageDetailViewModel(
 
     val isLoaded get() = _pages.value.orEmpty().isNotEmpty()
 
-    val hasNextPage get() = _pages.value.orEmpty().lastOrNull()?.let { it.get__nextPage() > 0 } ?: true
+    val hasNextPage get() = _pages.value.orEmpty().lastOrNull()?.let { it.__nextPage > 0 } ?: true
 
-    val recipient: String? get() = _pages.value.orEmpty().lastOrNull()?.get_Alluser()
+    val recipient: String? get() = _pages.value.orEmpty().lastOrNull()?._Alluser
 
-    val title: String? get() = _pages.value.orEmpty().lastOrNull()?.get_Title()
+    val title: String? get() = _pages.value.orEmpty().lastOrNull()?._Title
 
     fun refresh() = load(1)
 

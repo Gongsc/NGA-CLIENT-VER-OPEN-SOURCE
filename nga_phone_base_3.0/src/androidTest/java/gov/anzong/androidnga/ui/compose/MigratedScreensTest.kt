@@ -6,7 +6,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.http.bean.ThreadRowInfo
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
 
 /** Exercises UI callbacks only; no authenticated or server mutation requests are made. */
 class MigratedScreensTest {

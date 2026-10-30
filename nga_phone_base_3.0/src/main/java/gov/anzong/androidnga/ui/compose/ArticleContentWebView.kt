@@ -4,7 +4,7 @@ import android.content.Context
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
-import sp.phone.view.webview.LocalWebView
+import gov.anzong.androidnga.ui.webview.LocalWebView
 import kotlin.math.ceil
 
 /** 可由 LazyColumn 复用的正文容器，绑定回调始终对应当前楼层。 */

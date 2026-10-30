@@ -18,7 +18,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import sp.phone.param.PostParam
+import gov.anzong.androidnga.mvvm.model.param.PostParam
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -33,7 +33,7 @@ class TopicPostViewModelTest {
         var submit: suspend (PostParam) -> String = { "发贴完毕" }
         val uploads = mutableListOf<Boolean>()
         var upload: (Boolean) -> UploadResult = { UploadResult.Uploaded("mon_1/a.jpg", "att", "chk") }
-        val submitted = mutableListOf<Triple<String, String, Boolean>>()
+        val submitted = mutableListOf<Triple<String?, String?, Boolean>>()
 
         override suspend fun prepare(param: PostParam) = prepare()
         override suspend fun loadCategories(fid: Int) = listOf("[讨论]", "[求助]", "[讨论]")

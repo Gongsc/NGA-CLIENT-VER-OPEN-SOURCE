@@ -22,9 +22,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import sp.phone.http.bean.MessageArticlePageInfo
-import sp.phone.http.bean.MessageThreadPageInfo
-import sp.phone.util.StringUtils
+import gov.anzong.androidnga.network.bean.MessageArticlePageInfo
+import gov.anzong.androidnga.network.bean.MessageThreadPageInfo
+import gov.anzong.androidnga.util.StringUtils
 
 /** 一条短消息会话：对方、标题、条数与最后时间。 */
 @Composable

@@ -5,9 +5,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.*
 import org.junit.Test
-import sp.phone.http.article.ArticlePageLoader
-import sp.phone.http.bean.ThreadData
-import sp.phone.mvp.model.convert.ArticleConvertFactory
+import gov.anzong.androidnga.network.article.ArticlePageLoader
+import gov.anzong.androidnga.network.bean.ThreadData
+import gov.anzong.androidnga.mvvm.model.convert.ArticleConvertFactory
 
 /** 只使用合成响应，避免将真实主题正文或账号数据纳入测试资源。 */
 class IncompleteTopicTest {
@@ -28,10 +28,10 @@ class IncompleteTopicTest {
         val result = runBlocking { loader.load("https://bbs.nga.cn/read.php?tid=47787244&page=1", mapOf("Cookie" to "fixture-account")) }
         assertEquals(2,requests)
         assertEquals(1,parses)
-        assertEquals(47787244,result.threadInfo.tid)
+        assertEquals(47787244,result.threadInfo!!.tid)
         assertEquals(23,result.__ROWS)
-        assertEquals("回归用户",result.rowList.single().author)
-        assertTrue(result.rowList.single().formattedHtmlData.contains("内容"))
+        assertEquals("回归用户",result.rowList!!.single().author)
+        assertTrue(result.rowList!!.single().formattedHtmlData!!.contains("内容"))
     }
 
     @Test fun webpageResponseUsesNativeContentConversionAndCacheSchema() {
@@ -45,7 +45,7 @@ class IncompleteTopicTest {
             </td></tr></table><script>commonui.postArg.proc(0,null,null,null,null,null,null,null,
             null,null,0,0,null,'9',1792995370,'2,0,0','10','','','7 iOS','',null,0);</script>
             <!--postlistend--></body></html>"""
-        assertEquals(12, sp.phone.http.article.ArticleResponse.decode(html).getJSONObject("__T").getIntValue("tid"))
+        assertEquals(12, gov.anzong.androidnga.network.article.ArticleResponse.decode(html).getJSONObject("__T")!!.getIntValue("tid"))
         var requests = 0
         val loader = ArticlePageLoader<ThreadData>({ _, _ ->
             requests++
@@ -54,14 +54,14 @@ class IncompleteTopicTest {
         }, ArticleConvertFactory::getArticleInfo)
         val data = runBlocking { loader.load("https://bbs.nga.cn/read.php?tid=12&page=1", emptyMap()) }
         assertEquals(2, requests)
-        assertEquals(12, data.threadInfo.tid)
-        assertEquals("ios", data.rowList.single().fromClientModel)
-        assertEquals("回归用户", data.rowList.single().author)
-        assertTrue(data.rowList.single().formattedHtmlData.contains("网页正文"))
-        assertTrue(data.rowList.single().imageUrls.any { it.contains("a.png") })
-        val cached = ArticleConvertFactory.getArticleInfo(data.rawData)
+        assertEquals(12, data.threadInfo!!.tid)
+        assertEquals("ios", data.rowList!!.single().fromClientModel)
+        assertEquals("回归用户", data.rowList!!.single().author)
+        assertTrue(data.rowList!!.single().formattedHtmlData!!.contains("网页正文"))
+        assertTrue(data.rowList!!.single().imageUrls.any { it.contains("a.png") })
+        val cached = ArticleConvertFactory.getArticleInfo(data.rawData!!)
         assertNotNull(cached)
-        assertEquals(data.rowList.single().pid, cached.rowList.single().pid)
+        assertEquals(data.rowList!!.single().pid, cached!!.rowList!!.single().pid)
     }
 
     @Test fun imageMarkupAndGalleryUseCurrentHostAcrossApiAndWebFormats() {
@@ -73,13 +73,13 @@ class IncompleteTopicTest {
         assertEquals(listOf("https://img.nga.cn/attachments/mon_202610/26/sample.webp",
             "https://img.nga.cn/attachments/other.jpg"), decoder.imageUrls)
         val hidden = gov.anzong.androidnga.core.data.HtmlData("正文")
-        hidden.setShowImage(false)
+        hidden.isShowImage = false
         assertTrue(decoder.decode("[img]./mon_202610/26/sample.webp[/img]", hidden).contains("ic_offline_image.png"))
         assertEquals(1, decoder.imageUrls.size)
     }
 
     @Test fun plainTextConversionPreservesEntitiesAndLeavesAttachmentsAndHiddenRowsRich() {
-        val row = sp.phone.http.bean.ThreadRowInfo()
+        val row = gov.anzong.androidnga.network.bean.ThreadRowInfo()
         row.content = "A &amp; B<br>第二行"
         assertEquals("A & B\n第二行", plainArticleText(row))
         row.alterinfo = "编辑提示"

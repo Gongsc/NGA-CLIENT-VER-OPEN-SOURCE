@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.mvp.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
 
 /** 我的缓存列表；只使用合成主题，删除、导入、导出只触发回调。 */
 class TopicCacheScreenTest {

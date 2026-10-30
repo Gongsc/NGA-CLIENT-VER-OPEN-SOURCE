@@ -7,8 +7,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.common.ApiConstants
-import sp.phone.mvp.model.entity.RecentReplyInfo
+import gov.anzong.androidnga.network.ApiConstants
+import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
 
 /** 回复通知页；只使用本地合成数据，清空只触发回调，不请求论坛。 */
 class RecentNotificationScreenTest {

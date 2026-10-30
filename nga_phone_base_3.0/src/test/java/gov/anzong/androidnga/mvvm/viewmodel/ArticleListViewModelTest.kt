@@ -15,10 +15,10 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import sp.phone.common.UserManager
-import sp.phone.http.bean.ThreadData
-import sp.phone.http.bean.ThreadRowInfo
-import sp.phone.param.ArticleListParam
+import gov.anzong.androidnga.account.UserManager
+import gov.anzong.androidnga.network.bean.ThreadData
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
 import java.io.IOException
 import java.lang.reflect.Proxy
 
@@ -105,17 +105,17 @@ class ArticleListViewModelTest {
     @Test fun blacklistTogglesAndSkipsAnonymousRows() {
         val list = mutableMapOf<String, String>()
         val users = object : UserManager by unusedUsers() {
-            override fun addToBlackList(authorName: String, authorId: String) { list[authorId] = authorName }
-            override fun removeFromBlackList(authorId: String) { list.remove(authorId) }
+            override fun addToBlackList(authorName: String?, authorId: String?) { list[authorId!!] = authorName!! }
+            override fun removeFromBlackList(authorId: String?) { list.remove(authorId) }
         }
         val vm = viewModel(users = users)
         val row = ThreadRowInfo().apply { authorid = 5; author = "甲" }
         assertEquals(R.string.add_to_blacklist_success, vm.toggleBlacklist(row))
         assertEquals(mapOf("5" to "甲"), list)
-        assertTrue(row.get_isInBlackList())
+        assertTrue(row.isInBlackList)
         assertEquals(R.string.remove_from_blacklist_success, vm.toggleBlacklist(row))
         assertTrue(list.isEmpty())
-        val anonymous = ThreadRowInfo().apply { authorid = 6; author = "乙"; setISANONYMOUS(true) }
+        val anonymous = ThreadRowInfo().apply { authorid = 6; author = "乙"; isAnonymous = true }
         assertEquals(R.string.cannot_add_to_blacklist_cause_anony, vm.toggleBlacklist(anonymous))
         assertTrue(list.isEmpty())
     }
@@ -136,7 +136,7 @@ class ArticleListViewModelTest {
         val trim: (String) -> String = { it.trim() }
         assertEquals("[quote][pid=99,12,2]Reply[/pid] [b]Post by [uid=5]甲[/uid] (2026-10-28 12:00):[/b]\n正文[/quote]\n",
             quoteBlock(param, row, trim))
-        row.setISANONYMOUS(true)
+        row.isAnonymous = true
         assertTrue(quoteBlock(param, row, trim).contains("[uid=-1]甲[/uid][color=gray](21楼)[/color]"))
         param.tid = 0
         row.tid = 34

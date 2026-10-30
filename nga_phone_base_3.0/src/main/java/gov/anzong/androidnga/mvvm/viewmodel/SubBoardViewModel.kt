@@ -12,8 +12,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-import sp.phone.http.post.ForumActionClient
-import sp.phone.mvp.model.entity.SubBoard
+import gov.anzong.androidnga.network.post.ForumActionClient
+import gov.anzong.androidnga.mvvm.model.entity.SubBoard
 
 /**
  * 子版块列表与显示开关。开关请求在 [AppScope] 中执行，离开页面也不会中途放弃；

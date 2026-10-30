@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import sp.phone.mvp.model.convert.MessageConvertFactory
+import gov.anzong.androidnga.mvvm.model.convert.MessageConvertFactory
 
 /** 短消息详情解析；合成响应，不访问论坛。MessageUtil 依赖 Android 资源，放在设备测试中。 */
 class MessageDetailParseTest {
@@ -21,12 +21,12 @@ class MessageDetailParseTest {
         val info = parse(js)
         assertNotNull(info)
         info!!
-        assertEquals(listOf("第一条", "第二条"), info.messageEntryList.map { it.content.substringBefore("[img]") })
+        assertEquals(listOf("第一条", "第二条"), info.messageEntryList.map { it.content!!.substringBefore("[img]") })
         assertEquals(listOf("用户甲", "用户乙"), info.messageEntryList.map { it.author })
         assertEquals("标题", info._Title)
         assertEquals("用户甲,用户乙", info._Alluser)
         assertEquals(2, info.__nextPage)
-        assertTrue(info.messageEntryList[0].content.contains("https://img.nga.cn/attachments/mon_202610/26/a.png"))
+        assertTrue(info.messageEntryList[0].content!!.contains("https://img.nga.cn/attachments/mon_202610/26/a.png"))
     }
 
     @Test fun legacyLayoutStillParses() {

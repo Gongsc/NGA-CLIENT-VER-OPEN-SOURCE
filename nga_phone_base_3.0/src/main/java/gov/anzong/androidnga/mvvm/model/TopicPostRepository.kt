@@ -8,14 +8,14 @@ import gov.anzong.androidnga.common.util.StreamUtils
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import sp.phone.http.post.TopicPostClient
-import sp.phone.http.retrofit.NgaApi
-import sp.phone.http.retrofit.RetrofitHelper
-import sp.phone.param.ParamKey
-import sp.phone.param.PostParam
-import sp.phone.util.FunctionUtils
-import sp.phone.util.ImageUtils
-import sp.phone.util.NLog
+import gov.anzong.androidnga.network.post.TopicPostClient
+import gov.anzong.androidnga.network.retrofit.NgaApi
+import gov.anzong.androidnga.network.retrofit.RetrofitHelper
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.mvvm.model.param.PostParam
+import gov.anzong.androidnga.util.FunctionUtils
+import gov.anzong.androidnga.util.ImageUtils
+import gov.anzong.androidnga.util.NLog
 import java.util.concurrent.TimeUnit
 
 /** 发帖页的请求；实现中含阻塞调用，由调用方切到后台线程执行。 */
@@ -51,7 +51,7 @@ class ContentUploadImage(private val uri: Uri) : UploadImage {
         val bytes = if (compress && fileSize >= 1024 * 1024) {
             ImageUtils.fitImageToUpload(cr.openInputStream(uri), cr.openInputStream(uri))
         } else {
-            StreamUtils.toByteArray(cr.openInputStream(uri))
+            requireNotNull(cr.openInputStream(uri)).use { StreamUtils.toByteArray(it) }
         }
         return ImageFile(contentType.replace('/', '.'), bytes)
     }
@@ -66,10 +66,14 @@ sealed interface UploadResult {
 
 /** 解析附件服务器响应；无法识别时抛出异常。 */
 fun parseUploadResponse(response: String): UploadResult {
-    val obj = NgaJson.parseObject(response.replace("window.script_muti_get_var_store=", ""))
+    val obj = checkNotNull(NgaJson.parseObject(response.replace("window.script_muti_get_var_store=", ""))) { "上传图片失败" }
     if (obj.containsKey("error_code") && obj.getInteger("error_code") == 9) return UploadResult.TooLarge
     val data = obj.getJSONObject("data") ?: throw IllegalStateException("上传图片失败，请尝试更换域名后重试")
-    return UploadResult.Uploaded(data.getString("url"), data.getString("attachments"), data.getString("attachments_check"))
+    return UploadResult.Uploaded(
+        data.getString("url").orEmpty(),
+        data.getString("attachments").orEmpty(),
+        data.getString("attachments_check").orEmpty(),
+    )
 }
 
 /**
@@ -89,15 +93,15 @@ class NgaTopicPostRepository : TopicPostRepository {
 
     override suspend fun loadCategories(fid: Int): List<String> {
         val map = mapOf("__lib" to "topic_key", "__act" to "get", ParamKey.KEY_FID to fid.toString(), "__output" to "8")
-        val obj = NgaJson.parseObject(api.get(map)).getJSONObject("data").getJSONObject("0")
+        val obj = NgaJson.parseObject(api.get(map))!!.getJSONObject("data")!!.getJSONObject("0")!!
         return generateSequence(0) { it + 1 }
             .takeWhile { obj.containsKey(it.toString()) }
-            .map { obj.getJSONObject(it.toString()).getString("0") }
+            .map { obj.getJSONObject(it.toString())!!.getString("0").orEmpty() }
             .toList()
     }
 
     override suspend fun submit(param: PostParam): String {
-        param.postContent = FunctionUtils.ColorTxtCheck(param.postContent)
+        param.postContent = param.postContent?.let(FunctionUtils::ColorTxtCheck)
         return postClient.submit(param)
     }
 
@@ -117,7 +121,7 @@ class NgaTopicPostRepository : TopicPostRepository {
             .addPart(MultipartBody.Part.createFormData("attachment_file1", fileName, bytes.toRequestBody("image/jpeg".toMediaType())))
             .addFormDataPart("attachment_file1_url_utf8_name", fileName)
             .addFormDataPart("fid", param.postFid.toString())
-            .addFormDataPart("auth", param.authCode)
+            .addFormDataPart("auth", param.authCode.orEmpty())
             .addFormDataPart("func", "upload")
             .addFormDataPart("v2", "1")
             .addFormDataPart("lite", "js")

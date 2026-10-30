@@ -13,8 +13,8 @@ import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
 import gov.anzong.androidnga.ui.compose.MessageListScreen
 import gov.anzong.androidnga.ui.compose.NgaTheme
-import sp.phone.common.PhoneConfiguration
-import sp.phone.common.UserManagerImpl
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.account.UserManagerImpl
 
 /** 短消息会话列表；系统通知栏的短消息提醒也打开这里。从其他页面返回时刷新。 */
 class MessageListActivity : BaseActivity() {
