@@ -15,7 +15,7 @@ object SearchBoardTask {
     @JvmStatic
     fun execute(boardName: String, callBack: OnSimpleHttpCallBack<Board?>) {
         AppScope.launchWithCallback({ board: Board? -> callBack.onResult(board) }, { callBack.onResult(null) }) {
-            val response = NgaApi.get().get("http://bbs.nga.cn/forum.php?&__output=8&key=" + StringUtils.encodeUrl(boardName, "gbk"))
+            val response = NgaApi.get().get("https://bbs.nga.cn/forum.php?&__output=8&key=" + StringUtils.encodeUrl(boardName, "gbk"))
             try {
                 val obj = NgaJson.parseObject(response)!!.getJSONObject("data")!!.getJSONObject("0")!!
                 val fid = obj.getIntValue("fid")

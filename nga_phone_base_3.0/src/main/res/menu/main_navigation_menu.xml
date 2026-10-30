@@ -1,40 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="论坛工具">
+    <item android:title="@string/menu_group_tools">
         <menu>
             <item
                 android:id="@+id/menu_login"
-                android:icon="@drawable/ic_login"
-                android:title="登录账号"/>
+                android:title="@string/title_menu_login"/>
             <item
                 android:id="@+id/menu_add"
-                android:icon="@drawable/ic_action_add_to_queue"
                 android:title="@string/add_fid"/>
             <item
                 android:id="@+id/menu_add_id"
-                android:icon="@drawable/ic_action_add_to_queue"
                 android:title="@string/add_fid_id"/>
             <item
                 android:id="@+id/menu_forward"
-                android:icon="@drawable/ic_action_forward"
-                android:title="由URL读取"/>
+                android:title="@string/title_menu_forward"/>
 
 
-            <item android:id="@+id/menu_appearance" android:title="外观与布局" />
+            <item android:id="@+id/menu_appearance" android:title="@string/title_menu_appearance" />
             <item
                 android:id="@+id/menu_gun"
-                android:icon="@drawable/ic_action_gun"
-                android:title="最近被喷"/>
+                android:title="@string/title_menu_gun"/>
         </menu>
     </item>
 
-    <item android:title="应用">
+    <item android:title="@string/menu_group_app">
         <menu>
             <item
                 android:id="@+id/menu_about"
-                android:icon="@drawable/ic_action_about"
-                android:title="关于"/>
+                android:title="@string/title_about"/>
         </menu>
     </item>
 

@@ -146,7 +146,7 @@ private fun TierHeading(title: String, icon: ImageVector, color: Color) {
 }
 
 @Composable
-private fun GroupHeading(title: String, modifier: Modifier = Modifier.padding(start = 16.dp, top = 10.dp, bottom = 2.dp)) {
+private fun GroupHeading(title: String, modifier: Modifier = Modifier) {
     Text(title, modifier = modifier.semantics { heading() }, style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.AttributeSet
 import android.webkit.DownloadListener
 import android.webkit.JavascriptInterface
+import androidx.core.net.toUri
 import gov.anzong.androidnga.common.util.LogUtils
 import gov.anzong.androidnga.common.view.WebViewEx
 import gov.anzong.androidnga.settings.PhoneConfiguration
@@ -49,7 +50,7 @@ open class LocalWebView @JvmOverloads constructor(context: Context, attrs: Attri
         mimeType: String?,
         contentLength: Long,
     ) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE)
+        val intent = Intent(Intent.ACTION_VIEW, url.toUri()).addCategory(Intent.CATEGORY_BROWSABLE)
         context.startActivity(intent)
     }
 

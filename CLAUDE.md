@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Open-source Android client for the NGA forum (bbs.nga.cn). The UI is Jetpack Compose + Material 3; the app module has no XML layouts left (WebViews and per-page `ArticleListFragment`s are embedded via `AndroidView`/`AndroidFragment`). Project docs, README, and commit messages are written in Chinese — keep new docs/commits in Chinese to match.
 
-Toolchain: JDK 17, AGP 9.4.1 (built-in Kotlin, no `kotlin-android` plugin), Kotlin/Compose Compiler 2.4.21, Gradle 9.6.0, minSdk 31, compile/targetSdk 37, Build Tools 36.0.0. SDK levels and shared dependency versions live in `project.ext` of the root `build.gradle`; repositories are centralized in `settings.gradle` (`FAIL_ON_PROJECT_REPOS` — don't add repos in module build files).
+Toolchain: JDK 17, AGP 9.4.1 (built-in Kotlin, no `kotlin-android` plugin), Kotlin/Compose Compiler 2.4.21, Gradle 9.8.2, minSdk 31, compile/targetSdk 37, Build Tools 36.0.0. SDK levels and shared dependency versions live in `project.ext` of the root `build.gradle`; repositories are centralized in `settings.gradle` (`FAIL_ON_PROJECT_REPOS` — don't add repos in module build files).
 
 ## Commands
 

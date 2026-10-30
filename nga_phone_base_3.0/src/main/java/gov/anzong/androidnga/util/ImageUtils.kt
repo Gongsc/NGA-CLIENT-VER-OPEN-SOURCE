@@ -8,9 +8,10 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.graphics.RectF
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toDrawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import gov.anzong.androidnga.R
@@ -77,7 +78,7 @@ object ImageUtils {
     fun toRoundCorner(source: Bitmap, ratio: Float): Bitmap {
         val size = min(source.width, source.height)
         val bitmap = Bitmap.createBitmap(source, (source.width - size) / 2, (source.height - size) / 2, size, size)
-        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val output = createBitmap(bitmap.width, bitmap.height)
         val canvas = Canvas(output)
         val paint = Paint()
         val rect = Rect(0, 0, bitmap.width, bitmap.height)
@@ -92,7 +93,7 @@ object ImageUtils {
     private fun defaultAvatar(): Drawable = defaultAvatar ?: run {
         val resources = ContextUtils.getContext().resources
         val avatar = BitmapFactory.decodeResource(resources, R.drawable.default_avatar)
-        BitmapDrawable(resources, toRoundCorner(avatar, 2f)).also { defaultAvatar = it }
+        toRoundCorner(avatar, 2f).toDrawable(resources).also { defaultAvatar = it }
     }
 
     @JvmStatic

@@ -1,8 +1,9 @@
 package gov.anzong.androidnga.ui.webview
 
+import gov.anzong.androidnga.base.util.javaTrim
+import java.util.Locale
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import java.util.Locale
 
 /** 依据实际域名和路径识别论坛链接，并解析正文中的相对地址。 */
 class ForumLink private constructor(@JvmField val url: HttpUrl, @JvmField val target: Target) {
@@ -34,7 +35,7 @@ class ForumLink private constructor(@JvmField val url: HttpUrl, @JvmField val ta
         @JvmStatic
         fun resolve(input: String?, currentUrl: String?, defaultDomain: String?): ForumLink? {
             // 与 Java 的 String.trim 一致，只去掉不大于空格的字符
-            var value = input?.trim { it <= ' ' }
+            var value = input?.javaTrim()
             if (value.isNullOrEmpty() || value.startsWith("#")) return null
             var base = currentUrl.orEmpty().toHttpUrlOrNull()
             if (!isForum(base)) base = defaultDomain?.toHttpUrlOrNull()

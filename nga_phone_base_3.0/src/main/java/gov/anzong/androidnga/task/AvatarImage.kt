@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.util.Base64
+import androidx.core.graphics.scale
 import java.io.ByteArrayOutputStream
 
 /**
@@ -46,7 +47,7 @@ object AvatarImage {
         val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
             ?: throw IllegalArgumentException("所选择的不是图片")
         val (width, height) = fit(decoded.width, decoded.height)
-        val scaled = if (width == decoded.width && height == decoded.height) decoded else Bitmap.createScaledBitmap(decoded, width, height, true)
+        val scaled = if (width == decoded.width && height == decoded.height) decoded else decoded.scale(width, height)
         val output = ByteArrayOutputStream()
         scaled.compress(Bitmap.CompressFormat.PNG, 100, output)
         if (scaled !== decoded) scaled.recycle()
@@ -75,7 +76,7 @@ object AvatarImage {
     fun dataUrl(bitmap: Bitmap, area: CropPixels): String {
         val cropped = Bitmap.createBitmap(bitmap, area.x, area.y, area.width, area.height)
         val (width, height) = fit(cropped.width, cropped.height)
-        val scaled = if (width == cropped.width && height == cropped.height) cropped else Bitmap.createScaledBitmap(cropped, width, height, true)
+        val scaled = if (width == cropped.width && height == cropped.height) cropped else cropped.scale(width, height)
         val output = ByteArrayOutputStream()
         scaled.compress(Bitmap.CompressFormat.PNG, 100, output)
         if (scaled !== cropped) scaled.recycle()

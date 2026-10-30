@@ -5,8 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import gov.anzong.androidnga.common.PreferenceKey as Keys
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +45,7 @@ fun SettingsScreen(preferences: SharedPreferences, onBack: () -> Unit, onNavigat
         val checked=values[key] as? Boolean ?: default
         ListItem(headlineContent={Text(title, color=if(enabled)MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)},
             trailingContent={Switch(checked,onCheckedChange=null,enabled=enabled)},
-            modifier=Modifier.fillMaxWidth().toggleable(checked,enabled=enabled,role=Role.Switch){preferences.edit().putBoolean(key,it).apply()},
+            modifier=Modifier.fillMaxWidth().toggleable(checked,enabled=enabled,role=Role.Switch){preferences.edit { putBoolean(key,it) }},
             colors=ListItemDefaults.colors(containerColor=MaterialTheme.colorScheme.surface))
     }
     @Composable fun Group(title:String, content:@Composable ColumnScope.()->Unit) {
@@ -93,7 +94,7 @@ fun SettingsScreen(preferences: SharedPreferences, onBack: () -> Unit, onNavigat
         val selected=(values[key] as? String ?: if(key==Keys.KEY_NGA_DOMAIN)"1" else "0").toIntOrNull()?:0
         AlertDialog(onDismissRequest={choice=null},title={Text(if(key==Keys.KEY_NGA_DOMAIN)"论坛地址" else "加载方式")},text={
             LazyColumn(Modifier.heightIn(max=400.dp)) {itemsIndexed(options) {index,title->
-                Row(Modifier.fillMaxWidth().heightIn(min=48.dp).clickable{preferences.edit().putString(key,index.toString()).apply();choice=null}.padding(vertical=8.dp),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().heightIn(min=48.dp).clickable{preferences.edit { putString(key,index.toString()) };choice=null}.padding(vertical=8.dp),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                     RadioButton(selected==index,onClick=null);Text(title,modifier=Modifier.padding(start=12.dp).semantics { heading() })
                 }
             }}

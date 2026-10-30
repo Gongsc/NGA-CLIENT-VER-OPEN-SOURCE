@@ -1,6 +1,5 @@
 package gov.anzong.androidnga.ui.fragment
 
-import gov.anzong.androidnga.base.util.ToastUtils
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -13,31 +12,33 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.core.view.children
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import gov.anzong.androidnga.R
-import gov.anzong.androidnga.activity.ArticleListActivity
-import gov.anzong.androidnga.arouter.AppNavigator
-import gov.anzong.androidnga.arouter.ARouterConstants
-import gov.anzong.androidnga.ui.compose.*
-import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.account.UserManagerImpl
-import gov.anzong.androidnga.network.bean.ThreadData
-import gov.anzong.androidnga.network.bean.ThreadRowInfo
+import gov.anzong.androidnga.activity.ArticleListActivity
+import gov.anzong.androidnga.arouter.ARouterConstants
+import gov.anzong.androidnga.arouter.AppNavigator
+import gov.anzong.androidnga.base.util.ToastUtils
+import gov.anzong.androidnga.coroutines.UiEvent
+import gov.anzong.androidnga.coroutines.UiEventBus
+import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
+import gov.anzong.androidnga.mvvm.model.param.ParamKey
 import gov.anzong.androidnga.mvvm.model.quoteBlock
 import gov.anzong.androidnga.mvvm.viewmodel.ArticleListViewModel
 import gov.anzong.androidnga.mvvm.viewmodel.ArticleShareViewModel
-import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
-import gov.anzong.androidnga.mvvm.model.param.ParamKey
-import gov.anzong.androidnga.coroutines.UiEvent
-import gov.anzong.androidnga.coroutines.UiEventBus
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import gov.anzong.androidnga.network.bean.ThreadData
+import gov.anzong.androidnga.network.bean.ThreadRowInfo
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.task.BookmarkTask
 import gov.anzong.androidnga.task.LikeTask
+import gov.anzong.androidnga.ui.compose.*
 import gov.anzong.androidnga.ui.dialog.AvatarDialogFragment
 import gov.anzong.androidnga.ui.dialog.BaseDialogFragment
 import gov.anzong.androidnga.ui.dialog.PostCommentDialogFragment
@@ -175,7 +176,7 @@ class ArticleListFragment : Fragment() {
         menu.findItem(R.id.menu_vote)?.isVisible = !row.vote.isNullOrBlank()
         menu.findItem(R.id.menu_edit)?.isVisible = UserManagerImpl.getInstance().activeUser?.userId == row.authorid.toString()
         menu.findItem(R.id.menu_ban_this_one)?.setTitle(if (row.isInBlackList) R.string.cancel_ban_thisone else R.string.ban_thisone)
-        return (0 until menu.size()).map { menu.getItem(it) }.filter { it.isVisible }.map { HomeAction(it.itemId, it.title.toString()) }
+        return menu.children.toList().filter { it.isVisible }.map { HomeAction(it.itemId, it.title.toString()) }
     }
     private fun handleRowAction(row: ThreadRowInfo, id: Int) {
         when (id) {

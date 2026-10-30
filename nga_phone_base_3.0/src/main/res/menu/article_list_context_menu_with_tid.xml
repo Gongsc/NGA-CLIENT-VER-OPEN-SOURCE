@@ -5,7 +5,6 @@
 
     <item
         android:id="@+id/menu_show_whole_thread"
-        android:icon="@drawable/ic_action_storage"
         android:title="@string/show_whole_thread"
         androidnga:showAsAction="ifRoom|withText"/>
 
@@ -24,7 +23,7 @@
 
     <item
         android:id="@+id/menu_favorite"
-        android:title="收藏"/>
+        android:title="@string/title_menu_favorite"/>
 
     <item
         android:id="@+id/menu_vote"
@@ -33,7 +32,6 @@
 
     <item
         android:id="@+id/menu_share"
-        android:icon="@drawable/btn_ic_share"
         android:title="@string/share"
         androidnga:showAsAction="never"/>
 

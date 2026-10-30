@@ -3,6 +3,7 @@ package gov.anzong.androidnga.ui.compose
 import android.content.SharedPreferences
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
 import gov.anzong.androidnga.common.PreferenceKey
 
 const val PALETTE_KEY = "compose_palette"
@@ -28,18 +29,26 @@ class AppearanceSettings(private val preferences: SharedPreferences) {
         }
     }
     fun choosePalette(value: AppPalette) {
-        preferences.edit().putString(PALETTE_KEY, value.name).putString(PreferenceKey.MATERIAL_THEME,
-            when (value) { AppPalette.SAND -> "0"; AppPalette.GRAPHITE -> "2"; else -> "1" }).apply()
+        preferences.edit {
+            putString(PALETTE_KEY, value.name)
+            putString(PreferenceKey.MATERIAL_THEME, when (value) { AppPalette.SAND -> "0"; AppPalette.GRAPHITE -> "2"; else -> "1" })
+        }
     }
-    fun chooseCompact(value: Boolean) { preferences.edit().putBoolean(COMPACT_BOARDS_KEY, value).apply() }
+    fun chooseCompact(value: Boolean) { preferences.edit { putBoolean(COMPACT_BOARDS_KEY, value) } }
     fun chooseNightMode(value: AppNightMode) {
-        preferences.edit().putBoolean(PreferenceKey.KEY_NIGHT_MODE_FOLLOW_SYSTEM, value == AppNightMode.SYSTEM)
-            .putBoolean(PreferenceKey.NIGHT_MODE, value == AppNightMode.DARK).apply()
+        preferences.edit {
+            putBoolean(PreferenceKey.KEY_NIGHT_MODE_FOLLOW_SYSTEM, value == AppNightMode.SYSTEM)
+            putBoolean(PreferenceKey.NIGHT_MODE, value == AppNightMode.DARK)
+        }
     }
     fun reset() {
-        preferences.edit().putString(PALETTE_KEY, AppPalette.GREEN.name).putString(PreferenceKey.MATERIAL_THEME, "1")
-            .putBoolean(COMPACT_BOARDS_KEY, true).putBoolean(PreferenceKey.KEY_NIGHT_MODE_FOLLOW_SYSTEM, true)
-            .putBoolean(PreferenceKey.NIGHT_MODE, false).apply()
+        preferences.edit {
+            putString(PALETTE_KEY, AppPalette.GREEN.name)
+            putString(PreferenceKey.MATERIAL_THEME, "1")
+            putBoolean(COMPACT_BOARDS_KEY, true)
+            putBoolean(PreferenceKey.KEY_NIGHT_MODE_FOLLOW_SYSTEM, true)
+            putBoolean(PreferenceKey.NIGHT_MODE, false)
+        }
     }
 }
 val LocalAppearance = staticCompositionLocalOf<AppearanceSettings> { error("缺少外观配置") }

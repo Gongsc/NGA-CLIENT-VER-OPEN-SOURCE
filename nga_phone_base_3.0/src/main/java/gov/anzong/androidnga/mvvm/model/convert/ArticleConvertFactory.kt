@@ -1,21 +1,22 @@
 package gov.anzong.androidnga.mvvm.model.convert
 
 import gov.anzong.androidnga.Utils
+import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.base.json.NgaJsonArray
 import gov.anzong.androidnga.base.json.NgaJsonObject
+import gov.anzong.androidnga.base.util.javaTrim
 import gov.anzong.androidnga.core.HtmlConvertFactory
 import gov.anzong.androidnga.core.data.AttachmentData
 import gov.anzong.androidnga.core.data.CommentData
 import gov.anzong.androidnga.core.data.HtmlData
+import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
 import gov.anzong.androidnga.network.ForumConstants
-import gov.anzong.androidnga.settings.PhoneConfiguration
-import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.network.article.ArticleResponse
 import gov.anzong.androidnga.network.bean.DiceData
 import gov.anzong.androidnga.network.bean.ThreadData
 import gov.anzong.androidnga.network.bean.ThreadRowInfo
-import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.ui.theme.ThemeManager
 import gov.anzong.androidnga.util.FunctionUtils
 import gov.anzong.androidnga.util.HttpUtil
@@ -215,7 +216,7 @@ object ArticleConvertFactory {
         val client = rowObj.getString("from_client")
         if (client.isNullOrEmpty()) return
         row.fromClient = client
-        if (client.trim { it <= ' ' }.isEmpty()) return
+        if (client.javaTrim().isEmpty()) return
         val clientAppCode = if (client.contains(" ")) client.substring(0, client.indexOf(' ')) else client
         row.fromClientModel = when (clientAppCode) {
             "1", "7", "101" -> "ios"
@@ -316,7 +317,7 @@ object ArticleConvertFactory {
                         if (sum != -1) sum = (sum + rand).toInt()
                     }
                 } else {
-                    val covers = parts[0].trim { it <= ' ' }.toIntOrNull() ?: 0
+                    val covers = parts[0].javaTrim().toIntOrNull() ?: 0
                     sum += covers
                     rx.append("+").append(covers)
                 }

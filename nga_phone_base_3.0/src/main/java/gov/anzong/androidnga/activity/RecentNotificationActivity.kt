@@ -1,19 +1,20 @@
 package gov.anzong.androidnga.activity
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.core.content.IntentCompat
-import android.content.Context
-import gov.anzong.androidnga.common.PreferenceKey
-import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
-import gov.anzong.androidnga.ui.compose.NgaTheme
-import gov.anzong.androidnga.ui.compose.RecentNotificationScreen
-import gov.anzong.androidnga.settings.PhoneConfiguration
+import androidx.core.content.edit
 import gov.anzong.androidnga.account.UserManagerImpl
+import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
 import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.ui.compose.NgaTheme
+import gov.anzong.androidnga.ui.compose.RecentNotificationScreen
 
 /** 回复通知；系统通知栏的“被喷提醒”也打开这里，并带上其中的未读通知。 */
 class RecentNotificationActivity : BaseActivity() {
@@ -43,7 +44,7 @@ class RecentNotificationActivity : BaseActivity() {
 
     /** 读取成功后清除首页消息角标。 */
     private fun markRead() {
-        getSharedPreferences(packageName + "_preferences", Context.MODE_PRIVATE).edit().putInt(PreferenceKey.KEY_REPLY_COUNT, 0).apply()
+        getSharedPreferences(packageName + "_preferences", Context.MODE_PRIVATE).edit { putInt(PreferenceKey.KEY_REPLY_COUNT, 0) }
     }
 
     private fun openReply(reply: RecentReplyInfo) {

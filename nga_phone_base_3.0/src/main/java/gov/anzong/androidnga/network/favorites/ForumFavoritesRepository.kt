@@ -1,17 +1,18 @@
 package gov.anzong.androidnga.network.favorites
 
 import android.content.Context
+import androidx.core.content.edit
+import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.base.util.ContextUtils
 import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.coroutines.NgaDispatchers
+import gov.anzong.androidnga.network.retrofit.NgaApi
+import gov.anzong.androidnga.util.ForumUtils
+import java.nio.charset.Charset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import java.nio.charset.Charset
-import gov.anzong.androidnga.account.UserManagerImpl
-import gov.anzong.androidnga.util.ForumUtils
-import gov.anzong.androidnga.network.retrofit.NgaApi
 
 /** 首页、目录和版块菜单共享同一份论坛收藏状态。 */
 class ForumFavoritesRepository private constructor() {
@@ -23,7 +24,7 @@ class ForumFavoritesRepository private constructor() {
             ForumFavoritesParser.parseCache(preferences.getString("boards_$uid", "[]")!!)
         }.getOrDefault(emptyList())
         override fun write(uid: String, boards: List<ForumFavoriteBoard>) {
-            preferences.edit().putString("boards_$uid", ForumFavoritesParser.serialize(boards)).apply()
+            preferences.edit { putString("boards_$uid", ForumFavoritesParser.serialize(boards)) }
         }
     }
     private val sync = ForumFavoriteSync(fetch = { cookie ->

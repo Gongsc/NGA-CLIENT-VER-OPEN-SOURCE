@@ -3,12 +3,13 @@ package gov.anzong.androidnga.network.article
 import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.base.json.NgaJsonArray
 import gov.anzong.androidnga.base.json.NgaJsonObject
-import org.w3c.dom.Element
-import org.xml.sax.InputSource
+import gov.anzong.androidnga.base.util.javaTrim
 import java.io.StringReader
 import java.util.ArrayDeque
 import java.util.Locale
 import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Element
+import org.xml.sax.InputSource
 
 /** 将主题接口的 JSON 与 XML 响应转换为统一的数据结构。 */
 object ArticleResponse {
@@ -21,7 +22,7 @@ object ArticleResponse {
 
     /** 去掉 BOM、首尾空白（与 Java 的 String.trim 一致）与脚本标记。 */
     private fun normalize(text: String): String =
-        text.replace("\uFEFF", "").trim { it <= ' ' }.replace("/*\$js\$*/", "")
+        text.replace("\uFEFF", "").javaTrim().replace("/*\$js\$*/", "")
 
     /** 仅检测明确的未结束文档，不把登录 HTML 或完整但格式不兼容的响应当作截断。 */
     @JvmStatic

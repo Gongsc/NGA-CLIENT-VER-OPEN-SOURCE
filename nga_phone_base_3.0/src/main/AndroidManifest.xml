@@ -78,51 +78,20 @@
             android:name=".activity.TopicListActivity"
             android:configChanges="orientation|screenSize|locale|screenLayout|smallestScreenSize"
             android:exported="true">
-            <intent-filter>
+            <intent-filter tools:ignore="AppLinkWarning">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="bbs.nga.cn"
-                    android:path="/thread.php"
-                    android:scheme="http" />
-
-                <data
-                    android:host="bbs.ngacn.cc"
-                    android:path="/thread.php"
-                    android:scheme="http" />
-
-                <data
-                    android:host="nga.178.com"
-                    android:path="/thread.php"
-                    android:scheme="http" />
-
-                <data
-                    android:host="bbs.nga.cn"
-                    android:path="/thread.php"
-                    android:scheme="https" />
-
-                <data
-                    android:host="bbs.ngacn.cc"
-                    android:path="/thread.php"
-                    android:scheme="https" />
-
-                <data
-                    android:host="nga.178.com"
-                    android:path="/thread.php"
-                    android:scheme="https" />
-
-                <data
-                    android:host="ngabbs.com"
-                    android:path="/thread.php"
-                    android:scheme="https" />
-
-                <data
-                    android:host="ngabbs.com"
-                    android:path="/thread.php"
-                    android:scheme="https" />
+                <!-- 同一 intent-filter 中的 data 属性按组合匹配：http/https × 下列域名 × 路径；不做 App Link 验证（无法在论坛域名放置 assetlinks） -->
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="bbs.nga.cn" />
+                <data android:host="bbs.ngacn.cc" />
+                <data android:host="nga.178.com" />
+                <data android:host="ngabbs.com" />
+                <data android:path="/thread.php" />
 
             </intent-filter>
         </activity>
@@ -131,48 +100,21 @@
             android:name=".activity.ArticleListActivity"
             android:configChanges="orientation|screenSize|locale|screenLayout|smallestScreenSize"
             android:exported="true">
-            <intent-filter>
+            <intent-filter tools:ignore="AppLinkWarning">
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="nga.178.com"
-                    android:path="/read.php"
-                    android:scheme="http" />
-                <data
-                    android:host="bbs.ngacn.cc"
-                    android:path="/read.php"
-                    android:scheme="http" />
-                <data
-                    android:host="bbs.nga.cn"
-                    android:path="/read.php"
-                    android:scheme="http" />
-
-                <data
-                    android:host="nga.178.com"
-                    android:path="/read.php"
-                    android:scheme="https" />
-                <data
-                    android:host="bbs.ngacn.cc"
-                    android:path="/read.php"
-                    android:scheme="https" />
-                <data
-                    android:host="bbs.nga.cn"
-                    android:path="/read.php"
-                    android:scheme="https" />
-
-                <data
-                    android:host="ngabbs.com"
-                    android:path="/read.php"
-                    android:scheme="https" />
-
-                <data
-                    android:host="ngabbs.com"
-                    android:path="/read.php"
-                    android:scheme="https" />
+                <!-- 同一 intent-filter 中的 data 属性按组合匹配：http/https × 下列域名 × 路径；不做 App Link 验证（无法在论坛域名放置 assetlinks） -->
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="bbs.nga.cn" />
+                <data android:host="bbs.ngacn.cc" />
+                <data android:host="nga.178.com" />
+                <data android:host="ngabbs.com" />
+                <data android:path="/read.php" />
 
             </intent-filter>
         </activity>
@@ -189,7 +131,7 @@
             android:name=".activity.AboutActivity"
             android:label="@string/title_about" />
 
-        <activity android:name=".activity.TopicCacheActivity" android:label="我的缓存" />
+        <activity android:name=".activity.TopicCacheActivity" android:label="@string/title_menu_download" />
         <activity android:name=".activity.ArticleCacheActivity" />
 
         <activity android:name=".activity.WebViewActivity" />

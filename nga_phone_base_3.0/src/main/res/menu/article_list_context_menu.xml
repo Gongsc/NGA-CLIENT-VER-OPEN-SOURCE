@@ -30,7 +30,7 @@
 
     <item
         android:id="@+id/menu_favorite"
-        android:title="收藏"/>
+        android:title="@string/title_menu_favorite"/>
 
     <item
         android:id="@+id/menu_show_this_person_only"

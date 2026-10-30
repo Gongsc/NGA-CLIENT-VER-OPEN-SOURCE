@@ -84,7 +84,7 @@ private fun ReplyCount(replies: Int) {
 
 data class TopicRow(val key: String, val title: AnnotatedString, val author: String, val lastPoster: String, val replies: Int, val replyContent: String?)
 class TopicFeedState {
-    var refreshGeneration by mutableStateOf(0)
+    var refreshGeneration by mutableIntStateOf(0)
     var title by mutableStateOf("主题列表")
     var rows by mutableStateOf(emptyList<TopicRow>())
     var refreshing by mutableStateOf(false)

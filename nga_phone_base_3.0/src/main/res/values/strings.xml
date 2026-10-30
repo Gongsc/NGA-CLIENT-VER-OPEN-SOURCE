@@ -32,19 +32,9 @@
     <string name="add_to_blacklist_success">添加屏蔽成功</string>
     <string name="start_title">NGA客户端开源版</string>
     <string name="copied_to_clipboard">已经复制到剪切板</string>
-    <string name="user_distance">该用户距离你</string>
-    <string name="meter">米</string>
-    <string name="kilo_meter">公里</string>
     <string name="hide">隐藏</string>
-    <string name="blacklistban">屏蔽</string>
-    <string name="legend">传说</string>
-    <string name="attachment">附件</string>
-    <string name="comment">评论</string>
-    <string name="sig">签名</string>
     <string name="last_page_prompt">已加载到最后一页</string>
-    <string name="clientua">Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36 AndroidNGAOS/</string>
     <!-- string name="checksecret">4103ca8d364d2402e5e304ea07454a2a</string -->
-    <string name="checksecret">3ebd769858c56bd345898154e4b44427</string>
 
     <!-- d\o.jav 查System.currentTimeMillis()-->
 
@@ -84,9 +74,21 @@
     <string name="title_about">关于</string>
 
     <!-- error -->
-    <string name="error_load_failed">加载失败，请重试！</string>
     <string name="error_network">网络错误</string>
 
     <string name="shortcut_label_daxuanwo">大漩涡</string>
     <string name="shortcut_label_yishiting">议事厅</string>
+    <string name="title_menu_search">搜索用户</string>
+    <string name="title_menu_post">我的主题</string>
+    <string name="title_menu_reply">我的回复</string>
+    <string name="title_menu_download">我的缓存</string>
+    <string name="title_menu_favorite">收藏</string>
+    <string name="menu_group_tools">论坛工具</string>
+    <string name="title_menu_login">登录账号</string>
+    <string name="title_menu_forward">由URL读取</string>
+    <string name="title_menu_appearance">外观与布局</string>
+    <string name="title_menu_gun">最近被喷</string>
+    <string name="menu_group_app">应用</string>
+    <string name="title_menu_board_head">版头</string>
+    <string name="title_menu_cache_page">缓存本页</string>
 </resources>

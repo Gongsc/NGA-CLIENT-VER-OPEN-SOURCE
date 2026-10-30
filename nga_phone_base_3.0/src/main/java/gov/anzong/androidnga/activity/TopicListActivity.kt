@@ -9,24 +9,25 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.os.BundleCompat
+import androidx.core.view.children
 import androidx.lifecycle.ViewModel
 import gov.anzong.androidnga.R
+import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.arouter.ARouterConstants
 import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.arouter.TopicNavigation
-import gov.anzong.androidnga.mvvm.viewmodel.TopicListViewModel
-import gov.anzong.androidnga.ui.compose.*
-import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.mvvm.model.BoardModel
 import gov.anzong.androidnga.mvvm.model.entity.Board
 import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
 import gov.anzong.androidnga.mvvm.model.entity.TopicListInfo
-import gov.anzong.androidnga.mvvm.viewmodel.ForumFavoritesViewModel
 import gov.anzong.androidnga.mvvm.model.param.ParamKey
 import gov.anzong.androidnga.mvvm.model.param.TopicListParam
-import gov.anzong.androidnga.util.TopicTitleHelper
+import gov.anzong.androidnga.mvvm.viewmodel.ForumFavoritesViewModel
+import gov.anzong.androidnga.mvvm.viewmodel.TopicListViewModel
+import gov.anzong.androidnga.ui.compose.*
 import gov.anzong.androidnga.util.ActivityUtils
 import gov.anzong.androidnga.util.StringUtils
+import gov.anzong.androidnga.util.TopicTitleHelper
 
 /**
  * 主题列表：版块、搜索、收藏、精华区与 24 小时热帖。参数为 extras 中的 [ParamKey.KEY_PARAM]、
@@ -199,7 +200,7 @@ class TopicListActivity : BaseActivity() {
         menu.findItem(R.id.menu_remove_bookmark).isEnabled = available
         menu.findItem(R.id.menu_board_head).isVisible = param.boardHead != null
         menu.findItem(R.id.menu_sub_board).isVisible = !store.info?.subBoardList.isNullOrEmpty()
-        store.ui.actions = (0 until menu.size()).map { menu.getItem(it) }.filter { it.isVisible }
+        store.ui.actions = menu.children.toList().filter { it.isVisible }
             .map { HomeAction(it.itemId, it.title.toString(), it.isEnabled) }
     }
 

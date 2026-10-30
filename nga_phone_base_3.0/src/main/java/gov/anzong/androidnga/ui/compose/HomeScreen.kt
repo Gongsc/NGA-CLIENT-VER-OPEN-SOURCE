@@ -28,15 +28,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import gov.anzong.androidnga.network.favorites.ForumFavoritesSnapshot
 
 class HomeState {
     var categories by mutableStateOf(emptyList<HomeCategory>())
-    var selected by mutableStateOf(0)
+    var selected by mutableIntStateOf(0)
     var account by mutableStateOf<HomeAccount?>(null)
     var otherAccounts by mutableStateOf(emptyList<HomeAccount>())
-    var replyCount by mutableStateOf(0)
+    var replyCount by mutableIntStateOf(0)
 }
 data class HomeCategory(val name: String, val bookmark: Boolean, val sections: List<BoardSection>)
 data class HomeAction(val id: Int, val label: String, val enabled: Boolean = true)
@@ -173,7 +174,7 @@ private fun HomeBottomBar(titles: List<String>, selected: Int, onSelect: (Int) -
                 Box(Modifier.weight(1f).fillMaxHeight().testTag("home_tab_$index")
                     .selectable(selected = active, interactionSource = null, indication = ripple(bounded = false, radius = 32.dp),
                         role = Role.Tab, onClick = { onSelect(index) })) {
-                    Box(Modifier.align(Alignment.TopCenter).offset(y = top).size(bubble)
+                    Box(Modifier.align(Alignment.TopCenter).offset { IntOffset(0, top.roundToPx()) }.size(bubble)
                         .shadow(if (active) 6.dp else 0.dp, CircleShape).background(bubbleColor, CircleShape),
                         contentAlignment = Alignment.Center) {
                         CompositionLocalProvider(LocalContentColor provides iconColor) { icon(index, active) }

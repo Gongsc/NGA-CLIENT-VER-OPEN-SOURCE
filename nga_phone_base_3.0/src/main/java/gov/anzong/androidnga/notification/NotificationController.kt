@@ -1,8 +1,5 @@
 package gov.anzong.androidnga.notification
 
-import gov.anzong.androidnga.account.UserManagerImpl
-import gov.anzong.androidnga.settings.PhoneConfiguration
-
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -14,7 +11,9 @@ import android.preference.PreferenceManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
+import androidx.core.graphics.toColorInt
 import gov.anzong.androidnga.R
+import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.activity.MessageListActivity
 import gov.anzong.androidnga.activity.RecentNotificationActivity
 import gov.anzong.androidnga.base.util.ContextUtils
@@ -22,6 +21,7 @@ import gov.anzong.androidnga.common.PreferenceKey
 import gov.anzong.androidnga.http.OnHttpCallBack
 import gov.anzong.androidnga.mvvm.model.entity.NotificationInfo
 import gov.anzong.androidnga.mvvm.model.entity.RecentReplyInfo
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.task.ForumNotificationTask
 
 object NotificationController {
@@ -93,7 +93,7 @@ object NotificationController {
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val builder = NotificationCompat.Builder(context, NOTIFICATION_ID)
-            .setLights(Color.parseColor("#fff0cd"), 2333, 0)
+            .setLights("#fff0cd".toColorInt(), 2333, 0)
             .setSmallIcon(R.mipmap.ic_launcher_foreground)
             .setWhen(System.currentTimeMillis())
             // 设置默认的提示音，振动方式，灯光

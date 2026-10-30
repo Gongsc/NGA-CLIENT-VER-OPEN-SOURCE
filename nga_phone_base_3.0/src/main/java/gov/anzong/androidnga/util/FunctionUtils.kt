@@ -12,15 +12,16 @@ import androidx.fragment.app.FragmentManager
 import gov.anzong.androidnga.R
 import gov.anzong.androidnga.Utils
 import gov.anzong.androidnga.base.util.ToastUtils
+import gov.anzong.androidnga.base.util.javaTrim
 import gov.anzong.androidnga.core.data.HtmlData
 import gov.anzong.androidnga.core.decode.ForumDecoder
-import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.network.bean.ThreadRowInfo
-import gov.anzong.androidnga.ui.theme.ThemeManager
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.ui.dialog.BaseDialogFragment
 import gov.anzong.androidnga.ui.dialog.ReportDialogFragment
 import gov.anzong.androidnga.ui.dialog.SignatureDialogFragment
 import gov.anzong.androidnga.ui.dialog.VoteDialogFragment
+import gov.anzong.androidnga.ui.theme.ThemeManager
 
 /** 楼层操作、彩色字与外部打开等杂项。 */
 object FunctionUtils {
@@ -247,7 +248,7 @@ object FunctionUtils {
     /** 引用用的正文摘要：最多 99 个字符，去掉末尾未闭合的论坛代码。 */
     @JvmStatic
     fun checkContent(text: String): String {
-        var content = text.trim { it <= ' ' }
+        var content = text.javaTrim()
         while (content.startsWith("\n")) {
             content = content.replaceFirst("\n", "")
         }
@@ -354,13 +355,13 @@ object FunctionUtils {
         if (txtsendout.lowercase().lastIndexOf("[color") >= 0) {
             txtsendout = txtsendout.substring(0, txtsendout.lowercase().lastIndexOf("[color"))
         }
-        return existQuoteTxt + txtsendout.replace("&nbsp;", " ").trim { it <= ' ' }
+        return existQuoteTxt + txtsendout.replace("&nbsp;", " ").javaTrim()
     }
 
     /** 设置中开启彩色字时转换正文。 */
     @JvmStatic
     fun ColorTxtCheck(text: String): String =
-        if (PhoneConfiguration.getInstance().isShowColorText) ColorTxt(text.trim { it <= ' ' }) else text
+        if (PhoneConfiguration.getInstance().isShowColorText) ColorTxt(text.javaTrim()) else text
 
     @JvmStatic
     fun share(context: Context, title: String?, content: String?) {

@@ -18,30 +18,32 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.core.view.children
 import gov.anzong.androidnga.NgaClientApp
 import gov.anzong.androidnga.R
+import gov.anzong.androidnga.account.User
+import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.arouter.ARouterConstants
 import gov.anzong.androidnga.arouter.AppNavigator
 import gov.anzong.androidnga.arouter.TopicNavigation
 import gov.anzong.androidnga.base.util.ThemeUtils
 import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.common.PreferenceKey
-import gov.anzong.androidnga.mvvm.viewmodel.BoardViewModel
-import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
-import gov.anzong.androidnga.ui.compose.*
-import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.mvvm.model.TopicHistoryManager
-import gov.anzong.androidnga.account.User
-import gov.anzong.androidnga.account.UserManagerImpl
-import gov.anzong.androidnga.network.favorites.ForumFavoriteBoard
 import gov.anzong.androidnga.mvvm.model.entity.Board
 import gov.anzong.androidnga.mvvm.model.entity.ThreadPageInfo
-import gov.anzong.androidnga.mvvm.viewmodel.ForumFavoritesViewModel
 import gov.anzong.androidnga.mvvm.model.param.ParamKey
-import gov.anzong.androidnga.ui.theme.ThemeManager
+import gov.anzong.androidnga.mvvm.viewmodel.BoardViewModel
+import gov.anzong.androidnga.mvvm.viewmodel.ForumFavoritesViewModel
+import gov.anzong.androidnga.mvvm.viewmodel.HomeInboxViewModel
+import gov.anzong.androidnga.network.favorites.ForumFavoriteBoard
+import gov.anzong.androidnga.settings.PhoneConfiguration
+import gov.anzong.androidnga.ui.compose.*
 import gov.anzong.androidnga.ui.dialog.AddBoardDialogFragment
 import gov.anzong.androidnga.ui.dialog.UrlInputDialogFragment
 import gov.anzong.androidnga.ui.dialog.VersionUpgradeDialogFragment
+import gov.anzong.androidnga.ui.theme.ThemeManager
 import gov.anzong.androidnga.util.FunctionUtils
 
 /** 首页：界面由 Compose 绘制，版块收藏与账号由 [BoardViewModel] 处理，论坛收藏与消息各有 ViewModel。 */
@@ -131,7 +133,7 @@ class MainActivity : BaseActivity() {
                             onCompose = { AppNavigator.getInstance().build(ARouterConstants.ACTIVITY_MESSAGE_POST).withString("action", "new").navigation(this) },
                             onRead = {
                                 state.replyCount = 0
-                                preferences().edit().putInt(PreferenceKey.KEY_REPLY_COUNT, 0).apply()
+                                preferences().edit { putInt(PreferenceKey.KEY_REPLY_COUNT, 0) }
                             }, onControlsExpandedChange = onControls)
                     })
             }
@@ -141,8 +143,7 @@ class MainActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         if (nightMode != ThemeManager.getInstance().isNightMode) {
-            finish()
-            startActivity(intent)
+            recreate()
             return
         }
         if (isFinishing) return
@@ -171,8 +172,7 @@ class MainActivity : BaseActivity() {
         val menu = PopupMenu(this, View(this)).menu
         menuInflater.inflate(R.menu.main_navigation_menu, menu)
         menuInflater.inflate(R.menu.main_option_menu, menu)
-        fun flatten(source: Menu): List<HomeAction> = (0 until source.size()).flatMap { index ->
-            val item = source.getItem(index)
+        fun flatten(source: Menu): List<HomeAction> = source.children.toList().flatMap { item ->
             if (item.hasSubMenu()) flatten(item.subMenu!!) else listOf(HomeAction(item.itemId, item.title.toString()))
         }
         return flatten(menu).distinctBy { it.id }

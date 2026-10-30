@@ -4,7 +4,7 @@
 
 - 仅支持 Android 12 及以上（minSdk 31）。Android 11 及更早版本不再支持安装。
 - compileSdk / targetSdk：37（Android 17）。
-- Android Gradle Plugin 9.4.1，Gradle Wrapper 9.6.0，JDK 17。
+- Android Gradle Plugin 9.4.1，Gradle Wrapper 9.8.2，JDK 17。
 - Kotlin 2.4.21，使用 AGP 内置 Kotlin 和同版本 Compose Compiler 插件。
 - Compose BOM 2026.09.00、Material 3；SDK 版本统一定义于根目录 build.gradle。
 - 仓库配置集中于 settings.gradle，仅使用 HTTPS。

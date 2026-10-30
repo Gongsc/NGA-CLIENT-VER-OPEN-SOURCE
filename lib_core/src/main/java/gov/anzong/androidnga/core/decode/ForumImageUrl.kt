@@ -1,5 +1,6 @@
 package gov.anzong.androidnga.core.decode
 
+import gov.anzong.androidnga.base.util.javaTrim
 import java.net.URI
 import java.util.Locale
 
@@ -22,7 +23,7 @@ object ForumImageUrl {
     @JvmStatic
     fun normalize(input: String?): String? {
         // 与 Java 的 String.trim 一致，只去掉不大于空格的字符
-        val trimmed = input?.trim { it <= ' ' }
+        val trimmed = input?.javaTrim()
         if (trimmed.isNullOrEmpty()) return null
         var value = trimmed.replace("&amp;", "&")
         if (value.startsWith("file:///android_asset/")) return value
@@ -62,7 +63,7 @@ object ForumImageUrl {
     fun forumPath(url: String?): String? {
         if (url == null) return null
         return try {
-            val uri = URI.create(url.trim { it <= ' ' })
+            val uri = URI.create(url.javaTrim())
             val lower = uri.host?.lowercase(Locale.ROOT) ?: return null
             if (lower !in LEGACY_HOSTS && lower !in LEGACY_STATIC_HOSTS) null else uri.rawPath
         } catch (error: IllegalArgumentException) {

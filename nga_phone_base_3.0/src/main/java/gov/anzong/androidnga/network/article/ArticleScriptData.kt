@@ -1,6 +1,7 @@
 package gov.anzong.androidnga.network.article
 
 import gov.anzong.androidnga.base.json.NgaJson
+import gov.anzong.androidnga.base.util.javaTrim
 
 /** 只读取网页启动脚本中的字面量；不执行 JavaScript。 */
 internal object ArticleScriptData {
@@ -33,14 +34,14 @@ internal object ArticleScriptData {
                 } else if (c == '(' || c == '[' || c == '{') {
                     depth++
                 } else if (c == ')' && depth == 0) {
-                    args.add(script.substring(part, offset).trim { it <= ' ' })
+                    args.add(script.substring(part, offset).javaTrim())
                     result.add(args)
                     offset++
                     break
                 } else if (c == ')' || c == ']' || c == '}') {
                     depth--
                 } else if (c == ',' && depth == 0) {
-                    args.add(script.substring(part, offset).trim { it <= ' ' })
+                    args.add(script.substring(part, offset).javaTrim())
                     part = offset + 1
                 }
                 offset++

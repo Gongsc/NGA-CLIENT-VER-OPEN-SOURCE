@@ -19,12 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import gov.anzong.androidnga.arouter.AppNavigator
-import gov.anzong.androidnga.base.json.NgaJson
+import androidx.core.content.edit
+import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.activity.SearchActivity
 import gov.anzong.androidnga.arouter.ARouterConstants
+import gov.anzong.androidnga.arouter.AppNavigator
+import gov.anzong.androidnga.base.json.NgaJson
 import gov.anzong.androidnga.common.PreferenceKey
-import gov.anzong.androidnga.account.UserManagerImpl
 import gov.anzong.androidnga.mvvm.model.param.ParamKey
 import gov.anzong.androidnga.task.SearchBoardTask
 
@@ -39,7 +40,7 @@ fun installSearchContent(activity: SearchActivity) {
 @Composable
 private fun SearchScreen(activity: SearchActivity) {
     val preferences = remember { activity.getSharedPreferences(activity.packageName + "_preferences", android.content.Context.MODE_PRIVATE) }
-    var mode by rememberSaveable { mutableStateOf(0) }
+    var mode by rememberSaveable { mutableIntStateOf(0) }
     var query by rememberSaveable { mutableStateOf("") }
     var currentBoard by rememberSaveable { mutableStateOf(true) }
     var withContent by rememberSaveable { mutableStateOf(false) }
@@ -60,7 +61,7 @@ private fun SearchScreen(activity: SearchActivity) {
     val fid = activity.intent.getIntExtra("fid", 0)
     fun saveHistory(items: List<String>) {
         history = items
-        preferences.edit().putString(key, NgaJson.toJSONString(items)).apply()
+        preferences.edit { putString(key, NgaJson.toJSONString(items)) }
     }
     fun search(input: String) {
         var term = input.trim().replace("\n", "")

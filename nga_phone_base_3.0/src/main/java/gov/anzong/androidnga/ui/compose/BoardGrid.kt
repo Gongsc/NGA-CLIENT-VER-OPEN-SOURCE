@@ -97,8 +97,7 @@ fun BoardGrid(
 
 @Composable
 private fun BoardIcon(board: BoardTile, size: androidx.compose.ui.unit.Dp) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val model = remember(board.fid, board.stid) { boardIconModel(context, board) }
+    val model = remember(board.fid, board.stid) { boardIconModel(board) }
     AndroidView(
         factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER; importantForAccessibility = ImageView.IMPORTANT_FOR_ACCESSIBILITY_NO } },
         modifier = Modifier.size(size),
@@ -112,12 +111,9 @@ private fun BoardIcon(board: BoardTile, size: androidx.compose.ui.unit.Dp) {
     )
 }
 
-private val boardIconResources = java.util.concurrent.ConcurrentHashMap<String, Int>()
-
-/** 内置图标优先；资源查找较慢，按名称缓存结果。 */
-private fun boardIconModel(context: android.content.Context, board: BoardTile): Any {
+/** 内置图标优先，否则使用论坛的版块图标地址。 */
+private fun boardIconModel(board: BoardTile): Any {
     if (board.stid != 0) return String.format(ApiConstants.URL_BOARD_ICON_STID, board.stid)
     val name = if (board.fid > 0) "p${board.fid}" else "p_${kotlin.math.abs(board.fid)}"
-    val resource = boardIconResources.getOrPut(name) { context.resources.getIdentifier(name, "drawable", context.packageName) }
-    return if (resource != 0) resource else String.format(ApiConstants.URL_BOARD_ICON, board.fid)
+    return BUILT_IN_BOARD_ICONS[name] ?: String.format(ApiConstants.URL_BOARD_ICON, board.fid)
 }

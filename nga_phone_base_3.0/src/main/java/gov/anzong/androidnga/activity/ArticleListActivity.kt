@@ -13,21 +13,23 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
+import androidx.core.view.children
 import androidx.fragment.compose.AndroidFragment
 import androidx.lifecycle.Lifecycle
 import gov.anzong.androidnga.R
 import gov.anzong.androidnga.Utils
-import gov.anzong.androidnga.base.util.ToastUtils
-import gov.anzong.androidnga.ui.compose.*
-import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.account.UserManagerImpl
-import gov.anzong.androidnga.mvvm.viewmodel.ArticleShareViewModel
+import gov.anzong.androidnga.base.util.ToastUtils
 import gov.anzong.androidnga.mvvm.model.param.ArticleListParam
 import gov.anzong.androidnga.mvvm.model.param.ParamKey
+import gov.anzong.androidnga.mvvm.viewmodel.ArticleShareViewModel
+import gov.anzong.androidnga.settings.PhoneConfiguration
 import gov.anzong.androidnga.task.BookmarkTask
-import gov.anzong.androidnga.ui.theme.ThemeManager
+import gov.anzong.androidnga.ui.compose.*
 import gov.anzong.androidnga.ui.fragment.ArticleListFragment
+import gov.anzong.androidnga.ui.theme.ThemeManager
 import gov.anzong.androidnga.util.FunctionUtils
 
 /**
@@ -81,7 +83,7 @@ class ArticleListActivity : BaseActivity() {
         val url = intent.dataString
         val extras = intent.extras
         return when {
-            url != null -> Uri.parse(url).let { uri ->
+            url != null -> url.toUri().let { uri ->
                 ArticleListParam().apply {
                     tid = queryInt(uri, "tid")
                     pid = queryInt(uri, "pid")
@@ -122,7 +124,7 @@ class ArticleListActivity : BaseActivity() {
         menu.findItem(R.id.menu_nightmode).isVisible = !theme.isNightModeFollowSystem && !theme.isNightMode
         menu.findItem(R.id.menu_daymode).isVisible = !theme.isNightModeFollowSystem && theme.isNightMode
         menu.findItem(R.id.menu_download).isVisible = request.pid == 0 && request.topicInfo != null
-        state.actions = (0 until menu.size()).map { menu.getItem(it) }.filter { it.isVisible }.map { HomeAction(it.itemId, it.title.toString()) }
+        state.actions = menu.children.toList().filter { it.isVisible }.map { HomeAction(it.itemId, it.title.toString()) }
     }
 
     private fun handleAction(id: Int) {

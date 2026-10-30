@@ -1,5 +1,6 @@
 package gov.anzong.androidnga.base.util
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -14,33 +15,37 @@ import androidx.annotation.DimenRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
+import java.lang.ref.WeakReference
 
 object ContextUtils {
 
+    /** Application 与进程同生命周期，静态持有不会泄漏。 */
+    @SuppressLint("StaticFieldLeak")
     private lateinit var application: Application
 
-    private var resumedActivity: Activity? = null
+    /** 弱引用，页面销毁后不会因这里的引用而无法回收。 */
+    private var resumedActivity: WeakReference<Activity>? = null
 
     /** 当前在前台的 Activity，没有时为 Application。 */
     @JvmStatic
-    fun getContext(): Context = resumedActivity ?: application
+    fun getContext(): Context = resumedActivity?.get() ?: application
 
     @JvmStatic
     fun setApplication(application: Application) {
         this.application = application
         application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                resumedActivity = activity
+                resumedActivity = WeakReference(activity)
             }
 
             override fun onActivityStarted(activity: Activity) {}
 
             override fun onActivityResumed(activity: Activity) {
-                resumedActivity = activity
+                resumedActivity = WeakReference(activity)
             }
 
             override fun onActivityPaused(activity: Activity) {
-                if (activity === resumedActivity) {
+                if (activity === resumedActivity?.get()) {
                     resumedActivity = null
                 }
             }
@@ -50,7 +55,7 @@ object ContextUtils {
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 
             override fun onActivityDestroyed(activity: Activity) {
-                if (activity === resumedActivity) {
+                if (activity === resumedActivity?.get()) {
                     resumedActivity = null
                 }
             }

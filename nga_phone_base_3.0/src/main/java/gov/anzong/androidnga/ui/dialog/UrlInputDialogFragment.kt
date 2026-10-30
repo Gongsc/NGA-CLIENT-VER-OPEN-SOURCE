@@ -17,6 +17,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.core.net.toUri
 import gov.anzong.androidnga.Utils
 import gov.anzong.androidnga.activity.ArticleListActivity
 import gov.anzong.androidnga.activity.TopicListActivity
@@ -33,8 +34,8 @@ class UrlInputDialogFragment : BaseDialogFragment() {
         fun open() {
             when (val target = forumUrlTarget(input.text, Utils.getNGAHost())) {
                 is UrlTarget.Invalid -> error = target.message
-                is UrlTarget.Board -> { startActivity(Intent(requireContext(), TopicListActivity::class.java).setData(Uri.parse(target.url))); dismiss() }
-                is UrlTarget.Topic -> { startActivity(Intent(requireContext(), ArticleListActivity::class.java).setData(Uri.parse(target.url))); dismiss() }
+                is UrlTarget.Board -> { startActivity(Intent(requireContext(), TopicListActivity::class.java).setData(target.url.toUri())); dismiss() }
+                is UrlTarget.Topic -> { startActivity(Intent(requireContext(), ArticleListActivity::class.java).setData(target.url.toUri())); dismiss() }
             }
         }
         NgaDialogLayout("由URL读取", buttons = {

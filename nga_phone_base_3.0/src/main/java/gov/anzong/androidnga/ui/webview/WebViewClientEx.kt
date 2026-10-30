@@ -7,10 +7,12 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.core.net.toUri
 import gov.anzong.androidnga.activity.ArticleListActivity
 import gov.anzong.androidnga.activity.TopicListActivity
 import gov.anzong.androidnga.arouter.ARouterConstants
 import gov.anzong.androidnga.arouter.AppNavigator
+import gov.anzong.androidnga.base.util.javaTrim
 import gov.anzong.androidnga.gallery.ImageZoomActivity
 import gov.anzong.androidnga.util.ForumUtils
 
@@ -31,16 +33,16 @@ class WebViewClientEx() : WebViewClient() {
 
     @Deprecated("Deprecated in Java")
     override fun shouldOverrideUrlLoading(view: WebView, url: String?): Boolean {
-        if (url == null || url.trim { it <= ' ' }.startsWith("#")) return false
+        if (url == null || url.javaTrim().startsWith("#")) return false
         // 阻止脚本、自定义协议等地址通过论坛正文启动其他应用。
         val link = ForumLink.resolve(url, view.url, ForumUtils.getAvailableDomain()) ?: return true
         val context = view.context
         val resolved = link.url.toString()
         val intent = when (link.target) {
             ForumLink.Target.ARTICLE -> Intent(context, ArticleListActivity::class.java)
-                .setData(Uri.parse(resolved))
+                .setData(resolved.toUri())
                 .putExtra("fromreplyactivity", 1)
-            ForumLink.Target.FORUM -> Intent(context, TopicListActivity::class.java).setData(Uri.parse(resolved))
+            ForumLink.Target.FORUM -> Intent(context, TopicListActivity::class.java).setData(resolved.toUri())
             ForumLink.Target.PROFILE -> {
                 AppNavigator.getInstance()
                     .build(ARouterConstants.ACTIVITY_PROFILE)
@@ -56,7 +58,7 @@ class WebViewClientEx() : WebViewClient() {
                     .putExtra(ImageZoomActivity.KEY_GALLERY_URLS, images.toTypedArray())
                     .putExtra(ImageZoomActivity.KEY_GALLERY_CUR_URL, resolved)
             }
-            ForumLink.Target.EXTERNAL -> Intent(Intent.ACTION_VIEW, Uri.parse(resolved))
+            ForumLink.Target.EXTERNAL -> Intent(Intent.ACTION_VIEW, resolved.toUri())
         }
         try {
             context.startActivity(intent)
