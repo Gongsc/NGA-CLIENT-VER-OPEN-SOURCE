@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "gov.anzong.androidnga"
+        applicationId = "io.github.gongsc.nga"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = rootProject.ext.minSdkVersion
         targetSdk = rootProject.ext.targetSdkVersion

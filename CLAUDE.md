@@ -26,7 +26,7 @@ Toolchain: JDK 17, AGP 9.4.1 (built-in Kotlin, no `kotlin-android` plugin), Kotl
 ./gradlew :nga_phone_base_3.0:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=<fqcn>
 ```
 
-Debug builds use applicationId `gov.anzong.androidnga.debug` (label "NGA测试版") so they install alongside the release app without touching its data; the instrumentation package is `gov.anzong.androidnga.debug.test`. Prefer `installDebug` + `installDebugAndroidTest` + `adb shell am instrument` over `connected*` tasks, which uninstall afterwards.
+Release builds use applicationId `io.github.gongsc.nga` (deliberately different from the upstream Google Play app `gov.anzong.androidnga`, which must not overwrite it; code namespace stays `gov.anzong.androidnga`). Debug builds use applicationId `io.github.gongsc.nga.debug` (label "NGA测试版") so they install alongside the release app without touching its data; the instrumentation package is `io.github.gongsc.nga.debug.test`. Prefer `installDebug` + `installDebugAndroidTest` + `adb shell am instrument` over `connected*` tasks, which uninstall afterwards.
 
 Reports: `nga_phone_base_3.0/build/reports/tests/testDebugUnitTest/`, `.../reports/lint-results-debug.html`, `.../reports/androidTests/connected/debug/`. SARIF lint export is intentionally disabled (AGP 9.4.1 reporter crashes). Release signing is not in the repo: `assembleRelease` signs only when the `NGA_KEYSTORE_*`/`NGA_KEY_*` env vars are set. Pushing a `vX.Y.Z` tag that matches `appVersionName` runs `.github/workflows/release.yml`, which builds a signed APK from repository secrets and publishes a GitHub Release (the in-app update check reads that release).
 

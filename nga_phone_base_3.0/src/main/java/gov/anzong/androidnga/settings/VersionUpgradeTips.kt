@@ -6,6 +6,11 @@ package gov.anzong.androidnga.settings
  */
 object VersionUpgradeTips {
 
+    const val TIPS_4303 = "4.3.3 更新内容\n" +
+        "● 包名改为 io.github.gongsc.nga，不再与 Google Play 上的原版互相覆盖，两者可同时安装\n" +
+        "● 本版会作为新应用安装，需要重新登录并设置；确认无误后可卸载旧版\n" +
+        "问题与建议请前往 GitHub 反馈\n"
+
     const val TIPS_4302 = "4.3.2 更新内容\n" +
         "● 修复调整账号顺序后当前账号被切换为第一个账号\n" +
         "● 修复短消息列表遇到异常会话时卡住、按发帖时间排序时偶发出错\n" +
