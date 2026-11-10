@@ -102,7 +102,7 @@ Windows 环境使用 `gradlew.bat`。正式版包名为 `io.github.gongsc.nga`�
 
 ### 自动发布
 
-推送 `v4.3.3` 格式的版本标签后，[发布工作流](.github/workflows/release.yml)会执行单元测试、构建签名发布包，检查安装包包含各模块的关键类，并创建对应的 GitHub Release。附件为 `NGA-<版本号>.apk` 与 `SHA256SUMS.txt`，发布说明取自 `VersionUpgradeTips` 中当前版本代码的更新说明。标签带 `-` 后缀（如 `v4.3.1-beta.1`）时创建预发布，不会出现在应用的检查更新结果中。标签与 `appVersionName` 不一致、缺少签名 Secrets 或缺少关键类时，工作流直接失败，不创建发布。
+推送 `v4.3.4` 格式的版本标签后，[发布工作流](.github/workflows/release.yml)会执行单元测试、构建签名发布包，检查安装包包含各模块的关键类，并创建对应的 GitHub Release。附件为 `NGA-<版本号>.apk` 与 `SHA256SUMS.txt`，发布说明取自 `VersionUpgradeTips` 中当前版本代码的更新说明。标签带 `-` 后缀（如 `v4.3.1-beta.1`）时创建预发布，不会出现在应用的检查更新结果中。标签与 `appVersionName` 不一致、缺少签名 Secrets 或缺少关键类时，工作流直接失败，不创建发布。
 
 首次使用前，需在仓库 Settings → Secrets and variables → Actions 中添加：
 
@@ -118,7 +118,7 @@ Windows 环境使用 `gradlew.bat`。正式版包名为 `io.github.gongsc.nga`�
 发布步骤：
 
 1. 在根目录 `build.gradle` 中更新 `appVersionName` 与 `appVersionCode`（`主版本×1000 + 次版本×100 + 修订号`），并在 `VersionUpgradeTips` 中添加对应的 `TIPS_<版本代码>` 更新说明。
-2. 提交并推送后，创建与 `appVersionName` 一致的标签并推送：`git tag v4.3.3 && git push origin v4.3.3`。
+2. 提交并推送后，创建与 `appVersionName` 一致的标签并推送：`git tag v4.3.4 && git push origin v4.3.4`。
 
 应用“关于 → 检查更新”读取本仓库的最新正式发布，按数字比较发布标签与 `appVersionName`，并显示发布说明。库模块的 release 构建不开启混淆，避免删除模块代码（4.1.0 与 4.2.0 曾因此启动闪退，已在 4.2.1 修复）。
 
@@ -220,6 +220,7 @@ Windows 环境使用 `gradlew.bat`。正式版包名为 `io.github.gongsc.nga`�
 
 ## 版本记录
 
+- **4.3.4**：修复主题内原生文字楼层与 WebView 楼层字重不一致（MIUI 上 Compose 默认字体偏粗）；引用块改为左侧色条样式，引用头改为用户名、时间与原帖链接一行；主楼标题加大并加分隔线，主题页顶栏去掉重复标题并收窄；未闭合的行内格式标签按网页版规则只作用到行尾。
 - **4.3.3**：正式版包名由 `gov.anzong.androidnga` 改为 `io.github.gongsc.nga`（调试版为 `io.github.gongsc.nga.debug`），避免被原项目 Google Play 版覆盖；代码包名不变。旧版用户需重新安装并登录。
 - **4.3.2**：主代码与三个库模块由 Java 转为 Kotlin（仅保留 Room 与 Glide 注解处理所需的 4 个 Java 文件），删除无引用的旧代码；`sp.phone.*` 并入 `gov.anzong.androidnga.*`；修复调整账号顺序后当前账号跳到第一个、短消息列表遇到异常条目时卡住、主题按发帖时间排序可能出错。Lint 警告清零：菜单文字移入字符串资源，删除无用资源与图标，版块图标改为静态映射，适配主题图标；单元测试全部改为 Kotlin；OkHttp 升级至 5.5.1，Glide 升级至 5.0.9，Gradle Wrapper 升级至 9.8.2。
 - **4.3.1**：所有页面与对话框改为 Compose，整页 Fragment 合并进 Activity；用户资料的禁言与激活状态按网页规则判断，buff 单独显示为“状态”；头像支持从相册截取后上传，修改后首页头像同步更新；签名可清空；点赞、收藏、举报、签名与清空提醒改经 `NgaWriteClient` 提交，失败时提示原因；投票提交时在对话框内显示进度；首页底栏缩小并突出当前页签；字体与阅读大小加入实时预览，头像大小设置实际生效；修复列表与折叠标签冲突。代码方面移除剩余的 `HttpURLConnection`，删除无引用的资源与遗留 TODO，Lint 警告由 173 项降至 86 项。

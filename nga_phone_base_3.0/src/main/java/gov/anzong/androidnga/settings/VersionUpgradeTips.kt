@@ -6,6 +6,13 @@ package gov.anzong.androidnga.settings
  */
 object VersionUpgradeTips {
 
+    const val TIPS_4304 = "4.3.4 更新内容\n" +
+        "● 修复同一主题内纯文字楼层与带引用、表情的楼层文字粗细不一致\n" +
+        "● 引用改为新样式：左侧色条与圆角底色，引用头显示用户名、时间和原帖链接\n" +
+        "● 主楼标题加大并与正文用分隔线隔开，主题页顶栏不再重复显示标题\n" +
+        "● 未闭合的粗体等格式只作用到行尾，与网页版一致\n" +
+        "问题与建议请前往 GitHub 反馈\n"
+
     const val TIPS_4303 = "4.3.3 更新内容\n" +
         "● 包名改为 io.github.gongsc.nga，不再与 Google Play 上的原版互相覆盖，两者可同时安装\n" +
         "● 本版会作为新应用安装，需要重新登录并设置；确认无误后可卸载旧版\n" +
