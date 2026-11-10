@@ -67,7 +67,8 @@ fun ArticleReaderScreen(state: ArticleReaderState, initialPage: Int, leftHand: B
         }
     }
     Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
-        TopAppBar(title = { Text(state.title, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }, navigationIcon = {
+        // 标题已在主楼正文上方显示，顶栏不再重复，只保留返回与操作按钮并收窄高度
+        TopAppBar(title = {}, expandedHeight = 48.dp, navigationIcon = {
             ActionIcon(Icons.AutoMirrored.Filled.ArrowBack, "返回", onBack)
         }, actions = {
             ActionIcon(ActionIcons.Refresh, "刷新", onRefresh)

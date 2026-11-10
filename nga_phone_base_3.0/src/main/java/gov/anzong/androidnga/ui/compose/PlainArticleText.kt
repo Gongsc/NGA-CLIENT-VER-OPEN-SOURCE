@@ -16,7 +16,11 @@ fun plainArticleText(row: ThreadRowInfo): String? {
         || !row.vote.isNullOrEmpty() || !row.alterinfo.isNullOrEmpty()
         || (PhoneConfiguration.getInstance().isShowSignature && !row.signature.isNullOrEmpty())
         || !canRenderPlainArticle(content) || !canRenderPlainArticle(row.subject.orEmpty())) return null
-    val text = Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY).toString().trimEnd('\n')
+    return Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY).toString().trimEnd('\n')
+}
+
+/** 原生文字楼层的标题，单独以标题样式显示；没有标题时为空。 */
+fun plainArticleSubject(row: ThreadRowInfo): String {
     val subject = row.subject.orEmpty()
-    return if (subject.isEmpty()) text else Html.fromHtml(subject, Html.FROM_HTML_MODE_LEGACY).toString() + "\n\n" + text
+    return if (subject.isEmpty()) "" else Html.fromHtml(subject, Html.FROM_HTML_MODE_LEGACY).toString().trim()
 }

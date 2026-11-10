@@ -19,7 +19,7 @@ object HtmlConvertFactory {
             builder.append("<h5>[隐藏]</h5>")
         } else {
             if (!htmlData.subject.isNullOrEmpty()) {
-                builder.append("<div class='title'>${htmlData.subject}</div><br>")
+                builder.append("<div class='title'>${htmlData.subject}</div>")
             }
             var ngaHtml: String? = ForumDecoder.decode(htmlData.rawData, htmlData, images)
             if (ngaHtml.isNullOrEmpty()) {

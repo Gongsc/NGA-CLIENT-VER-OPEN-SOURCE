@@ -25,6 +25,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -115,7 +116,15 @@ fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (
                     if (!row.memberGroup.isNullOrBlank() || !row.postCount.isNullOrBlank()) Text("${row.memberGroup.orEmpty()} · 威望 ${row.reputation} · 发帖 ${row.postCount.orEmpty()}",
                         style = MaterialTheme.typography.labelSmall, color = secondary)
                     val plain = remember(row, row.formattedHtmlData) { plainArticleText(row) }
-                    if (plain != null) Text(plain, modifier = Modifier.testTag("article_native_text"), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp, fontFamily = ArticleBodyFontFamily)
+                    if (plain != null) {
+                        val subject = remember(row) { plainArticleSubject(row) }
+                        // 与 WebView 楼层的 div.title 保持一致：加大加粗，下方细分隔线
+                        if (subject.isNotEmpty()) {
+                            Text(subject, fontSize = (bodySize * 1.25f).sp, lineHeight = (bodySize * 1.25f * 1.4f).sp, fontWeight = FontWeight.Bold)
+                            HorizontalDivider(Modifier.padding(top = 8.dp, bottom = 10.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                        Text(plain, modifier = Modifier.testTag("article_native_text"), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp, fontFamily = ArticleBodyFontFamily)
+                    }
                     else if (row.formattedHtmlData.isNullOrEmpty()) Text(row.content.orEmpty(), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp, fontFamily = ArticleBodyFontFamily)
                     else ArticleHtml(row.formattedHtmlData!!, row.imageUrls.orEmpty(), background, foreground)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -185,6 +194,7 @@ fun themedArticleHtml(html: String, foreground: String, background: String, acce
         a{color:$accent!important;}
         .quote,blockquote,pre{background:$quote!important;color:$foreground!important;border-color:$outline!important;}
         .quote{border-left-color:$accent!important;}
+        .title{border-bottom-color:$outline!important;}
     </style>""".trimIndent()
     val source = html.replace(Regex("<meta\\b[^>]*name\\s*=\\s*(['\"])viewport\\1[^>]*>", RegexOption.IGNORE_CASE), "")
     val head = source.indexOf("</head>", ignoreCase = true)
