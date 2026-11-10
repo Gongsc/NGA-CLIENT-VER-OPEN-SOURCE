@@ -22,7 +22,7 @@ class ForumBasicDecoder : IForumDecoder {
         val styleLeft = "<div style='float:left' >"
         val styleRight = "<div style='float:right' >"
         content = StringUtils.replaceAll(content, ignoreCaseTag + "&amp;", "&")
-        // 与网页版一致：引用头只有用户名加粗，"Reply to"、时间等不加粗
+        // 引用头转为一行标题：只有用户名加粗（与网页版一致）
         content = simplifyQuoteHeaders(content, host)
         // 与网页版一致：行内格式标签只在本行内生效，避免未闭合的 [b] 等把后面的楼层内容全部加粗
         content = closeInlineTagsPerLine(content)
@@ -56,7 +56,8 @@ class ForumBasicDecoder : IForumDecoder {
                 "<h4 style='font-weight: bold;border-bottom: 1px solid #AAA;clear: both;margin-bottom: 0px;'>$1</h4>");*/
 
         content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[quote\\]", STYLE_QUOTE)
-        content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[/quote\\]", endDiv)
+        // 引用块自带上下间距，去掉紧跟其后的空行
+        content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[/quote\\](?:\\s*<br\\s*/?>)*", endDiv)
 
         content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[code\\]", STYLE_QUOTE + "Code:")
         content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[code(.+?)\\]", STYLE_QUOTE)
@@ -247,14 +248,14 @@ class ForumBasicDecoder : IForumDecoder {
         private val LIST_TAG: Pattern = Pattern.compile("(?i)\\[(list)\\]|\\[/list\\]")
         private val COLLAPSE_TAG: Pattern = Pattern.compile("(?i)\\[(collapse)(?:=([^\\]]*))?\\]|\\[/collapse\\]")
 
-        /** 引用头：第 1 组 "Reply to "，第 2 组 pid/tid 链接，第 3 组用户名，第 4 组时间。 */
+        /** 引用头：第 1 组 "Reply to "，第 2 组 pid/tid 及其参数，第 3 组用户名，第 4 组时间；头部后面的空行一并去掉。 */
         private val QUOTE_HEADER: Pattern = Pattern.compile(
-            "(?:\\[b\\])?(Reply to )?(\\[[tp]id=[\\d,\\-]+\\](?:Reply|Topic)\\[/[tp]id\\]) (?:\\[b\\])?Post by " +
-                "\\[uid=\\d+\\](.+?)\\[/uid\\] (\\(\\d+-\\d+-\\d+ \\d+:\\d+\\)):?(?:\\[/b\\])?")
+            "(?:\\[b\\])?(Reply to )?\\[([tp]id=[\\d,\\-]+)\\](?:Reply|Topic)\\[/[tp]id\\] (?:\\[b\\])?Post by " +
+                "\\[uid=\\d+\\](.+?)\\[/uid\\] \\((\\d+-\\d+-\\d+ \\d+:\\d+)\\):?(?:\\[/b\\])?(?:\\s*<br\\s*/?>)*")
 
         /**
-         * 网页版把 "[b]Post by [uid]用户[/uid] (时间):[/b]" 形式的引用头简化为 "by [用户] (时间)"：去掉整行的粗体，
-         * 只有用户名加粗，时间为灰色常规字重。"Reply to" 形式（不带引用内容的回复）照旧包进引用框。
+         * 把 "[pid=…]Reply[/pid] [b]Post by [uid]用户[/uid] (时间):[/b]" 形式的引用头转换为一行引用标题：
+         * 用户名（唯一加粗的部分，与网页版一致）、时间和原帖链接。"Reply to" 形式（不带引用内容的回复）包进引用框。
          */
         @JvmStatic
         fun simplifyQuoteHeaders(content: String, host: String?): String {
@@ -262,10 +263,13 @@ class ForumBasicDecoder : IForumDecoder {
             val matcher = QUOTE_HEADER.matcher(content)
             val out = StringBuffer(content.length + 64)
             while (matcher.find()) {
-                val header = matcher.group(2) + " by <a href='" + host + "nuke.php?func=ucp&username=" + matcher.group(3) +
-                    "' style='font-weight: bold;color:#3181f4'>[" + matcher.group(3) + "]</a> " +
-                    "<span style='font-weight:normal;color:#888'>" + matcher.group(4) + "</span>"
-                val replacement = if (matcher.group(1) != null) "[quote]Reply to $header[/quote]" else header
+                val target = matcher.group(2)!!
+                val id = target.substringAfter('=').substringBefore(',')
+                val link = if (target.startsWith("t", ignoreCase = true)) "read.php?tid=$id" else "read.php?searchpost=1&pid=$id"
+                val header = "<div class='quote-head'><a class='quote-user' href='" + host + "nuke.php?func=ucp&username=" +
+                    matcher.group(3) + "'>" + matcher.group(3) + "</a><span class='quote-time'>" + matcher.group(4) +
+                    "</span><a class='quote-link' href='" + host + link + "'>原帖</a></div>"
+                val replacement = if (matcher.group(1) != null) "[quote]$header[/quote]" else header
                 matcher.appendReplacement(out, Matcher.quoteReplacement(replacement))
             }
             return matcher.appendTail(out).toString()

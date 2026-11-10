@@ -15,24 +15,32 @@ class ForumBasicDecoderTest {
         "<div><button onclick='toggleCollapse(this)'>点击显示内容${if (title == null) "" else " : $title"}" +
             "</button><div name='collapse' class='collapse' style='display:none'>"
 
-    private val reply = "<a href='https://bbs.nga.cn/read.php?searchpost=1&pid=11' style='color:#3181f4'>[Reply]</a>"
-    private val user = "<a href='https://bbs.nga.cn/nuke.php?func=ucp&username=甲乙' style='font-weight: bold;color:#3181f4'>[甲乙]</a>"
-    private val time = "<span style='font-weight:normal;color:#888'>(2026-01-02 03:04)</span>"
+    private val head = "<div class='quote-head'><a class='quote-user' href='https://bbs.nga.cn/nuke.php?func=ucp&username=甲乙'>甲乙</a>" +
+        "<span class='quote-time'>2026-01-02 03:04</span>" +
+        "<a class='quote-link' href='https://bbs.nga.cn/read.php?searchpost=1&pid=11'>原帖</a></div>"
 
-    /** 网页版的引用头只有用户名加粗，整行不加粗。 */
+    /** 引用头是一行标题（用户名、时间、原帖链接），头部与引用块后面的空行不再保留。 */
     @Test
-    fun quoteHeaderOnlyBoldsUserName() {
+    fun quoteHeaderBecomesHeadLine() {
         assertEquals(
-            "<div class='quote' >$reply by $user $time<br/><br/>原文</div><br/>回复",
-            decode("[quote][pid=11,22,1]Reply[/pid] [b]Post by [uid=33]甲乙[/uid] (2026-01-02 03:04):[/b]<br/><br/>原文[/quote]<br/>回复"),
+            "<div class='quote' >${head}原文</div>回复",
+            decode("[quote][pid=11,22,1]Reply[/pid] [b]Post by [uid=33]甲乙[/uid] (2026-01-02 03:04):[/b]<br/><br/>原文[/quote]<br/><br/>回复"),
         )
     }
 
     @Test
-    fun replyToHeaderIsQuotedWithoutBold() {
+    fun replyToHeaderIsQuotedHeadLine() {
         assertEquals(
-            "<div class='quote' >Reply to $reply by $user $time</div><br/>回复",
+            "<div class='quote' >$head</div>回复",
             decode("[b]Reply to [pid=11,22,1]Reply[/pid] Post by [uid=33]甲乙[/uid] (2026-01-02 03:04)[/b]<br/>回复"),
+        )
+    }
+
+    @Test
+    fun topicQuoteLinksToTopic() {
+        assertEquals(
+            "<div class='quote' >" + head.replace("read.php?searchpost=1&pid=11", "read.php?tid=22") + "原文</div>",
+            decode("[quote][tid=22]Topic[/tid] [b]Post by [uid=33]甲乙[/uid] (2026-01-02 03:04):[/b]<br/>原文[/quote]"),
         )
     }
 

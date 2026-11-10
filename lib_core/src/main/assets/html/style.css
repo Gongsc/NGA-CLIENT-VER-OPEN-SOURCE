@@ -10,8 +10,41 @@ table.default {
 }
 
 div.quote {
-    border: 1px solid #888;
-    padding: 10px;
+    border-left: 3px solid #888;
+    border-radius: 4px 12px 12px 4px;
+    padding: 8px 12px;
+    margin: 6px 0 10px 0;
+    font-size: 0.94em;
+}
+
+div.quote-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+    margin-bottom: 4px;
+    font-size: 0.86em;
+}
+
+div.quote-head:last-child {
+    margin-bottom: 0;
+}
+
+div.quote-head a {
+    text-decoration: none;
+}
+
+a.quote-user {
+    font-weight: bold;
+}
+
+span.quote-time {
+    opacity: 0.6;
+}
+
+a.quote-link {
+    margin-left: auto;
+    opacity: 0.8;
 }
 
 div.title {

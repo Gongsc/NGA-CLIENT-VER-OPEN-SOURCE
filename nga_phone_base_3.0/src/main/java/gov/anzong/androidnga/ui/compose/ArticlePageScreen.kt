@@ -184,6 +184,7 @@ fun themedArticleHtml(html: String, foreground: String, background: String, acce
         p,div,table,table.default,td,th,li,blockquote,h5{font-size:inherit;}
         a{color:$accent!important;}
         .quote,blockquote,pre{background:$quote!important;color:$foreground!important;border-color:$outline!important;}
+        .quote{border-left-color:$accent!important;}
     </style>""".trimIndent()
     val source = html.replace(Regex("<meta\\b[^>]*name\\s*=\\s*(['\"])viewport\\1[^>]*>", RegexOption.IGNORE_CASE), "")
     val head = source.indexOf("</head>", ignoreCase = true)
