@@ -22,6 +22,10 @@ class ForumBasicDecoder : IForumDecoder {
         val styleLeft = "<div style='float:left' >"
         val styleRight = "<div style='float:right' >"
         content = StringUtils.replaceAll(content, ignoreCaseTag + "&amp;", "&")
+        // 与网页版一致：引用头只有用户名加粗，"Reply to"、时间等不加粗
+        content = simplifyQuoteHeaders(content, host)
+        // 与网页版一致：行内格式标签只在本行内生效，避免未闭合的 [b] 等把后面的楼层内容全部加粗
+        content = closeInlineTagsPerLine(content)
         content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[l\\]", styleLeft)
         content = StringUtils.replaceAll(content, ignoreCaseTag + "\\[/l\\]", endDiv)
         // content = StringUtils.replaceAll(content, "\\[L\\]", styleLeft)
@@ -40,11 +44,11 @@ class ForumBasicDecoder : IForumDecoder {
         content = StringUtils.replaceAll(content,
                 ignoreCaseTag
                         + "\\[b\\]Reply to \\[pid=(.+?),(.+?),(.+?)\\]Reply\\[/pid\\] (.+?)\\[/b\\]",
-                "[quote]Reply to [b]<a href='" + host + "read.php?searchpost=1&pid=$1' style='font-weight: bold;color:#3181f4'>[Reply]</a> $4[/b][/quote]")
+                "[quote]Reply to <a href='" + host + "read.php?searchpost=1&pid=$1' style='color:#3181f4'>[Reply]</a> $4[/quote]")
 
         content = StringUtils.replaceAll(content,
                 ignoreCaseTag + "\\[pid=(.+?),(.+?),(.+?)\\]Reply\\[/pid\\]",
-                "<a href='" + host + "read.php?searchpost=1&pid=$1' style='font-weight: bold;color:#3181f4'>[Reply]</a>")
+                "<a href='" + host + "read.php?searchpost=1&pid=$1' style='color:#3181f4'>[Reply]</a>")
 
         // 某些帖子会导致这个方法卡住, 暂时不清楚原因, 和这个方法的作用.... by elrond
         /*content = StringUtils.replaceAll(content, 
@@ -242,6 +246,83 @@ class ForumBasicDecoder : IForumDecoder {
         /** 第 1 组为开标签（collapse 的第 2 组为标题），闭标签没有分组。 */
         private val LIST_TAG: Pattern = Pattern.compile("(?i)\\[(list)\\]|\\[/list\\]")
         private val COLLAPSE_TAG: Pattern = Pattern.compile("(?i)\\[(collapse)(?:=([^\\]]*))?\\]|\\[/collapse\\]")
+
+        /** 引用头：第 1 组 "Reply to "，第 2 组 pid/tid 链接，第 3 组用户名，第 4 组时间。 */
+        private val QUOTE_HEADER: Pattern = Pattern.compile(
+            "(?:\\[b\\])?(Reply to )?(\\[[tp]id=[\\d,\\-]+\\](?:Reply|Topic)\\[/[tp]id\\]) (?:\\[b\\])?Post by " +
+                "\\[uid=\\d+\\](.+?)\\[/uid\\] (\\(\\d+-\\d+-\\d+ \\d+:\\d+\\)):?(?:\\[/b\\])?")
+
+        /**
+         * 网页版把 "[b]Post by [uid]用户[/uid] (时间):[/b]" 形式的引用头简化为 "by [用户] (时间)"：去掉整行的粗体，
+         * 只有用户名加粗，时间为灰色常规字重。"Reply to" 形式（不带引用内容的回复）照旧包进引用框。
+         */
+        @JvmStatic
+        fun simplifyQuoteHeaders(content: String, host: String?): String {
+            if (!content.contains("Post by ")) return content
+            val matcher = QUOTE_HEADER.matcher(content)
+            val out = StringBuffer(content.length + 64)
+            while (matcher.find()) {
+                val header = matcher.group(2) + " by <a href='" + host + "nuke.php?func=ucp&username=" + matcher.group(3) +
+                    "' style='font-weight: bold;color:#3181f4'>[" + matcher.group(3) + "]</a> " +
+                    "<span style='font-weight:normal;color:#888'>" + matcher.group(4) + "</span>"
+                val replacement = if (matcher.group(1) != null) "[quote]Reply to $header[/quote]" else header
+                matcher.appendReplacement(out, Matcher.quoteReplacement(replacement))
+            }
+            return matcher.appendTail(out).toString()
+        }
+
+        /** 第 1 组为闭标签的斜杠，第 2 组为标签名，第 3 组为参数；没有分组时是换行。 */
+        private val INLINE_TAG: Pattern =
+            Pattern.compile("(?i)\\[(/?)(b|u|i|del|color|font|size)(=[^\\[\\]|]+)?\\]|<br\\s*/?>|\n")
+        private val SIZE_OPTION: Pattern = Pattern.compile("=\\d+%")
+
+        /**
+         * 网页版的 [b]、[u]、[i]、[del]、[color]、[font]、[size] 只在本行内生效：换行处强行结束未闭合的标签，
+         * 多余的闭标签直接丢弃。这里按同样的规则补齐、丢弃标签，输出仍是论坛代码，交给后面的转换处理。
+         */
+        @JvmStatic
+        fun closeInlineTagsPerLine(content: String): String {
+            if (content.indexOf('[') < 0) return content
+            val matcher = INLINE_TAG.matcher(content)
+            val open = ArrayList<String>()
+            val out = StringBuilder(content.length + 16)
+            var last = 0
+            fun closeAll() {
+                for (index in open.indices.reversed()) out.append("[/").append(open[index]).append(']')
+                open.clear()
+            }
+            while (matcher.find()) {
+                out.append(content, last, matcher.start())
+                last = matcher.end()
+                val name = matcher.group(2)?.lowercase()
+                if (name == null) {
+                    closeAll()
+                    out.append(matcher.group())
+                    continue
+                }
+                val option = matcher.group(3)
+                if (matcher.group(1)!!.isEmpty()) {
+                    val valid = when (name) {
+                        "color", "font" -> option != null
+                        "size" -> option != null && SIZE_OPTION.matcher(option).matches()
+                        else -> option == null
+                    }
+                    if (valid) open.add(name)
+                    out.append(matcher.group())
+                } else if (option != null) {
+                    out.append(matcher.group())
+                } else {
+                    val index = open.lastIndexOf(name)
+                    if (index >= 0) {
+                        open.removeAt(index)
+                        out.append(matcher.group())
+                    }
+                }
+            }
+            out.append(content, last, content.length)
+            closeAll()
+            return out.toString()
+        }
 
         /**
          * 转换 [list][/list] 与 [*]：开闭标签按配对转换，支持嵌套，未配对的去掉；列表项交给浏览器自动闭合，

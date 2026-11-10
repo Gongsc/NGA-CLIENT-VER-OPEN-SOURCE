@@ -1,6 +1,7 @@
 package gov.anzong.androidnga.ui.compose
 
 import android.widget.ImageView
+import android.graphics.Typeface
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import gov.anzong.androidnga.R
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -113,8 +115,8 @@ fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (
                     if (!row.memberGroup.isNullOrBlank() || !row.postCount.isNullOrBlank()) Text("${row.memberGroup.orEmpty()} · 威望 ${row.reputation} · 发帖 ${row.postCount.orEmpty()}",
                         style = MaterialTheme.typography.labelSmall, color = secondary)
                     val plain = remember(row, row.formattedHtmlData) { plainArticleText(row) }
-                    if (plain != null) Text(plain, modifier = Modifier.testTag("article_native_text"), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp)
-                    else if (row.formattedHtmlData.isNullOrEmpty()) Text(row.content.orEmpty(), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp)
+                    if (plain != null) Text(plain, modifier = Modifier.testTag("article_native_text"), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp, fontFamily = ArticleBodyFontFamily)
+                    else if (row.formattedHtmlData.isNullOrEmpty()) Text(row.content.orEmpty(), fontSize = bodySize.sp, lineHeight = (bodySize * 1.6f).sp, fontFamily = ArticleBodyFontFamily)
                     else ArticleHtml(row.formattedHtmlData!!, row.imageUrls.orEmpty(), background, foreground)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Row(Modifier.weight(1f).semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
@@ -132,6 +134,13 @@ fun ArticlePageScreen(state: ArticlePageState, onRefresh: () -> Unit, onQuote: (
         }
     }
 }
+
+/**
+ * 原生文字楼层与 WebView 楼层要用同一字重。Compose 默认通过 Typeface.create(family, 400, false) 取字体，
+ * MIUI 的可变字体会把它映射得比系统默认字体（WebView、TextView 所用）更粗，同一帖子里两种楼层粗细不一；
+ * 直接使用 Typeface.DEFAULT 则与 WebView 一致，在其它系统上两者本来相同。
+ */
+private val ArticleBodyFontFamily by lazy { FontFamily(Typeface.DEFAULT) }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

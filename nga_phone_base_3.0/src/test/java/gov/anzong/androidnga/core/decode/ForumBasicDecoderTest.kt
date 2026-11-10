@@ -15,6 +15,53 @@ class ForumBasicDecoderTest {
         "<div><button onclick='toggleCollapse(this)'>点击显示内容${if (title == null) "" else " : $title"}" +
             "</button><div name='collapse' class='collapse' style='display:none'>"
 
+    private val reply = "<a href='https://bbs.nga.cn/read.php?searchpost=1&pid=11' style='color:#3181f4'>[Reply]</a>"
+    private val user = "<a href='https://bbs.nga.cn/nuke.php?func=ucp&username=甲乙' style='font-weight: bold;color:#3181f4'>[甲乙]</a>"
+    private val time = "<span style='font-weight:normal;color:#888'>(2026-01-02 03:04)</span>"
+
+    /** 网页版的引用头只有用户名加粗，整行不加粗。 */
+    @Test
+    fun quoteHeaderOnlyBoldsUserName() {
+        assertEquals(
+            "<div class='quote' >$reply by $user $time<br/><br/>原文</div><br/>回复",
+            decode("[quote][pid=11,22,1]Reply[/pid] [b]Post by [uid=33]甲乙[/uid] (2026-01-02 03:04):[/b]<br/><br/>原文[/quote]<br/>回复"),
+        )
+    }
+
+    @Test
+    fun replyToHeaderIsQuotedWithoutBold() {
+        assertEquals(
+            "<div class='quote' >Reply to $reply by $user $time</div><br/>回复",
+            decode("[b]Reply to [pid=11,22,1]Reply[/pid] Post by [uid=33]甲乙[/uid] (2026-01-02 03:04)[/b]<br/>回复"),
+        )
+    }
+
+    /** 网页版在换行处结束未闭合的粗体，后面的内容不能跟着加粗。 */
+    @Test
+    fun unclosedBoldEndsAtLineBreak() {
+        assertEquals("<b>标题</b><br/>正文<br/>第三行", decode("[b]标题<br/>正文<br/>第三行"))
+        assertEquals("<b>标题</b>\n正文", decode("[b]标题\n正文"))
+        assertEquals("前文<b>末尾</b>", decode("前文[b]末尾"))
+    }
+
+    @Test
+    fun pairedBoldIsUnchanged() {
+        assertEquals("甲<b>乙</b>丙<br/><b>丁</b>", decode("甲[b]乙[/b]丙<br/>[B]丁[/B]"))
+    }
+
+    @Test
+    fun unmatchedInlineClosersAreDropped() {
+        assertEquals("甲乙<br/>丙", decode("甲[/b]乙[/color]<br/>丙[/size]"))
+    }
+
+    @Test
+    fun unclosedNestedInlineTagsCloseInnermostFirst() {
+        assertEquals(
+            "<span style='color:red' ><b><u>甲</u></b></span><br/>乙",
+            decode("[color=red][b][u]甲<br/>乙[/u][/b][/color]"),
+        )
+    }
+
     @Test
     fun listItemsDropTrailingLineBreaks() {
         assertEquals("<ul><li>甲<li>乙</ul>后文", decode("[list][*]甲<br/>[*]乙<br/>[/list]<br/>后文"))
